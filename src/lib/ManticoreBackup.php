@@ -1,15 +1,19 @@
 <?php declare(strict_types=1);
+
 /**
  * This class is used to initialize config, parse it and launch the backup process
  */
 class ManticoreBackup {
+  const VERSION = '0.0.1';
+  const MIN_PHP_VERSION = '8.1';
+
   /**
    * Store the wanted indexes in target dir as backup
    *
    * @param ManticoreClient $Client
    *  Initialized client to interract with manticore search daemon
-   * @param string $target_dir
-   *  Diretory where we will create directory in format backup-YmdHis and store inside it wanted backup
+   * @param FileStorage $Storage
+   *  The instance of the storage with initialize directories to use
    * @param array $indexes
    *  List of indexes to store. In case if its empty array we store all indexes
    * @return void
@@ -54,12 +58,13 @@ class ManticoreBackup {
       $files = $Client->freeze($index);
       echo '  ' . $index . ' [' . bytes_to_gb($Storage::calculateFilesSize($files)) . '] – ';
 
-
       $backup_path = $destination['data'] . DIRECTORY_SEPARATOR . $index;
       $is_ok = mkdir($backup_path, 0755);
       if (false === $is_ok) {
         $Client->unfreeze($index);
-        throw new SearchdException(__METHOD__ . ': failed to create target directory for index – "' . $backup_path . '"');
+        throw new SearchdException(
+          'Failed to create target directory for index – "' . $backup_path . '"'
+        );
       }
 
       $is_ok = $Storage->copyPaths($files, $backup_path);
@@ -90,7 +95,10 @@ class ManticoreBackup {
     }
 
     if (false === $result) {
-      throw new Exception('Failed to make backup of indexes. Please check that script has rights to access source and destinations directories');
+      throw new Exception(
+        'Failed to make backup of indexes. '
+          . 'Please check that script has rights to access source and destinations directories'
+      );
     }
 
     static::fsync();
@@ -128,7 +136,9 @@ class ManticoreBackup {
     $destination = $target_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
     // Do not let backup in same existing directory
     if (is_dir($destination)) {
-      throw new InvalidPathException('Failed to get destination directory for backup, there is such dir already: ' . $destination);
+      throw new InvalidPathException(
+        'Failed to get destination directory for backup, there is such dir already: ' . $destination
+      );
     }
 
     $is_ok = mkdir($destination, 0755);
@@ -190,7 +200,5 @@ class ManticoreBackup {
    */
   protected static function fsync(): void {
     system('sync');
-
-    // TODO: flush attributes?
   }
 }

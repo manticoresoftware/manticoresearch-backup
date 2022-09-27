@@ -9,7 +9,8 @@ class FileStorage {
    * @param bool $use_compression
    *  The flag that shows if we should to use compression with lz4 or not
    */
-  public function __construct(protected string $target_dir, protected bool $use_compression = false) {}
+  public function __construct(protected string $target_dir, protected bool $use_compression = false) {
+  }
 
   /**
    * Getter for $this->target_dir
@@ -57,26 +58,23 @@ class FileStorage {
    *  The path which ownership we transfer from
    * @param string $to
    *  The path where we transfer ownership to
-   * @return bool
-   *  The result of transferring, if everything is fine it's true
+   * @return void
+   * @throws RuntimeException
    */
-  public static function transferOwnership(string $from, string $to): bool {
+  public static function transferOwnership(string $from, string $to): void {
     $file_uid = fileowner($from);
     $file_gid = filegroup($from);
     $file_perm = fileperms($from);
     if (false === $file_uid || false === $file_gid || false === $file_perm) {
-      return false;
+      throw new RuntimeException('Failed to find out file ownership info for source path: ' . $from);
     }
 
-    $result = true;
     // Next functions works only on non windows systems
     if (!OS::isWindows()) {
-      $result = $result && chown($to, $file_uid);
-      $result = $result && chgrp($to, $file_gid);
-      $result = $result && chmod($to, $file_perm);
+      chown($to, $file_uid);
+      chgrp($to, $file_gid);
+      chmod($to, $file_perm);
     }
-
-    return $result;
   }
 
   /**
@@ -113,7 +111,10 @@ class FileStorage {
         continue;
       }
 
-      $result = $result && $this->copyFile($File->getPathname(), $dest_dir . DIRECTORY_SEPARATOR . $File->getBasename());
+      $result = $result && $this->copyFile(
+        $File->getPathname(),
+        $dest_dir . DIRECTORY_SEPARATOR . $File->getBasename()
+      );
     }
 
     return $result;
@@ -146,13 +147,20 @@ class FileStorage {
 
     if ($this->use_compression) {
       $to .= '.lz4';
+      if (!function_exists('lz4_compress')) {
+        throw new RuntimeException(
+          'Failed to finde lz4_compress please make sure that you have lz4 extensions compiled in'
+        );
+      }
       $result = !!file_put_contents($to, lz4_compress(file_get_contents($from)));
     } else {
       $result = copy($from, $to);
 
       // If checksum missmatch we fail immediately
       if (md5_file($from, true) !== md5_file($to, true)) {
-        throw new ChecksumException(__FUNCTION__ . ': failed to validate checksum for copying file from "' . $from . '" to "' . $to . '"');
+        throw new ChecksumException(
+          'Failed to validate checksum for copying file from "' . $from . '" to "' . $to . '"'
+        );
       }
     }
 
@@ -265,7 +273,7 @@ class FileStorage {
   }
 
   /**
-   * Get tmp directory for project related usage primarely in tests 
+   * Get tmp directory for project related usage primarely in tests
    * @return string
    *  The path to the temporary dir that contains only files created by us
    */

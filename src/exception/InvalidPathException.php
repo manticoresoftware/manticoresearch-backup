@@ -1,2 +1,4 @@
 <?php declare(strict_types=1);
-class InvalidPathException extends Exception {}
+
+class InvalidPathException extends Exception {
+}

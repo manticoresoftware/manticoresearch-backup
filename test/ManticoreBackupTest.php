@@ -53,13 +53,15 @@ class ManticoreBackupTest extends TestCase {
     }
 
     // Check that the config file is valid
+    $dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.conf';
     $this->assertEquals(
-      FileStorage::getPathChecksum($basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.conf'),
+      FileStorage::getPathChecksum($dst_conf),
       FileStorage::getPathChecksum($Config->path)
     );
 
+    $dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.json';
     $this->assertEquals(
-      FileStorage::getPathChecksum($basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.json'),
+      FileStorage::getPathChecksum($dst_conf),
       FileStorage::getPathChecksum($Config->schema_path)
     );
   }

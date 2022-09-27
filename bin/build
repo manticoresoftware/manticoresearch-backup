@@ -1,6 +1,8 @@
 #!/usr/bin/env -S php -dphar.readonly=0
 <?php
-$bin_file = 'build/manticore_backup';
+define('BUILD_DIR', './build');
+
+$bin_file = BUILD_DIR . '/manticore_backup';
 $phar_file = $bin_file . '.phar';
 if (file_exists($phar_file)) {
   unlink($phar_file);
@@ -8,6 +10,10 @@ if (file_exists($phar_file)) {
 
 if (file_exists($phar_file . '.gz')) {
   unlink($phar_file . '.gz');
+}
+
+if (!is_dir(BUILD_DIR)) {
+  mkdir(BUILD_DIR, 0755);
 }
 
 $Phar = new Phar($phar_file);
