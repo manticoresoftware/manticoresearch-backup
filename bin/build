@@ -1,0 +1,38 @@
+#!/usr/bin/env -S php -dphar.readonly=0
+<?php
+$bin_file = 'build/manticore_backup';
+$phar_file = $bin_file . '.phar';
+if (file_exists($phar_file)) {
+  unlink($phar_file);
+}
+
+if (file_exists($phar_file . '.gz')) {
+  unlink($phar_file . '.gz');
+}
+
+$Phar = new Phar($phar_file);
+$Phar->startBuffering();
+$default_stub = $Phar->createDefaultStub('src/main.php');
+$Phar->buildFromDirectory('.', '/src\/.+$/');
+$Phar->setStub($default_stub);
+$Phar->stopBuffering();
+// TODO: we should add gz to manticore-executor or do not use it
+// $Phar->compressFiles(Phar::GZ);
+
+// Rewrite the resulting file to support dynamic executor
+$bash = implode(PHP_EOL, [
+  '#!/usr/bin/env bash',
+  'executor=$(which manticore-executor || which php)',
+  'tmp=$($executor -r \'echo sys_get_temp_dir();\')',
+  'php_file="$tmp/manticore_backup.phar"',
+  'self_ts=$(date -r "$0" +%s)',
+  'phar_ts=$(test -f "$php_file" && date -r $_ +%s || echo 0)',
+  'test "$self_ts" -gt "$phar_ts" && echo \'<?php file_put_contents("\'$php_file\'", hex2bin("' . bin2hex(file_get_contents($phar_file)) . '"));\' | $executor',
+  // 'EOF',
+  'exec $executor "$php_file" "$@"',
+  '',
+]);
+file_put_contents($bin_file, $bash);
+chmod($bin_file, 0777);
+
+echo 'The script was successfully built: ' . $bin_file . PHP_EOL;
