@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 /**
  * This class is used for communication with manticore searchd HTTP protocol by using SQL endpoint
  */
@@ -48,7 +49,7 @@ class ManticoreClient {
    *
    * @param array|string $indexes
    *  Name of index to unfreeze or list of indexes
-   * @param bool
+   * @return bool
    *  Return the result of operation
    */
   public function unfreeze(array|string $indexes): bool {
@@ -67,7 +68,7 @@ class ManticoreClient {
    */
   public function unfreezeAll(): bool {
     echo PHP_EOL . 'Unfreezing all indexes…' . PHP_EOL;
-    return array_reduce($this->getIndexes(), function(bool $carry, string $index): bool {
+    return array_reduce($this->getIndexes(), function (bool $carry, string $index): bool {
       echo '  ' . $index . ' – ';
       $is_ok = $this->unfreeze($index);
       echo ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
@@ -98,7 +99,10 @@ class ManticoreClient {
   public function getVersions(): array {
     $result = $this->execute('SHOW STATUS LIKE \'version\'');
     $version = $result[0]['data'][0]['Value'] ?? '';
-    preg_match('/^(\d+\.\d+\.\d+)[^\(]+(\(columnar\s*(\d+\.\d+\.\d+)\s*[^\)]+\))?([^\(]*\(secondary\s(\d+\.\d+\.\d+)[^\)]+\))?$/ius', $version, $m);
+    $match_expr = '/^(\d+\.\d+\.\d+)[^\(]+(\(columnar\s*(\d+\.\d+\.\d+)\s*[^\)]+\))?'
+      . '([^\(]*\(secondary\s(\d+\.\d+\.\d+)[^\)]+\))?$/ius'
+    ;
+    preg_match($match_expr, $version, $m);
 
     return [
       'manticore' => $m[1] ?? '0.0.0',
@@ -150,7 +154,11 @@ class ManticoreClient {
       ],
     ];
     $context = stream_context_create($opts);
-    $result = file_get_contents('http://' . $this->Config->host . ':' . $this->Config->port . static::API_PATH, false, $context);
+    $result = file_get_contents(
+      'http://' . $this->Config->host . ':' . $this->Config->port . static::API_PATH,
+      false,
+      $context
+    );
     if (!$result) { // can be null or false in failed cases so we check non strict here
       throw new SearchdException(__METHOD__ . ': failed to execute query: "' . $query . '"');
     }

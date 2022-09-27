@@ -42,16 +42,17 @@ class ScriptTest extends TestCase {
   }
 
   # TODO: test more scenarios
-  # - --indexes: 
+  # - --indexes:
   #   - single index,
   #   - multiple indexes,
   #   - unknown index
   #   - known + unknown
   # - --unlock
-  # - --unknown-option 
-  # - interrupted backup: 
+  # - --unknown-option
+  # - interrupted backup:
   #   - by killing (TERM) the backup in the middle of copying a single index
   # - no permissions to write to a subdir of the target:
   #   - for the first index of --indexes
   #   - for the 2nd index
-  
+
+}

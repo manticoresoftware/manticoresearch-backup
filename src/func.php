@@ -12,7 +12,7 @@ function validate_args(array $args): array {
   $options = [
     'config' => $args['config'] ?? ($args['c'] ?? Searchd::getConfigPath()),
     'target-dir' => $args['target-dir'] ?? null,
-    'compress' => isset($args['compress']) ?? false,
+    'compress' => isset($args['compress']),
     'indexes' => array_filter(array_map('trim', explode(',', $args['indexes'] ?? ''))),
   ];
 
@@ -23,13 +23,19 @@ function validate_args(array $args): array {
 
   // Run checks only if we really need it
   if (!isset($args['unlock'])) {
-    if (!isset($options['target-dir']) || !is_dir($options['target-dir']) || !is_writeable($options['target-dir'])) {
-      throw new InvalidArgumentException('Failed to find target dir to store backup: ' . ($options['target-dir'] ?? 'none'));
+    if (!isset($options['target-dir']) || !
+      is_dir($options['target-dir']) ||
+      !is_writeable($options['target-dir'])) {
+      throw new InvalidArgumentException(
+        'Failed to find target dir to store backup: ' . ($options['target-dir'] ?? 'none')
+      );
     }
   }
 
   if ($options['compress'] && !function_exists('lz4_compress')) {
-    throw new RuntimeException('Failed to find lz4 in PHP build. Please enable the LZ4 extension if you want to use compression');
+    throw new RuntimeException(
+      'Failed to find lz4 in PHP build. Please enable the LZ4 extension if you want to use compression'
+    );
   }
 
   echo 'Manticore config file: ' . $options['config'] . PHP_EOL
@@ -55,5 +61,3 @@ function exception_handler(Throwable $E) {
   echo $E->getMessage() . PHP_EOL;
   exit(1); // ? we can add method and fetch custom exit code on any exception
 }
-
-set_exception_handler('exception_handler');

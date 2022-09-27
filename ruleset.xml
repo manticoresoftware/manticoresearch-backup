@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<ruleset name="php-standard">
+	<config name="installed_paths" value="vendor/slevomat/coding-standard"/>
+	<!-- specific sniffs to include -->
+	<rule ref="vendor/slevomat/coding-standard/SlevomatCodingStandard/Sniffs/Arrays/TrailingArrayCommaSniff.php"/>
+	<rule ref="vendor/slevomat/coding-standard/SlevomatCodingStandard/Sniffs/Namespaces/AlphabeticallySortedUsesSniff.php">
+		<properties>
+			<property name="caseSensitive" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="vendor/slevomat/coding-standard/SlevomatCodingStandard/Sniffs/TypeHints/DeclareStrictTypesSniff.php">
+		<properties>
+			<property name="declareOnFirstLine" value="true"/>
+			<property name="linesCountBeforeDeclare" value="0"/>
+			<property name="spacesCountAroundEqualsSign" value="0"/>
+			<property name="linesCountAfterDeclare" value="1"/>
+		</properties>
+	</rule>
+
+	<rule ref="PSR2">
+		<exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
+		<exclude name="Squiz.Functions.MultiLineFunctionDeclaration.BraceOnSameLine"/>
+		<exclude name="PSR2.Classes.ClassDeclaration"/>
+    <exclude name="PSR2.ControlStructures.SwitchDeclaration"/>
+   	<exclude name="PSR2.Methods.FunctionCallSignature"/>
+	</rule>
+	<rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie"/>
+
+	<rule ref="Generic.Arrays.ArrayIndent">
+		<properties>
+			<property name="indent" value="2"/>
+			<property name="tabIdent" value="false"/>
+		</properties>
+	</rule>
+
+	<rule ref="Generic.WhiteSpace.ScopeIndent">
+		<properties>
+			<property name="indent" value="2"/>
+			<property name="tabIdent" value="false"/>
+		</properties>
+	</rule>
+
+	<rule ref="PSR2.Classes.ClassDeclaration">
+		<properties>
+			<property name="indent" value="2"/>
+		</properties>
+	</rule>
+
+	<rule ref="PSR2.ControlStructures.SwitchDeclaration">
+		<properties>
+			<property name="indent" value="2"/>
+		</properties>
+	</rule>
+
+	<rule ref="PSR2.Methods.FunctionCallSignature">
+		<properties>
+			<property name="indent" value="2"/>
+			<property name="requiredSpacesAfterOpen" value="1"/>
+			<property name="requiredSpacesBeforeClose" value="1"/>
+		</properties>
+	</rule>
+</ruleset>

@@ -8,9 +8,9 @@ RUN apt -y update && apt -y upgrade && \
   apt -y update && apt -y install manticore && \
   apt-get -y autoremove && apt-get -y clean && \
   \
-  wget https://github.com/manticoresoftware/executor/releases/download/v0.1.0/manticore-executor_0.1.0_arm64.deb && \
-  dpkg -i manticore-executor_0.1.0_arm64.deb && \
-  rm -f manticore-executor_0.1.0_arm64.deb
+  wget https://github.com/manticoresoftware/executor/releases/download/v0.1.0/manticore-executor_0.1.0_amd64.deb && \
+  dpkg -i manticore-executor_0.1.0_amd64.deb && \
+  rm -f manticore-executor_0.1.0_amd64.deb
 
 # alter bash prompt
 ENV PS1A="\u@manticore-backup.test:\w> "

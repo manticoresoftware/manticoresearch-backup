@@ -1,0 +1,73 @@
+name: tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run unit tests
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build docker image
+        run: docker build . --file Dockerfile --tag manticoresoftware/manticore-backup:latest
+
+      - name: Run tests inside docker container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: manticoresoftware/manticore-backup:latest
+          options: -v ${{ github.workspace }}:/src
+          run: |
+            # the entrypoint is rewritten so we need to launch searchd manually
+            searchd
+            cd /src
+            composer install --prefer-dist
+            bin/test
+
+  codestyle:
+    name: PHPCS validation
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build docker image
+        run: docker build . --file Dockerfile --tag manticoresoftware/manticore-backup:latest
+
+      - name: Run PHPCS to check following the standard
+        uses: addnab/docker-run-action@v3
+        with:
+          image: manticoresoftware/manticore-backup:latest
+          options: -v ${{ github.workspace }}:/src
+          run: |
+            cd /src
+            composer install --prefer-dist
+            bin/codestyle
+
+  codeanalyze:
+    name: PHPStan static analysis
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build docker image
+        run: docker build . --file Dockerfile --tag manticoresoftware/manticore-backup:latest
+
+      - name: Run PHPStan to analyze the codebase
+        uses: addnab/docker-run-action@v3
+        with:
+          image: manticoresoftware/manticore-backup:latest
+          options: -v ${{ github.workspace }}:/src
+          run: |
+            cd /src
+            composer install --prefer-dist
+            bin/codeanalyze
