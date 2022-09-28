@@ -24,7 +24,7 @@ class ManticoreBackupTest extends TestCase {
 
     $basedir = glob($backup_dir . DIRECTORY_SEPARATOR . '*')[0];
 
-    // Check that we created all reaquired dirs
+    // Check that we created all required dirs
     $this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'config');
     $this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'data');
     $this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'external');

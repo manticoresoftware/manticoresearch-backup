@@ -40,4 +40,18 @@ class ScriptTest extends TestCase {
     $output = shell_exec(static::CMD . ' --version');
     $this->assertStringContainsString('Manticore Backup Script version', $output);
   }
-}
+
+  # TODO: test more scenarios
+  # - --indexes: 
+  #   - single index,
+  #   - multiple indexes,
+  #   - unknown index
+  #   - known + unknown
+  # - --unlock
+  # - --unknown-option 
+  # - interrupted backup: 
+  #   - by killing (TERM) the backup in the middle of copying a single index
+  # - no permissions to write to a subdir of the target:
+  #   - for the first index of --indexes
+  #   - for the 2nd index
+  
