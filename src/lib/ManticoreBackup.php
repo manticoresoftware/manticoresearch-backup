@@ -27,7 +27,7 @@ class ManticoreBackup {
     $versions = $Client->getVersions();
     $is_ok = static::storeVersions($versions, $destination['root']);
     if (false === $is_ok) {
-      throw new InvalidPathException('Failed to store versions to "' . $destination['root'] . '"');
+      throw new InvalidPathException('Failed to save the versions in "' . $destination['root'] . '"');
     }
 
     // TODO: add progress bar / backup status reporting
@@ -97,7 +97,7 @@ class ManticoreBackup {
     if (false === $result) {
       throw new Exception(
         'Failed to make backup of indexes. '
-          . 'Please check that script has rights to access source and destinations directories'
+          . 'Please check that you have rights to access the source and destinations directories'
       );
     }
 
@@ -137,7 +137,7 @@ class ManticoreBackup {
     // Do not let backup in same existing directory
     if (is_dir($destination)) {
       throw new InvalidPathException(
-        'Failed to get destination directory for backup, there is such dir already: ' . $destination
+        'Failed to create target directory for the backup, the dir already exists: ' . $destination
       );
     }
 
@@ -184,7 +184,7 @@ class ManticoreBackup {
       $is_all = false;
       $index_diff = array_diff($indexes, $all_indexes);
       if ($index_diff) {
-        throw new InvalidArgumentException('You passed unexisting indexes: ' . implode(', ', $index_diff));
+        throw new InvalidArgumentException('Can\'t find some of the indexes: ' . implode(', ', $index_diff));
       }
       unset($index_diff);
     } else {

@@ -142,7 +142,7 @@ class FileStorage {
     }
 
     if (!is_writable(dirname($to))) {
-      throw new InvalidPathException(__FUNCTION__ . ': the destination to copy is not writable');
+      throw new InvalidPathException(__FUNCTION__ . ': the destination to copy to is not writable');
     }
 
     if ($this->use_compression) {
