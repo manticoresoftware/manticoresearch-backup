@@ -5,11 +5,15 @@ $dir = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 's
 include_once $dir . DIRECTORY_SEPARATOR . 'func.php';
 spl_autoload_register(function ($class_name) use ($dir) {
   $ns = (false === strpos($class_name, 'Exception') ? 'lib' : 'exception');
-  include_once  $dir . DIRECTORY_SEPARATOR . $ns . DIRECTORY_SEPARATOR . $class_name . '.php';
+  $class_file = $dir . DIRECTORY_SEPARATOR . $ns . DIRECTORY_SEPARATOR . $class_name . '.php';
+  if (file_exists($class_file)) {
+    include_once $class_file;
+  }
 });
 unset($dir);
 
-set_exception_handler('exception_handler');
+set_exception_handler(exception_handler(...));
+set_error_handler(error_handler(...)); // @phpstan-ignore-line
 
 // Validate minimum php version
 if (version_compare(PHP_VERSION, ManticoreBackup::MIN_PHP_VERSION) < 0) {

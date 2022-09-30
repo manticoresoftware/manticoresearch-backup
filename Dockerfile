@@ -1,5 +1,6 @@
 FROM php:8.1.10-cli-buster
 
+ARG TARGET_ARCH=amd64
 RUN apt -y update && apt -y upgrade && \
   apt -y install figlet git zip unzip wget curl gpg && \
   \
@@ -8,9 +9,9 @@ RUN apt -y update && apt -y upgrade && \
   apt -y update && apt -y install manticore && \
   apt-get -y autoremove && apt-get -y clean && \
   \
-  wget https://github.com/manticoresoftware/executor/releases/download/v0.1.0/manticore-executor_0.1.0_amd64.deb && \
-  dpkg -i manticore-executor_0.1.0_amd64.deb && \
-  rm -f manticore-executor_0.1.0_amd64.deb
+  wget https://github.com/manticoresoftware/executor/releases/download/v0.1.0/manticore-executor_0.1.0_${TARGET_ARCH}.deb && \
+  dpkg -i manticore-executor_0.1.0_${TARGET_ARCH}.deb && \
+  rm -f manticore-executor_0.1.0_${TARGET_ARCH}.deb
 
 # alter bash prompt
 ENV PS1A="\u@manticore-backup.test:\w> "

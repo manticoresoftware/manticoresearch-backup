@@ -4,12 +4,19 @@ class FileStorage {
   const DIR_PERMISSION = 0755;
 
   /**
-   * @param string $target_dir
+   * We store paths for current backup here
+   *
+   * @var non-empty-array<'config'|'data'|'external'|'root'|'state',non-falsy-string>
+   */
+  protected array $backup_paths;
+
+  /**
+   * @param ?string $target_dir
    *  The root destination of all files to be copied
    * @param bool $use_compression
    *  The flag that shows if we should to use compression with lz4 or not
    */
-  public function __construct(protected string $target_dir, protected bool $use_compression = false) {
+  public function __construct(protected ?string $target_dir, protected bool $use_compression = false) {
   }
 
   /**
@@ -17,8 +24,19 @@ class FileStorage {
    *
    * @return string
    */
-  public function getTargetDir(): string {
+  public function getTargetDir(): ?string {
     return $this->target_dir;
+  }
+
+  /**
+   * We need it mostly for tests, but maybe in future also
+   *
+   * @param string $dir
+   * @return static
+   */
+  public function setTargetDir(string $dir): static {
+    $this->target_dir = $dir;
+    return $this;
   }
 
   /**
@@ -142,7 +160,7 @@ class FileStorage {
     }
 
     if (!is_writable(dirname($to))) {
-      throw new InvalidPathException(__FUNCTION__ . ': the destination to copy is not writable');
+      throw new InvalidPathException(__FUNCTION__ . ': the destination to copy to is not writable');
     }
 
     if ($this->use_compression) {
@@ -171,7 +189,7 @@ class FileStorage {
   /**
    * Copy files from one directory to another in recursive way
    *
-   * @param array $paths
+   * @param array<string> $paths
    *  List of files and/or directroies to copy
    * @param string $to
    *  Destination directory where all files will go
@@ -205,7 +223,7 @@ class FileStorage {
   /**
    * This function helps us to calculate summary size of passed files list
    *
-   * @param array $files
+   * @param array<string> $files
    *  List of files to check total filesize
    * @return int
    *  Sum of all files sizes in bytes
@@ -229,7 +247,11 @@ class FileStorage {
 
     // In case the path is simple file we just return md5 of it
     if (is_file($path)) {
-      return md5_file($path);
+      $checksum = md5_file($path);
+      if (false === $checksum) {
+        throw new RuntimeException('Failed to get checksum for file: ' . $path);
+      }
+      return $checksum;
     }
 
     // In case if path is a directory, we do recursive check
@@ -261,6 +283,7 @@ class FileStorage {
       RecursiveIteratorIterator::CHILD_FIRST
     );
 
+    /** @var SplFileInfo $FileInfo */
     foreach ($files as $FileInfo) {
       $fn = ($FileInfo->isDir() ? 'rmdir' : 'unlink');
       $fn($FileInfo->getRealPath());
@@ -284,5 +307,75 @@ class FileStorage {
     }
 
     return $tmp_dir;
+  }
+
+  /**
+   * Get current file storage final backup destination
+   *
+   * @return non-empty-array<'config'|'data'|'external'|'root'|'state',non-falsy-string>
+   *  Absolute paths for storing different data types
+   * @throws InvalidPathException
+   */
+  public function getBackupPaths(): array {
+    if (!isset($this->backup_paths)) {
+      $destination = $this->target_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
+      // Check that target dir is writable
+      if ($this->target_dir === null || !is_writable($this->target_dir)) {
+        throw new InvalidPathException('Target directory is not writable');
+      }
+
+      // Do not let backup in same existing directory
+      if (is_dir($destination)) {
+        throw new InvalidPathException(
+          'Failed to create target directory for the backup, the dir already exists: ' . $destination
+        );
+      }
+
+      $is_ok = mkdir($destination, 0755);
+      if (false === $is_ok) {
+        throw new InvalidPathException('Failed to create directory – "' . $destination . '"');
+      }
+
+      // Backup directory consists of next folders
+      // data - indexes stored here (from data dir and other files from there)
+      // config – config related directory, we store there manticore.conf for all index backup
+      // external – all external files for index settings are stored here
+      // state – all global state files are stored here
+
+      $result = [];
+      $result['root'] = $destination;
+
+      // Now lets create additional directories
+      foreach (['data', 'config', 'external', 'state'] as $dir) {
+        $path = $destination . DIRECTORY_SEPARATOR . $dir;
+        $result[$dir] = $path;
+        $is_ok = mkdir($path, 0755);
+        if (false === $is_ok) {
+          throw new InvalidPathException('Failed to create directory – "' . $path . '"');
+        }
+      }
+
+      $this->backup_paths = $result;
+    }
+
+    return $this->backup_paths;
+  }
+
+  /**
+   * Thie method is required to clean up partial failed backup
+   *  due to we do not support incremental backups or continue it
+   *
+   * @return void
+   */
+  public function cleanUp(): void {
+    // Do nothing if we have no backup paths at all
+    if (!isset($this->backup_paths)) {
+      return;
+    }
+
+    // Try to delete destination root path if it exists
+    if (is_dir($this->backup_paths['root'])) {
+      $this->deleteDir($this->backup_paths['root']);
+    }
   }
 }

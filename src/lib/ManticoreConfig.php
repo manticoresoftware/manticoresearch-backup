@@ -81,7 +81,7 @@ class ManticoreConfig {
   /**
    * This functions returns global state files that we can backup
    *
-   * @return array
+   * @return array<string>
    *   List of absolute paths to each file/directory required to backup
    */
   public function getStatePaths(): array {

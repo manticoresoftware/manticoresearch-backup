@@ -16,13 +16,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build docker image
-        run: docker build . --file Dockerfile --tag manticoresoftware/manticore-backup:latest
+        run: docker build . --file Dockerfile --build-arg TARGET_ARCH=amd64 --tag manticoresoftware/manticore-backup:latest
 
       - name: Run tests inside docker container
         uses: addnab/docker-run-action@v3
         with:
           image: manticoresoftware/manticore-backup:latest
-          options: -v ${{ github.workspace }}:/src
+          options: -v ${{ github.workspace }}:/src --cap-add SYS_ADMIN --security-opt apparmor=unconfined
           run: |
             # the entrypoint is rewritten so we need to launch searchd manually
             searchd
@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build docker image
-        run: docker build . --file Dockerfile --tag manticoresoftware/manticore-backup:latest
+        run: docker build . --file Dockerfile --build-arg TARGET_ARCH=amd64 --tag manticoresoftware/manticore-backup:latest
 
       - name: Run PHPCS to check following the standard
         uses: addnab/docker-run-action@v3
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build docker image
-        run: docker build . --file Dockerfile --tag manticoresoftware/manticore-backup:latest
+        run: docker build . --file Dockerfile --build-arg TARGET_ARCH=amd64 --tag manticoresoftware/manticore-backup:latest
 
       - name: Run PHPStan to analyze the codebase
         uses: addnab/docker-run-action@v3

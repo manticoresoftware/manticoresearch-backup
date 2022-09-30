@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 class FileStorageTest extends TestCase {
-  public function testDirCreated() {
+  public function testDirCreated(): void {
     $tmp_dir = FileStorage::getTmpDir();
     $dir = $tmp_dir . DIRECTORY_SEPARATOR . 'test-dir-' . uniqid();
     $Storage = new FileStorage($tmp_dir, false);
@@ -13,7 +13,7 @@ class FileStorageTest extends TestCase {
     $this->assertDirectoryExists($dir);
   }
 
-  public function testCopyPathsWithoutOwnership() {
+  public function testCopyPathsWithoutOwnership(): void {
     $tmp_dir = FileStorage::getTmpDir();
     $paths = [
       $tmp_dir . DIRECTORY_SEPARATOR . 'source-dir-'. uniqid(), // dir
@@ -36,7 +36,7 @@ class FileStorageTest extends TestCase {
     $this->assertFileExists($target . DIRECTORY_SEPARATOR . basename($paths[1]));
   }
 
-  public function testCopyPathsWithOwnershipTransfer() {
+  public function testCopyPathsWithOwnershipTransfer(): void {
     if (!OS::isWindows() && posix_getuid() !== 0) {
       throw new Exception('This test should be run under root username');
     }

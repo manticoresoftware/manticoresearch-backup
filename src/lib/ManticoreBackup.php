@@ -14,20 +14,20 @@ class ManticoreBackup {
    *  Initialized client to interract with manticore search daemon
    * @param FileStorage $Storage
    *  The instance of the storage with initialize directories to use
-   * @param array $indexes
+   * @param array<string> $indexes
    *  List of indexes to store. In case if its empty array we store all indexes
    * @return void
    */
   public static function store(ManticoreClient $Client, FileStorage $Storage, array $indexes = []): void {
     echo PHP_EOL . 'Starting the backup…' . PHP_EOL;
     $t = microtime(true);
-    $destination = static::targetDirToDestination($Storage->getTargetDir());
+    $destination = $Storage->getBackupPaths();
 
     // First store current versions in file
     $versions = $Client->getVersions();
     $is_ok = static::storeVersions($versions, $destination['root']);
     if (false === $is_ok) {
-      throw new InvalidPathException('Failed to store versions to "' . $destination['root'] . '"');
+      throw new InvalidPathException('Failed to save the versions in "' . $destination['root'] . '"');
     }
 
     // TODO: add progress bar / backup status reporting
@@ -47,16 +47,16 @@ class ManticoreBackup {
     // 0.5 Lock all indexes to make sure that we will have no new data there
     // And run FLUSH ATTRIBUTES
     // We do lock twice just to keep logic for crawling one by one for each index
-    $Client->freeze($indexes);
+    $Client->freeze(array_keys($indexes));
     $Client->flushAttributes();
 
     // 1. First backup index data
     // Lets copy index one by one with freeze
     echo 'Backing up indexes…' . PHP_EOL;
     $result = true;
-    foreach ($indexes as $index) {
+    foreach ($indexes as $index => $type) {
       $files = $Client->freeze($index);
-      echo '  ' . $index . ' [' . bytes_to_gb($Storage::calculateFilesSize($files)) . '] – ';
+      echo '  ' . $index . ' ('  . $type . ') [' . bytes_to_gb($Storage::calculateFilesSize($files)) . '] – ';
 
       $backup_path = $destination['data'] . DIRECTORY_SEPARATOR . $index;
       $is_ok = mkdir($backup_path, 0755);
@@ -77,12 +77,17 @@ class ManticoreBackup {
     if ($is_all) {
       // 2.1 backup external files for each index
       echo 'Backing up external index files…' . PHP_EOL;
-      foreach ($indexes as $index) {
-        echo '  ' . $index . ' – ';
-        $files = $Client->getIndexExternalFiles($index);
-        $is_ok = $Storage->copyPaths($files, $destination['external'], true);
-        echo ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
-        $result = $result && $is_ok;
+      foreach ($indexes as $index => $type) {
+        echo '  ' . $index . ' (' . $type . ') – ';
+        // Show settings on distributed indexes returns error 500 so we simply skip it
+        if ($type === 'distributed') {
+          echo 'SKIP' . PHP_EOL;
+        } else {
+          $files = $Client->getIndexExternalFiles($index);
+          $is_ok = $Storage->copyPaths($files, $destination['external'], true);
+          echo ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
+          $result = $result && $is_ok;
+        }
       }
 
       // 2.2 Backup global state files
@@ -97,7 +102,7 @@ class ManticoreBackup {
     if (false === $result) {
       throw new Exception(
         'Failed to make backup of indexes. '
-          . 'Please check that script has rights to access source and destinations directories'
+          . 'Please check that you have rights to access the source and destinations directories'
       );
     }
 
@@ -114,6 +119,7 @@ class ManticoreBackup {
   /**
    * Store versions for current bakcup in file of root directory passed as argument
    *
+   * @param array<string,string> $versions
    * @param string $target_dir
    *  Directory where we will put versions.json file with verions
    * @return bool
@@ -125,73 +131,34 @@ class ManticoreBackup {
   }
 
   /**
-   * Convert required target dir to time related destination backup dir
-   *
-   * @param string $target_dir
-   *  Wanted target directory to store all backups
-   * @return array
-   *  Absolute paths for storing different data types
-   */
-  protected static function targetDirToDestination($target_dir): array {
-    $destination = $target_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
-    // Do not let backup in same existing directory
-    if (is_dir($destination)) {
-      throw new InvalidPathException(
-        'Failed to get destination directory for backup, there is such dir already: ' . $destination
-      );
-    }
-
-    $is_ok = mkdir($destination, 0755);
-    if (false === $is_ok) {
-      throw new InvalidPathException('Failed to create directory – "' . $destination . '"');
-    }
-
-    // Backup directory consists of next folders
-    // data - indexes stored here (from data dir and other files from there)
-    // config – config related directory, we store there manticore.conf for all index backup
-    // external – all external files for index settings are stored here
-    // state – all global state files are stored here
-
-    $result = [];
-    $result['root'] = $destination;
-
-    // Now lets create additional directories
-    foreach (['data', 'config', 'external', 'state'] as $dir) {
-      $path = $destination . DIRECTORY_SEPARATOR . $dir;
-      $result[$dir] = $path;
-      $is_ok = mkdir($path, 0755);
-      if (false === $is_ok) {
-        throw new InvalidPathException('Failed to create directory – "' . $path . '"');
-      }
-    }
-
-    return $result;
-  }
-
-  /**
    * Validate and adapt indexes to final format or exit with error
    *
-   * @param array $indexes
+   * @param array<string> $indexes
    *  list of indexes to validate that they exist
    * @param ManticoreClient $Client
    *  initialized client to interact with
-   * @return array
+   * @return array{0: bool, 1: array<string,string>}
    *  flag that points if we are in all backup state and list of indexes after validation
    */
   protected static function validateIndexes(array $indexes, ManticoreClient $Client): array {
+    $result = [];
     $all_indexes = $Client->getIndexes();
     if ($indexes) {
       $is_all = false;
-      $index_diff = array_diff($indexes, $all_indexes);
+      $index_diff = array_diff($indexes, array_keys($all_indexes));
       if ($index_diff) {
-        throw new InvalidArgumentException('You passed unexisting indexes: ' . implode(', ', $index_diff));
+        throw new InvalidArgumentException('Can\'t find some of the indexes: ' . implode(', ', $index_diff));
       }
       unset($index_diff);
+      $result = array_intersect_key(
+        $all_indexes,
+        array_flip($indexes)
+      );
     } else {
       $is_all = true;
-      $indexes = $all_indexes;
+      $result = $all_indexes;
     }
-    return [$is_all, $indexes];
+    return [$is_all, $result];
   }
 
   /**

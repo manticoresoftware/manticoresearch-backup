@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 class SearchdTest extends TestCase {
-  public function testGetConfigPathWithoutInitFails() {
+  public function testGetConfigPathWithoutInitFails(): void {
     if (isset(Searchd::$cmd)) {
       Searchd::$cmd = null;
     }
@@ -11,7 +11,7 @@ class SearchdTest extends TestCase {
     Searchd::getConfigPath();
   }
 
-  public function testGetConfigPath() {
+  public function testGetConfigPath(): void {
     Searchd::init();
     $config_path = Searchd::getConfigPath();
     $this->assertFileExists($config_path);
