@@ -25,14 +25,13 @@ class ManticoreClient {
   /**
    * This method freezes the index to perform safe copy of the data
    *
-   * @param array|string $indexes
+   * @param array<string>|string $indexes
    *  Name of manticore index or list of indexes
-   * @return array
+   * @return array<string>
    *  Return list of files for frozen index required to backup
-   *  Return false in case of fail to get lock
    * @throws SearchdException
    */
-  public function freeze(array|string $indexes) {
+  public function freeze(array|string $indexes): array {
     if (is_string($indexes)) {
       $indexes = [$indexes];
     }
@@ -47,7 +46,7 @@ class ManticoreClient {
   /**
    * This method unfreezes the index we fronzen before
    *
-   * @param array|string $indexes
+   * @param array<string>|string $indexes
    *  Name of index to unfreeze or list of indexes
    * @return bool
    *  Return the result of operation
@@ -68,7 +67,7 @@ class ManticoreClient {
    */
   public function unfreezeAll(): bool {
     echo PHP_EOL . 'Unfreezing all indexes…' . PHP_EOL;
-    return array_reduce($this->getIndexes(), function (bool $carry, string $index): bool {
+    return array_reduce(array_keys($this->getIndexes()), function (bool $carry, string $index): bool {
       echo '  ' . $index . ' – ';
       $is_ok = $this->unfreeze($index);
       echo ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
@@ -80,20 +79,21 @@ class ManticoreClient {
   /**
    * Query all indexes that we have on instance
    *
-   * @return array
-   *  list of indexes
-   *
-   * @return array
+   * @return array<string,string>
+   *  array with index as a key and type as a value [ index => type ]
    */
   public function getIndexes(): array {
     $result = $this->execute('SHOW TABLES');
-    return array_column($result[0]['data'], 'Index');
+    return array_combine(
+        array_column($result[0]['data'], 'Index'),
+        array_column($result[0]['data'], 'Type')
+    );
   }
 
   /**
    * Get manticore, protocol and columnar versions
    *
-   * @return array
+   * @return array{manticore:string,columnar:string,secondary:string}
    *  Parsed list of versions available with keys of [manticore, columnar, secondary]
    */
   public function getVersions(): array {
@@ -117,7 +117,7 @@ class ManticoreClient {
    *
    * @param string $index
    *  Name of index to check
-   * @return array
+   * @return array<string>
    *  List of files to backup or just empty array in case nothing to backup
    */
   public function getIndexExternalFiles(string $index): array {
@@ -140,7 +140,7 @@ class ManticoreClient {
    *
    * @param string $query
    *  SQL query to execute
-   * @return array
+   * @return array{0:array{data:array<array{Value:string}>,error:string}}
    *  The result of the query passed to be executed
    */
   public function execute(string $query): array {
@@ -163,6 +163,20 @@ class ManticoreClient {
       throw new SearchdException(__METHOD__ . ': failed to execute query: "' . $query . '"');
     }
 
+    // @phpstan-ignore-next-line
     return json_decode($result, true);
+  }
+
+  /**
+   * Get signal handler for received signals on interruption
+   *
+   * @return Closure
+   */
+  public function getSignalHandlerFn(FileStorage $Storage): Closure {
+    return function (int $signal) use ($Storage): void {
+      echo 'Caught signal ' . $signal . PHP_EOL;
+      $Storage->cleanUp();
+      $this->unfreezeAll();
+    };
   }
 }

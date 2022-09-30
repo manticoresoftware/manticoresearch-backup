@@ -11,21 +11,24 @@ class ManticoreClientTest extends TestCase {
     $this->Client = new ManticoreClient($Config);
   }
 
-  public function testGetVersions() {
+  public function testGetVersions(): void {
     $versions = $this->Client->getVersions();
     $this->assertEquals('0.0.0', $versions['columnar']);
     $this->assertEquals('0.0.0', $versions['secondary']);
     $this->assertNotEquals('0.0.0', $versions['manticore']);
   }
 
-  public function testGetIndexes() {
-    $indexes = $this->Client->getIndexes();
-    $this->assertEquals(2, sizeof($indexes));
+  public function testGetIndexes(): void {
+    $indexes = array_keys($this->Client->getIndexes());
+    $this->assertEquals(5, sizeof($indexes));
     $this->assertContains('movie', $indexes);
     $this->assertContains('people', $indexes);
+    $this->assertContains('people_pq', $indexes);
+    $this->assertContains('people_dist_local', $indexes);
+    $this->assertContains('people_dist_agent', $indexes);
   }
 
-  public function testGetIndexExternalFiles() {
+  public function testGetIndexExternalFiles(): void {
     $files = $this->Client->getIndexExternalFiles('movie');
     $this->assertEquals([], $files);
   }

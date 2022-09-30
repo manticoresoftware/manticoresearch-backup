@@ -7,49 +7,45 @@
  * 3. Initialize backup
  */
 
-include __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
+include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
 
 // First fetch all supported args and their short versions
-$args = getopt('hc:', ['help', 'config:', 'indexes:', 'target-dir:', 'compress', 'unlock', 'version']);
-if (false === $args) {
-  throw new InvalidArgumentException('Error while parsing the arguments');
-}
+$args = get_input_args();
 
 // Show help in case we passed help arg
 if (isset($args['h']) || isset($args['help'])) {
     echo <<<EOF
-Manticore Backup Script
-
-Required: --target-dir for backup destination.
+Usage: manticore_backup --target-dir=path/to/backup [OPTIONS]
 
 --target-dir=path/to/backup
-  This is the path to the target directory where a backup is stored.
-  The direction must be created. The argument is required to pass,
-  and it has no default value.
-  On each backup run, the script will create a backup-[datetime] directory
-  and copy all required indexes to it. So target-dir represents the
-  container of all your backups, and it's safe to run the script multiple times.
+  This is a path to the target directory where a backup is stored.  The 
+  directory must exist. This argument is required and has no default value.
+  On each backup run, it will create directory `backup-[datetime]` in the
+  provided directory and will copy all required indexes to it. So the target-dir
+  is a container of all your backups, and it's safe to run the script multiple
+  times.
+
+OPTIONS:
 
 --config=path/to/manticore.conf | -c=path/to/manticore.conf
-  Path to manticore config. This is optional and in case if it's not passed
-  we use default one for your platform. It's used to get the host
+  Path to Manticore config. This is optional and in case it's not passed
+  we use a default one for your operating system. It's used to get the host
   and port to talk with the Manticore daemon.
 
 --indexes=index1,index2,...
-  A semicolon-separated list of indexes is required to backup.
-  If you want to backup all, just pass skip passing this argument to the script.
-  You cannot give unexisting indexes in your database to this argument.
+  Semicolon-separated list of indexes that you want to backup.
+  If you want to backup all, just skip this argument. All the provided indexes
+  are supposed to exist in the Manticore instance you are backing up from.
 
 --compress
-  Should we compress our indexers or not. The default – no.
-  We use lz4 for compression.
+  Whether the backed up files should be compressed. Not by default.
 
 --unlock
-  In case if something went wrong or indexes are still in lock state
-  we can run the script with this argument to unlock it all.
+  In rare cases when something goes wrong the indexes can be left in 
+  locked state. Using this argument you can unlock them.
 
 --version
-  Show the current backup script version.
+  Show the current version.
 
 --help | -h
   Show this help.
@@ -60,7 +56,7 @@ EOF;
 
 // Show version in case we passed version arg
 if (isset($args['version'])) {
-  echo 'Manticore Backup Script version: ' . ManticoreBackup::VERSION . PHP_EOL;
+  echo 'Manticore Backup version: ' . ManticoreBackup::VERSION . PHP_EOL;
   echo 'Minimum PHP version required: ' . ManticoreBackup::MIN_PHP_VERSION . PHP_EOL;
   exit(0);
 }
@@ -70,7 +66,7 @@ if (isset($args['version'])) {
 Searchd::init();
 
 // OK, now gather all options in an array with default values
-$options = validate_args($args);
+$options = validate_args($args); // @phpstan-ignore-line
 
 // First we parse config from passed / default config file
 $Config = new ManticoreConfig($options['config']);
@@ -89,13 +85,12 @@ switch (true) {
     break;
 
   default: // backup
+    $Storage = new FileStorage($options['target-dir'], $options['compress']);
+
     // In case of backing up it's important to install signal handler
     if (function_exists('pcntl_async_signals')) {
       pcntl_async_signals(true);
-      $signal_handler = function ($signal) use ($Client) {
-        echo 'Caught signal ' . $signal . PHP_EOL;
-        $Client->unfreezeAll();
-      };
+      $signal_handler = $Client->getSignalHandlerFn($Storage);
       pcntl_signal(SIGQUIT, $signal_handler);
       pcntl_signal(SIGINT, $signal_handler);
       pcntl_signal(SIGTERM, $signal_handler);
@@ -109,7 +104,7 @@ switch (true) {
         . ' re-run the backup as root' . PHP_EOL
       ;
     }
-    $Storage = new FileStorage($options['target-dir'], $options['compress']);
+
     ManticoreBackup::store($Client, $Storage, $options['indexes']);
 }
 

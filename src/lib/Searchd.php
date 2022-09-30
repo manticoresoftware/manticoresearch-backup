@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 class Searchd {
-  public static $cmd;
+  public static ?string $cmd;
 
   public static function init(): void {
     static::$cmd = OS::which('searchd');
@@ -13,6 +13,9 @@ class Searchd {
     }
 
     $output = shell_exec(static::$cmd . ' --status');
+    if (!is_string($output)) {
+      throw new RuntimeException('Unable to get config path');
+    }
     preg_match('/using config file \'([^\']+)\'/ium', $output, $m);
     if (!$m) {
       throw new InvalidPathException('Failed to find searchd config from command line');

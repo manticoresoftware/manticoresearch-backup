@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 class ManticoreConfigTest extends TestCase {
-  public function testParsingIsValid() {
+  public function testParsingIsValid(): void {
     $tmp_dir = FileStorage::getTmpDir();
     $config_path = $tmp_dir . DIRECTORY_SEPARATOR . 'manticore.conf';
     // TODO: use windows paths for windows machine tests run

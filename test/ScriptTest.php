@@ -9,9 +9,9 @@ class ScriptTest extends TestCase {
     system('./bin/build');
   }
 
-  public function testHelpArg() {
+  public function testHelpArg(): void {
     foreach (['-h', '--help'] as $arg) {
-      $output = shell_exec(static::CMD . ' ' . $arg);
+      $output = $this->exec($arg);
       $this->assertStringContainsString('--help', $output);
       $this->assertStringContainsString('--target-dir', $output);
       $this->assertStringContainsString('--config', $output);
@@ -21,38 +21,74 @@ class ScriptTest extends TestCase {
     }
   }
 
-  public function testNoTargetDirArgProducesError() {
-    $output = shell_exec(static::CMD);
+  public function testNoTargetDirArgProducesError(): void {
+    $output = $this->exec('');
     $this->assertStringContainsString('Failed to find target dir to store backup', $output);
   }
 
-  public function testNonExistingTargetDirProducesError() {
-    $output = shell_exec(static::CMD . ' --target-dir=non-existing-dir');
+  public function testNonExistingTargetDirProducesError(): void {
+    $output = $this->exec('--target-dir=non-existing-dir');
     $this->assertStringContainsString('Failed to find target dir to store backup', $output);
   }
 
-  public function testNonExistingConfigProducesError() {
-    $output = shell_exec(static::CMD . ' --config=unexisting-config');
+  public function testNonExistingConfigProducesError(): void {
+    $output = $this->exec('--config=unexisting-config');
     $this->assertStringContainsString('Failed to find passed config', $output);
   }
 
-  public function testVersionArg() {
-    $output = shell_exec(static::CMD . ' --version');
-    $this->assertStringContainsString('Manticore Backup Script version', $output);
+  public function testVersionArg(): void {
+    $output = $this->exec('--version');
+    $this->assertStringContainsString('Manticore Backup version', $output);
   }
 
-  # TODO: test more scenarios
-  # - --indexes:
-  #   - single index,
-  #   - multiple indexes,
-  #   - unknown index
-  #   - known + unknown
-  # - --unlock
-  # - --unknown-option
-  # - interrupted backup:
-  #   - by killing (TERM) the backup in the middle of copying a single index
-  # - no permissions to write to a subdir of the target:
-  #   - for the first index of --indexes
-  #   - for the 2nd index
+  public function testUnknownArg(): void {
+    $output = $this->exec('--foo=bar');
+    $this->assertStringContainsString('Unknown option: --foo', $output);
 
+    $output = $this->exec('-bar');
+    $this->assertStringContainsString('Unknown option: -bar', $output);
+
+    $output = $this->exec('-version');
+    $this->assertStringContainsString('Unknown option: -version', $output);
+
+    $output = $this->exec('---version');
+    $this->assertStringContainsString('Unknown option: ---version', $output);
+
+    $output = $this->exec('--versio');
+    $this->assertStringContainsString('Unknown option: --versio', $output);
+
+    $output = $this->exec('--target-dir1');
+    $this->assertStringContainsString('Unknown option: --target-dir1', $output);
+
+    $output = $this->exec('--target-dir1=tratata');
+    $this->assertStringContainsString('Unknown option: --target-dir1', $output);
+  }
+
+  public function testUnlockArg(): void {
+    $output = $this->exec('--unlock');
+
+    $this->assertStringContainsString('Unfreezing all indexes', $output);
+    $this->assertStringContainsString('movie – OK', $output);
+    $this->assertStringContainsString('people – OK', $output);
+    $this->assertStringContainsString('people_dist_agent – OK', $output);
+    $this->assertStringContainsString('people_dist_local – OK', $output);
+    $this->assertStringContainsString('people_pq – OK', $output);
+  }
+
+  /**
+   * Helper function to validate that shell comand executed and return output
+   *
+   * @param string $arg
+   * @return string
+   * @throws Exception
+   */
+  protected function exec(string $arg): string {
+    $command = static::CMD . ' ' . $arg;
+    $output = shell_exec($command);
+    if (false === $output || $output === null) {
+      throw new Exception('Failed to run shell command: ' . $command);
+    }
+
+    return $output;
+  }
 }
