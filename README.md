@@ -6,19 +6,19 @@ First, you must be sure that you run the script on the same machine where you ha
 
 Second, we recommend running it under the `root` user so the script will transfer ownership of files in that case. Otherwise, the backup will be made but with no ownership transfer. Anyway, you should remember that script must have access to the data dir of the manticore.
 
-You can start with `manticore_backup --config=path/to/manticore.conf --target-dir=backupdir` to backup all indexes to `backupdir` and use `path/to/manticore.conf` config of manticore. You can omit the *--config* argument; in that case, the script will find out the config path by using the `searchd --status` call.
+You can start with `manticore_backup --config=path/to/manticore.conf --target-dir=backupdir` to backup all tables to `backupdir` and use `path/to/manticore.conf` config of manticore. You can omit the *--config* argument; in that case, the script will find out the config path by using the `searchd --status` call.
 
-If you want to backup only some indexes feel free to use the `--indexes=index1,index2` flag that will backup only required indexes and skip all others.
+If you want to backup only some tables feel free to use the `--tables=table1,table1` flag that will backup only required tables and skip all others.
 
 ## Arguments
 
 | Argument | Description | Required |
 |-|-|-|
-| --target-dir=path | This is the path to the target directory where a backup is stored. The direction must be created. The argument is required to pass, and it has no default value. On each backup run, the script will create a backup-[datetime] directory and copy all required indexes to it. So target-dir represents the container of all your backups, and it's safe to run the script multiple times.| + |
+| --target-dir=path | This is the path to the target directory where a backup is stored. The direction must be created. The argument is required to pass, and it has no default value. On each backup run, the script will create a backup-[datetime] directory and copy all required tables to it. So target-dir represents the container of all your backups, and it's safe to run the script multiple times.| + |
 | --config=path | Path to manticore config. This is optional and in case if it's not passed we use default one for your platform. It's used to get the host and port to talk with the Manticore daemon. | optional |
-| --indexes=index1,index2,... | A semicolon-separated list of indexes is required to backup. If you want to backup all, just pass skip passing this argument to the script. You cannot give unexisting indexes in your database to this argument. | optional |
-| --compress | Should we compress our indexers or not. The default – no. We use lz4 for compression. | optional |
-| --unlock | In case if something went wrong or indexes are still in lock state we can run the script with this argument to unlock it all. | command |
+| --tables=table1,table1,... | A semicolon-separated list of tables is required to backup. If you want to backup all, just pass skip passing this argument to the script. You cannot give unexisting tables in your database to this argument. | optional |
+| --compress | Should we compress our indexers or not. The default – no. We use zstd for compression. | optional |
+| --unlock | In case if something went wrong or tables are still in lock state we can run the script with this argument to unlock it all. | command |
 | --version | Show the current backup script version. | command |
 | --help | Show this help. | command |
 
@@ -53,7 +53,7 @@ Just run `manticore_backup --help` or `manticore_backup -h` to display full help
 The directory with name `backup-%date%` is created in the  *--target-dir* folder. The target created directory has the following structure:
 | Folder | Description |
 |-|-|
-| data | The path to store all files (indexes) from the searchd data dir |
+| data | The path to store all files (tables) from the searchd data dir |
 | external | All external files are going here with preserving root paths |
 | config | The directory is for saving configs, mainly manticore.json and manticore.conf |
 | state | The searchd state files backup dir |
@@ -65,9 +65,9 @@ To build the final single script entrypoint you should to run `bin/build`. The f
 
 We recommend installing [manticore-executor](https://github.com/manticoresoftware/executor), and in that case, the script will use a custom-built PHP binary with all required extensions to run.
 
-The final script is a PHP Phar archive that can be run with [PHP](https://php.net) version of `8.1.10` that contains the next extensions:
+The final script is a PHP Phar archive that can be run with [PHP](https://php.net) version of `8.1.11` that contains the next extensions:
 
-- lz4
+- zstd
 - Phar
 - Posix
 

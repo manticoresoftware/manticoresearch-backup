@@ -35,7 +35,7 @@ $bash = implode(PHP_EOL, [
   'phar_ts=$(test -f "$php_file" && date -r $_ +%s || echo 0)',
   'test "$self_ts" -gt "$phar_ts" && echo \'<?php file_put_contents("\'$php_file\'", hex2bin("' . bin2hex(file_get_contents($phar_file)) . '"));\' | $executor',
   // 'EOF',
-  'exec $executor "$php_file" "$@"',
+  'exec $executor -n "$php_file" "$@"',
   '',
 ]);
 file_put_contents($bin_file, $bash);

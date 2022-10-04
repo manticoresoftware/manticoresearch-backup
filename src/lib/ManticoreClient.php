@@ -25,20 +25,20 @@ class ManticoreClient {
   /**
    * This method freezes the index to perform safe copy of the data
    *
-   * @param array<string>|string $indexes
-   *  Name of manticore index or list of indexes
+   * @param array<string>|string $tables
+   *  Name of manticore index or list of tables
    * @return array<string>
    *  Return list of files for frozen index required to backup
    * @throws SearchdException
    */
-  public function freeze(array|string $indexes): array {
-    if (is_string($indexes)) {
-      $indexes = [$indexes];
+  public function freeze(array|string $tables): array {
+    if (is_string($tables)) {
+      $tables = [$tables];
     }
-    $indexes_string = implode(', ', $indexes);
-    $result = $this->execute('LOCK ' . $indexes_string);
+    $tables_string = implode(', ', $tables);
+    $result = $this->execute('LOCK ' . $tables_string);
     if ($result[0]['error']) {
-      throw new SearchdException('Failed to get lock for indexes - ' . $indexes_string);
+      throw new SearchdException('Failed to get lock for tables - ' . $tables_string);
     }
     return array_column($result[0]['data'], 'file');
   }
@@ -46,43 +46,43 @@ class ManticoreClient {
   /**
    * This method unfreezes the index we fronzen before
    *
-   * @param array<string>|string $indexes
-   *  Name of index to unfreeze or list of indexes
+   * @param array<string>|string $tables
+   *  Name of index to unfreeze or list of tables
    * @return bool
    *  Return the result of operation
    */
-  public function unfreeze(array|string $indexes): bool {
-    if (is_string($indexes)) {
-      $indexes = [$indexes];
+  public function unfreeze(array|string $tables): bool {
+    if (is_string($tables)) {
+      $tables = [$tables];
     }
-    $result = $this->execute('UNLOCK ' . implode(', ', $indexes));
+    $result = $this->execute('UNLOCK ' . implode(', ', $tables));
     return !$result[0]['error'];
   }
 
   /**
-   * This is helper function run unfreeze all available indexes
+   * This is helper function run unfreeze all available tables
    *
    * @return bool
    *  The result of unfreezing
    */
   public function unfreezeAll(): bool {
-    echo PHP_EOL . 'Unfreezing all indexes…' . PHP_EOL;
-    return array_reduce(array_keys($this->getIndexes()), function (bool $carry, string $index): bool {
-      echo '  ' . $index . ' – ';
+    println(LogLevel::Info, PHP_EOL . 'Unfreezing all tables...');
+    return array_reduce(array_keys($this->getTables()), function (bool $carry, string $index): bool {
+      println(LogLevel::Info, '  ' . $index . '...');
       $is_ok = $this->unfreeze($index);
-      echo ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
+      println(LogLevel::Info, '   ' . get_op_result($is_ok));
       $carry = $carry && $is_ok;
       return $carry;
     }, true);
   }
 
   /**
-   * Query all indexes that we have on instance
+   * Query all tables that we have on instance
    *
    * @return array<string,string>
    *  array with index as a key and type as a value [ index => type ]
    */
-  public function getIndexes(): array {
+  public function getTables(): array {
     $result = $this->execute('SHOW TABLES');
     return array_combine(
         array_column($result[0]['data'], 'Index'),
@@ -154,11 +154,16 @@ class ManticoreClient {
       ],
     ];
     $context = stream_context_create($opts);
-    $result = file_get_contents(
-      'http://' . $this->Config->host . ':' . $this->Config->port . static::API_PATH,
-      false,
-      $context
-    );
+    try {
+      $result = file_get_contents(
+        'http://' . $this->Config->host . ':' . $this->Config->port . static::API_PATH,
+        false,
+        $context
+      );
+    } catch (ErrorException $E) {
+      throw new SearchdException('Failed to connect to the manticoresearch daemon. Is it running?');
+    }
+
     if (!$result) { // can be null or false in failed cases so we check non strict here
       throw new SearchdException(__METHOD__ . ': failed to execute query: "' . $query . '"');
     }
@@ -174,7 +179,7 @@ class ManticoreClient {
    */
   public function getSignalHandlerFn(FileStorage $Storage): Closure {
     return function (int $signal) use ($Storage): void {
-      echo 'Caught signal ' . $signal . PHP_EOL;
+      println(LogLevel::Warn, 'Caught signal ' . $signal);
       $Storage->cleanUp();
       $this->unfreezeAll();
     };

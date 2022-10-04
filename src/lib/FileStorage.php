@@ -3,6 +3,9 @@
 class FileStorage {
   const DIR_PERMISSION = 0755;
 
+  /** @var string */
+  protected string $target_dir;
+
   /**
    * We store paths for current backup here
    *
@@ -14,17 +17,25 @@ class FileStorage {
    * @param ?string $target_dir
    *  The root destination of all files to be copied
    * @param bool $use_compression
-   *  The flag that shows if we should to use compression with lz4 or not
+   *  The flag that shows if we should to use compression with zstd or not
    */
-  public function __construct(protected ?string $target_dir, protected bool $use_compression = false) {
+  public function __construct(?string $target_dir, protected bool $use_compression = false) {
+    if (isset($target_dir)) {
+      $this->setTargetDir($target_dir);
+    }
   }
 
   /**
    * Getter for $this->target_dir
    *
    * @return string
+   * @throws RuntimeException
    */
   public function getTargetDir(): ?string {
+    if (!isset($this->target_dir)) {
+      throw new RuntimeException('Target dir is not initialized.');
+    }
+
     return $this->target_dir;
   }
 
@@ -35,7 +46,7 @@ class FileStorage {
    * @return static
    */
   public function setTargetDir(string $dir): static {
-    $this->target_dir = $dir;
+    $this->target_dir = rtrim($dir, DIRECTORY_SEPARATOR);
     return $this;
   }
 
@@ -163,17 +174,19 @@ class FileStorage {
       throw new InvalidPathException(__FUNCTION__ . ': the destination to copy to is not writable');
     }
 
+    $zstd_prefix = '';
     if ($this->use_compression) {
-      $to .= '.lz4';
-      if (!function_exists('lz4_compress')) {
+      $to .= '.zst';
+      if (!function_exists('zstd_compress')) {
         throw new RuntimeException(
-          'Failed to finde lz4_compress please make sure that you have lz4 extensions compiled in'
+          'Failed to find zstd_compress please make sure that you have ZSTD extensions compiled in'
         );
       }
-      $result = !!file_put_contents($to, lz4_compress(file_get_contents($from)));
-    } else {
-      $result = copy($from, $to);
+      $zstd_prefix = 'compress.zstd://';
+    }
+    $result = copy($from, $zstd_prefix . $to);
 
+    if (!$this->use_compression) {
       // If checksum missmatch we fail immediately
       if (md5_file($from, true) !== md5_file($to, true)) {
         throw new ChecksumException(
@@ -204,14 +217,14 @@ class FileStorage {
     }
 
     $result = array_reduce($paths, function (bool $carry, string $path) use ($preserve_path, $to) {
+      $dest = $to . ($preserve_path ? $path : (DIRECTORY_SEPARATOR . basename($path))); // $path - absolute path
+      if ($preserve_path) {
+        $this->createDir($dest, dirname($path), true);
+      }
       if (is_file($path)) {
-        $dest = $to . ($preserve_path ? $path : DIRECTORY_SEPARATOR . basename($path)); // $path - absolute path
-        if ($preserve_path) {
-          $this->createDir(dirname($dest), dirname($path), true);
-        }
         $is_ok = $this->copyFile($path, $dest);
       } else {
-        $is_ok = $this->copyDir($path, $to . DIRECTORY_SEPARATOR . basename($path));
+        $is_ok = $this->copyDir($path, $dest);
       }
       $carry = $carry && $is_ok;
       return $carry;
@@ -320,7 +333,7 @@ class FileStorage {
     if (!isset($this->backup_paths)) {
       $destination = $this->target_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
       // Check that target dir is writable
-      if ($this->target_dir === null || !is_writable($this->target_dir)) {
+      if (!is_writable($this->target_dir)) {
         throw new InvalidPathException('Target directory is not writable');
       }
 
@@ -337,7 +350,7 @@ class FileStorage {
       }
 
       // Backup directory consists of next folders
-      // data - indexes stored here (from data dir and other files from there)
+      // data - tables stored here (from data dir and other files from there)
       // config – config related directory, we store there manticore.conf for all index backup
       // external – all external files for index settings are stored here
       // state – all global state files are stored here

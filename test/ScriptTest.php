@@ -15,7 +15,7 @@ class ScriptTest extends TestCase {
       $this->assertStringContainsString('--help', $output);
       $this->assertStringContainsString('--target-dir', $output);
       $this->assertStringContainsString('--config', $output);
-      $this->assertStringContainsString('--indexes', $output);
+      $this->assertStringContainsString('--tables', $output);
       $this->assertStringContainsString('--unlock', $output);
       $this->assertStringContainsString('--version', $output);
     }
@@ -67,12 +67,12 @@ class ScriptTest extends TestCase {
   public function testUnlockArg(): void {
     $output = $this->exec('--unlock');
 
-    $this->assertStringContainsString('Unfreezing all indexes', $output);
-    $this->assertStringContainsString('movie – OK', $output);
-    $this->assertStringContainsString('people – OK', $output);
-    $this->assertStringContainsString('people_dist_agent – OK', $output);
-    $this->assertStringContainsString('people_dist_local – OK', $output);
-    $this->assertStringContainsString('people_pq – OK', $output);
+    $this->assertStringContainsString('Unfreezing all tables', $output);
+    $this->assertMatchesRegularExpression('/movie...' . PHP_EOL . '[^\r\n]+OK/', $output);
+    $this->assertMatchesRegularExpression('/people...' . PHP_EOL . '[^\r\n]+OK/', $output);
+    $this->assertMatchesRegularExpression('/people_dist_agent...' . PHP_EOL . '[^\r\n]+OK/', $output);
+    $this->assertMatchesRegularExpression('/people_dist_local...' . PHP_EOL . '[^\r\n]+OK/', $output);
+    $this->assertMatchesRegularExpression('/people_pq...' . PHP_EOL . '[^\r\n]+OK/', $output);
   }
 
   /**

@@ -8,18 +8,19 @@ class ManticoreBackup {
   const MIN_PHP_VERSION = '8.1';
 
   /**
-   * Store the wanted indexes in target dir as backup
+   * Store the wanted tables in target dir as backup
    *
    * @param ManticoreClient $Client
    *  Initialized client to interract with manticore search daemon
    * @param FileStorage $Storage
    *  The instance of the storage with initialize directories to use
-   * @param array<string> $indexes
-   *  List of indexes to store. In case if its empty array we store all indexes
+   * @param array<string> $tables
+   *  List of tables to store. In case if its empty array we store all tables
    * @return void
+   * @throws RuntimeException
    */
-  public static function store(ManticoreClient $Client, FileStorage $Storage, array $indexes = []): void {
-    echo PHP_EOL . 'Starting the backup…' . PHP_EOL;
+  public static function store(ManticoreClient $Client, FileStorage $Storage, array $tables = []): void {
+    println(LogLevel::Info, 'Starting the backup...');
     $t = microtime(true);
     $destination = $Storage->getBackupPaths();
 
@@ -32,31 +33,60 @@ class ManticoreBackup {
 
     // TODO: add progress bar / backup status reporting
 
-    // If we have no indexes passed we should to query the client and get all indexes we have
-    [$is_all, $indexes] = static::validateIndexes($indexes, $Client);
+    // If we have no tables passed we should to query the client and get all tables we have
+    [$is_all, $tables] = static::validateTables($tables, $Client);
 
-
-    // 0. backup config files
-    echo 'Backing up config files…' . PHP_EOL;
+    // - backup config files
+    println(LogLevel::Info, 'Backing up config files...');
     $is_ok = $Storage->copyPaths([
       $Client->getConfig()->path,
       $Client->getConfig()->schema_path,
     ], $destination['config']);
-    echo '  config files – ' . ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
+    println(LogLevel::Info, '  config files - ' . get_op_result($is_ok));
 
-    // 0.5 Lock all indexes to make sure that we will have no new data there
+    $result = true;
+
+    // We back up state and external files first because they are usually small enough
+    if ($is_all) {
+      // - Backup global state files
+      println(LogLevel::Info, 'Backing up global state files...');
+      $files = $Client->getConfig()->getStatePaths();
+      $is_ok = $Storage->copyPaths($files, $destination['state'], true);
+      println(LogLevel::Info, '  global state files – ' . get_op_result($is_ok));
+
+      // - backup external files for each index
+      println(LogLevel::Info, 'Backing up external index files...');
+      foreach ($tables as $index => $type) {
+        println(LogLevel::Info, '  ' . $index . ' (' . $type . ')...');
+        // SHOW SETTINGS is not supported for distributed tables, so we simply skip it
+        if ($type === 'distributed') {
+          println(LogLevel::Info, colored('   SKIP', TextColor::LightYellow));
+        } else {
+          $files = $Client->getIndexExternalFiles($index);
+          $is_ok = $Storage->copyPaths($files, $destination['external'], true);
+          println(LogLevel::Info, '   ' . get_op_result($is_ok));
+          $result = $result && $is_ok;
+        }
+      }
+
+      $result = $result && $is_ok;
+    }
+
+    // - Lock all tables to make sure that we will have no new data there
     // And run FLUSH ATTRIBUTES
     // We do lock twice just to keep logic for crawling one by one for each index
-    $Client->freeze(array_keys($indexes));
+    $Client->freeze(array_keys($tables));
     $Client->flushAttributes();
 
-    // 1. First backup index data
+    // - First backup index data
     // Lets copy index one by one with freeze
-    echo 'Backing up indexes…' . PHP_EOL;
-    $result = true;
-    foreach ($indexes as $index => $type) {
+    println(LogLevel::Info, 'Backing up tables...');
+    foreach ($tables as $index => $type) {
       $files = $Client->freeze($index);
-      echo '  ' . $index . ' ('  . $type . ') [' . bytes_to_gb($Storage::calculateFilesSize($files)) . '] – ';
+      println(
+        LogLevel::Info,
+        '  ' . $index . ' ('  . $type . ') [' . format_bytes($Storage::calculateFilesSize($files)) . ']...'
+      );
 
       $backup_path = $destination['data'] . DIRECTORY_SEPARATOR . $index;
       $is_ok = mkdir($backup_path, 0755);
@@ -68,40 +98,14 @@ class ManticoreBackup {
       }
 
       $is_ok = $Storage->copyPaths($files, $backup_path);
-      echo ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
+      println(LogLevel::Info, '   ' . get_op_result($is_ok));
       $result = $result && $is_ok;
       $Client->unfreeze($index);
     }
 
-    // 2. Second, if we are in backup all state we need to do some extra job and backup external files and config
-    if ($is_all) {
-      // 2.1 backup external files for each index
-      echo 'Backing up external index files…' . PHP_EOL;
-      foreach ($indexes as $index => $type) {
-        echo '  ' . $index . ' (' . $type . ') – ';
-        // Show settings on distributed indexes returns error 500 so we simply skip it
-        if ($type === 'distributed') {
-          echo 'SKIP' . PHP_EOL;
-        } else {
-          $files = $Client->getIndexExternalFiles($index);
-          $is_ok = $Storage->copyPaths($files, $destination['external'], true);
-          echo ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
-          $result = $result && $is_ok;
-        }
-      }
-
-      // 2.2 Backup global state files
-      echo 'Backing up global state files…' . PHP_EOL;
-      $files = $Client->getConfig()->getStatePaths();
-      $is_ok = $Storage->copyPaths($files, $destination['state']);
-      echo '  global state files – ' . ($is_ok ? 'OK' : 'FAIL') . PHP_EOL;
-
-      $result = $result && $is_ok;
-    }
-
     if (false === $result) {
       throw new Exception(
-        'Failed to make backup of indexes. '
+        'Failed to make backup of tables. '
           . 'Please check that you have rights to access the source and destinations directories'
       );
     }
@@ -111,9 +115,8 @@ class ManticoreBackup {
     // 3. Done
     $t = round(microtime(true) - $t, 2);
 
-    echo 'You can find backup here: ' . $destination['root'] . PHP_EOL
-      . 'Elapsed time: ' . $t . 's' . PHP_EOL
-    ;
+    println(LogLevel::Info, 'You can find backup here: ' . $destination['root']);
+    println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
   }
 
   /**
@@ -131,32 +134,37 @@ class ManticoreBackup {
   }
 
   /**
-   * Validate and adapt indexes to final format or exit with error
+   * Validate and adapt tables to final format or exit with error
    *
-   * @param array<string> $indexes
-   *  list of indexes to validate that they exist
+   * @param array<string> $tables
+   *  list of tables to validate that they exist
    * @param ManticoreClient $Client
    *  initialized client to interact with
    * @return array{0: bool, 1: array<string,string>}
-   *  flag that points if we are in all backup state and list of indexes after validation
+   *  flag that points if we are in all backup state and list of tables after validation
    */
-  protected static function validateIndexes(array $indexes, ManticoreClient $Client): array {
+  public static function validateTables(array $tables, ManticoreClient $Client): array {
     $result = [];
-    $all_indexes = $Client->getIndexes();
-    if ($indexes) {
-      $is_all = false;
-      $index_diff = array_diff($indexes, array_keys($all_indexes));
+    $all_tables = $Client->getTables();
+    $all_table_names = array_keys($all_tables);
+    if ($tables) {
+      $index_diff = array_diff($tables, $all_table_names);
       if ($index_diff) {
-        throw new InvalidArgumentException('Can\'t find some of the indexes: ' . implode(', ', $index_diff));
+        throw new InvalidArgumentException('Can\'t find some of the tables: ' . implode(', ', $index_diff));
       }
       unset($index_diff);
       $result = array_intersect_key(
-        $all_indexes,
-        array_flip($indexes)
+        $all_tables,
+        array_flip($tables)
       );
     } else {
-      $is_all = true;
-      $result = $all_indexes;
+      $result = $all_tables;
+    }
+
+    $is_all = !array_diff($all_table_names, array_keys($tables));
+    // If we have no tables in our database – we should stop
+    if (!$result) {
+      throw new RuntimeException('You have no tables to backup.');
     }
     return [$is_all, $result];
   }
@@ -166,6 +174,8 @@ class ManticoreBackup {
    * that we are safe after backup is done
    */
   protected static function fsync(): void {
+    println(LogLevel::Info, 'Running sync');
     system('sync');
+    println(LogLevel::Info, ' ' . get_op_result(true));
   }
 }

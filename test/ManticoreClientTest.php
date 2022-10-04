@@ -18,14 +18,14 @@ class ManticoreClientTest extends TestCase {
     $this->assertNotEquals('0.0.0', $versions['manticore']);
   }
 
-  public function testGetIndexes(): void {
-    $indexes = array_keys($this->Client->getIndexes());
-    $this->assertEquals(5, sizeof($indexes));
-    $this->assertContains('movie', $indexes);
-    $this->assertContains('people', $indexes);
-    $this->assertContains('people_pq', $indexes);
-    $this->assertContains('people_dist_local', $indexes);
-    $this->assertContains('people_dist_agent', $indexes);
+  public function testGetTables(): void {
+    $tables = array_keys($this->Client->getTables());
+    $this->assertEquals(5, sizeof($tables));
+    $this->assertContains('movie', $tables);
+    $this->assertContains('people', $tables);
+    $this->assertContains('people_pq', $tables);
+    $this->assertContains('people_dist_local', $tables);
+    $this->assertContains('people_dist_agent', $tables);
   }
 
   public function testGetIndexExternalFiles(): void {

@@ -9,7 +9,7 @@ system('id -u test 2>/dev/null || useradd test');
 
 FileStorage::deleteDir(FileStorage::getTmpDir(), false);
 
-// Initialization of base indexes to check and some data in it
+// Initialization of base tables to check and some data in it
 Searchd::init();
 $config_path = Searchd::getConfigPath();
 Searchd::$cmd = null; // Reset static prop for further testing

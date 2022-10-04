@@ -4,15 +4,13 @@ use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
 
 class ManticoreBackupTest extends TestCase {
-
-  public function testStoreAllIndexes(): void {
+  public function testStoreAllTables(): void {
     [$Config, $Storage, $backup_dir] = $this->initTestEnv();
     $Client = new ManticoreClient($Config);
 
-    // Backup of all indexes
+    // Backup of all tables
     ManticoreBackup::store($Client, $Storage, []);
-    $this->assertBackupIsOK(
-      $Config,
+    $this->assertBackupIsOK($Client,
       $backup_dir,
       [
         'movie' => 'rt',
@@ -24,12 +22,12 @@ class ManticoreBackupTest extends TestCase {
     );
   }
 
-  public function testStoreOnlyTwoIndexes(): void {
+  public function testStoreOnlyTwoTables(): void {
     [$Config, $Storage, $backup_dir] = $this->initTestEnv();
     $Client = new ManticoreClient($Config);
 
     ManticoreBackup::store($Client, $Storage, ['movie', 'people']);
-    $this->assertBackupIsOK($Config, $backup_dir, ['movie' => 'rt', 'people' => 'rt']);
+    $this->assertBackupIsOK($Client, $backup_dir, ['movie' => 'rt', 'people' => 'rt']);
   }
 
   public function testStoreOnlyOneIndex(): void {
@@ -38,7 +36,7 @@ class ManticoreBackupTest extends TestCase {
 
     // Backup only one
     ManticoreBackup::store($Client, $Storage, ['people']);
-    $this->assertBackupIsOK($Config, $backup_dir, ['people' => 'rt']);
+    $this->assertBackupIsOK($Client, $backup_dir, ['people' => 'rt']);
   }
 
   public function testStoreUnexistingIndexOnly(): void {
@@ -49,7 +47,7 @@ class ManticoreBackupTest extends TestCase {
     ManticoreBackup::store($Client, $Storage, ['unknown']);
   }
 
-  public function testStoreExistingAndUnexistingIndexesTogether(): void {
+  public function testStoreExistingAndUnexistingTablesTogether(): void {
     [$Config, $Storage] = $this->initTestEnv();
     $Client = new ManticoreClient($Config);
 
@@ -92,12 +90,12 @@ class ManticoreBackupTest extends TestCase {
     $this->expectException(Exception::class);
     ManticoreBackup::store($Client, $Storage, ['people', 'movie']);
     $this->expectOutputRegex('/Caught signal 15/');
-    $this->expectOutputRegex('/Unfreezing all indexes/');
-    $this->expectOutputRegex('/movie – OK/');
-    $this->expectOutputRegex('/people – OK/');
-    $this->expectOutputRegex('/people_dist_agent – OK/');
-    $this->expectOutputRegex('/people_dist_local – OK/');
-    $this->expectOutputRegex('/people_pq – OK/');
+    $this->expectOutputRegex('/Unfreezing all tables/');
+    $this->expectOutputRegex('/movie...' . PHP_EOL . '[^\r\n]+✓ OK/');
+    $this->expectOutputRegex('/people...' . PHP_EOL . '[^\r\n]+✓ OK/');
+    $this->expectOutputRegex('/people_dist_agent...' . PHP_EOL . '[^\r\n]+✓ OK/');
+    $this->expectOutputRegex('/people_dist_local...' . PHP_EOL . '[^\r\n]+✓ OK/');
+    $this->expectOutputRegex('/people_pq...' . PHP_EOL . '[^\r\n]+✓ OK/');
 
     $backup_paths = $Storage->getBackupPaths();
     $this->assertDirectoryDoesNotExist($backup_paths['root']);
@@ -171,18 +169,20 @@ class ManticoreBackupTest extends TestCase {
   /**
    * Helper function to assert that backup is done in proper mode
    *
-   * @param ManticoreConfig $Config
+   * @param ManticoreClient $Client
    * @param string $backup_dir
-   * @param array<string,string> $indexes
+   * @param array<string,string> $tables
    * @return void
    * @throws InvalidArgumentException
    * @throws ExpectationFailedException
    */
-  protected function assertBackupIsOK(ManticoreConfig $Config, string $backup_dir, array $indexes) {
+  protected function assertBackupIsOK(ManticoreClient $Client, string $backup_dir, array $tables) {
     $dirs = glob($backup_dir . DIRECTORY_SEPARATOR . '*');
     $this->assertIsArray($dirs);
     // @phpstan-ignore-next-line
     $basedir = $dirs[0];
+
+    $Config = $Client->getConfig();
 
     // Check that we created all required dirs
     $this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'config');
@@ -194,9 +194,9 @@ class ManticoreBackupTest extends TestCase {
     $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.json');
     $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.conf');
 
-    // Validate consistency of stored indexes
-    foreach ($indexes as $index => $type) {
-      // Distributed indexes do not have directory to backup
+    // Validate consistency of stored tables
+    foreach ($tables as $index => $type) {
+      // Distributed tables do not have directory to backup
       if ($type === 'distributed') {
         continue;
       }
@@ -227,6 +227,20 @@ class ManticoreBackupTest extends TestCase {
       FileStorage::getPathChecksum($dst_conf),
       FileStorage::getPathChecksum($Config->schema_path)
     );
+
+    // State files
+    [$is_all] = ManticoreBackup::validateTables(array_keys($tables), $Client);
+    $check_fn = $is_all ? 'assertFileExists' : 'assertFileDoesNotExist';
+    foreach ($Config->getStatePaths() as $state_path) {
+      $dest_path = $basedir . DIRECTORY_SEPARATOR . 'state' . $state_path;
+      $this->$check_fn($dest_path);
+      if ($is_all) {
+        $this->assertEquals(
+          FileStorage::getPathChecksum($state_path),
+          FileStorage::getPathChecksum($dest_path)
+        );
+      }
+    }
   }
 
   /**
@@ -257,7 +271,7 @@ class ManticoreMockedClient extends ManticoreClient {
   protected Closure $timeout_fn;
 
   /**
-   * Set delay timeout that we will use in case of calling freeze indexes
+   * Set delay timeout that we will use in case of calling freeze tables
    *
    * @param int $timeout_sec
    * @return static
@@ -280,7 +294,7 @@ class ManticoreMockedClient extends ManticoreClient {
   /**
    * @inheritdoc
    */
-  public function freeze(array|string $indexes): array {
+  public function freeze(array|string $tables): array {
     if ($this->timeout_sec > 0) {
       if (isset($this->timeout_fn)) {
         $fn = $this->timeout_fn;
@@ -291,6 +305,6 @@ class ManticoreMockedClient extends ManticoreClient {
       }
       sleep($this->timeout_sec);
     }
-    return parent::freeze($indexes);
+    return parent::freeze($tables);
   }
 }

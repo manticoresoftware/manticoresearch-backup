@@ -18,10 +18,10 @@ if (isset($args['h']) || isset($args['help'])) {
 Usage: manticore_backup --target-dir=path/to/backup [OPTIONS]
 
 --target-dir=path/to/backup
-  This is a path to the target directory where a backup is stored.  The 
+  This is a path to the target directory where a backup is stored.  The
   directory must exist. This argument is required and has no default value.
   On each backup run, it will create directory `backup-[datetime]` in the
-  provided directory and will copy all required indexes to it. So the target-dir
+  provided directory and will copy all required tables to it. So the target-dir
   is a container of all your backups, and it's safe to run the script multiple
   times.
 
@@ -32,16 +32,16 @@ OPTIONS:
   we use a default one for your operating system. It's used to get the host
   and port to talk with the Manticore daemon.
 
---indexes=index1,index2,...
-  Semicolon-separated list of indexes that you want to backup.
-  If you want to backup all, just skip this argument. All the provided indexes
+--tables=table1,table2,...
+  Semicolon-separated list of tables that you want to backup.
+  If you want to backup all, just skip this argument. All the provided tables
   are supposed to exist in the Manticore instance you are backing up from.
 
 --compress
   Whether the backed up files should be compressed. Not by default.
 
 --unlock
-  In rare cases when something goes wrong the indexes can be left in 
+  In rare cases when something goes wrong the tables can be left in
   locked state. Using this argument you can unlock them.
 
 --version
@@ -105,7 +105,7 @@ switch (true) {
       ;
     }
 
-    ManticoreBackup::store($Client, $Storage, $options['indexes']);
+    ManticoreBackup::store($Client, $Storage, $options['tables']);
 }
 
-echo 'Done' . PHP_EOL;
+println(LogLevel::Info, 'Done');

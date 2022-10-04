@@ -19,3 +19,7 @@ set_error_handler(error_handler(...)); // @phpstan-ignore-line
 if (version_compare(PHP_VERSION, ManticoreBackup::MIN_PHP_VERSION) < 0) {
   throw new Exception('Minimum require PHP version is: ' . ManticoreBackup::MIN_PHP_VERSION);
 }
+
+echo 'Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)'
+  . PHP_EOL . PHP_EOL
+;

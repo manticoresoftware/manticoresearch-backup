@@ -5,15 +5,15 @@
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{config:string,target-dir:?string,compress:bool,indexes:array<string>}
- *  Options that we can use for access with predefined keys: config, target-dir, all, indexes
+ * @return array{config:string,target-dir:?string,compress:bool,tables:array<string>}
+ *  Options that we can use for access with predefined keys: config, target-dir, all, tables
  */
 function validate_args(array $args): array {
   $options = [
     'config' => $args['config'] ?? ($args['c'] ?? Searchd::getConfigPath()),
     'target-dir' => $args['target-dir'] ?? null,
     'compress' => isset($args['compress']),
-    'indexes' => array_filter(array_map('trim', explode(',', $args['indexes'] ?? ''))),
+    'tables' => array_filter(array_map('trim', explode(',', $args['tables'] ?? ''))),
   ];
 
   // Validate arguments
@@ -32,14 +32,14 @@ function validate_args(array $args): array {
     }
   }
 
-  if ($options['compress'] && !function_exists('lz4_compress')) {
+  if ($options['compress'] && !function_exists('zstd_compress')) {
     throw new RuntimeException(
-      'Failed to find lz4 in PHP build. Please enable the LZ4 extension if you want to use compression'
+      'Failed to find ZSTD in PHP build. Please enable the ZSTD extension if you want to use compression'
     );
   }
 
   echo 'Manticore config file: ' . $options['config'] . PHP_EOL
-    . 'Indexes to backup: ' . ($options['indexes'] ? implode(', ', $options['indexes']) : 'all indexes') . PHP_EOL
+    . 'Tables to backup: ' . ($options['tables'] ? implode(', ', $options['tables']) : 'all tables') . PHP_EOL
     . 'Target dir: ' . ($options['target-dir'] ?? 'none') . PHP_EOL
   ;
 
@@ -47,14 +47,22 @@ function validate_args(array $args): array {
 }
 
 /**
- * Little helper to conver bytes to human readable Gb
+ * Little helper to conver bytes to human readable size
  *
  * @param int $bytes
+ * @param int $precision
  * @return string
  *  The result in format [value]G
  */
-function bytes_to_gb(int $bytes): string {
-  return round($bytes / (1024 * 1024 * 1024), 3). 'G';
+function format_bytes(int $bytes, int $precision = 3): string {
+  if ($bytes <= 0) {
+    return '0B';
+  }
+
+  $base = log($bytes, 1024);
+  $sfx = ['B', 'K', 'M', 'G', 'T'];
+
+  return round(pow(1024, $base - floor($base)), $precision) . $sfx[floor($base)];
 }
 
 /**
@@ -64,13 +72,13 @@ function bytes_to_gb(int $bytes): string {
  *  Parsed options
  */
 function get_input_args(): array {
-  $args = getopt('hc:', ['help', 'config:', 'indexes:', 'target-dir:', 'compress', 'unlock', 'version']);
+  $args = getopt('hc:', ['help', 'config:', 'tables:', 'target-dir:', 'compress', 'unlock', 'version']);
   if (false === $args) {
     throw new InvalidArgumentException('Error while parsing the arguments');
   }
 
   // Do not let user to pass non supported options to script
-  $supported_args = '!-h!-c!--help!--config!--indexes!--target-dir!--compress!--unlock!--version!';
+  $supported_args = '!-h!-c!--help!--config!--tables!--target-dir!--compress!--unlock!--version!';
   $argv = $_SERVER['argv'];
   array_shift($argv);
 
@@ -83,8 +91,57 @@ function get_input_args(): array {
   return $args;
 }
 
+/**
+ * This is helper to log message to stdout or stderr
+ *
+ * @param LogLevel $level
+ * @param string $message
+ * @param string $eol
+ * @return void
+ */
+function println(LogLevel $level, string $message, string $eol = PHP_EOL): void {
+  $ts = colored(date('Y-m-d H:i:s'), TextColor::LightYellow);
+  $colored_level = match ($level) {
+    LogLevel::Error => colored($level->name, TextColor::Red),
+    default => $level->name,
+  };
+
+  fwrite(
+    // TODO: find the way how to assert stderr in phpunit
+    // $level === LogLevel::Error ? STDERR : STDOUT,
+    STDOUT,
+    "$ts [$colored_level] {$message}{$eol}"
+  );
+}
+
+/**
+ * This is helper to get colored output for logging in case if the console support its
+ * @param string $message
+ * @param TextColor $color
+ * @return string
+ */
+function colored(string $message, TextColor $color): string {
+  return stream_isatty(STDOUT)
+    ? "\033[{$color->value}m{$message}\033[0m"
+    : $message
+  ;
+}
+
+/**
+ * We use this helper function to display emoji or non-emoji ok/false messages
+ *
+ * @param bool $is_ok
+ * @return string
+ */
+function get_op_result(bool $is_ok): string {
+  return ($is_ok
+    ? colored('OK', TextColor::LightGreen)
+    : colored('Error', TextColor::LightRed)
+  );
+}
+
 function exception_handler(Throwable $E): void {
-  echo $E->getMessage() . PHP_EOL;
+  println(LogLevel::Error, $E->getMessage());
   exit(1); // ? we can add method and fetch custom exit code on any exception
 }
 
@@ -93,5 +150,6 @@ function error_handler(int $errno, string $errstr, string $errfile, int $errline
     // This error code is not included in error_reporting
     return;
   }
+
   throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
