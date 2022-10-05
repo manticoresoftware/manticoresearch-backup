@@ -70,6 +70,10 @@ class ManticoreConfig {
       throw new InvalidPathException('Failed to detect data_dir from config file');
     }
 
+    if (!static::isDataDirValid($this->data_dir)) {
+      throw new InvalidPathException('The data_dir parameter in searchd config should contain absolute path');
+    }
+
     $this->schema_path = $this->data_dir . '/manticore.json';
 
     echo PHP_EOL . 'Manticore config' . PHP_EOL
@@ -99,5 +103,20 @@ class ManticoreConfig {
     }
 
     return $result;
+  }
+
+  /**
+   * This functions validates that data_dir is valid and it contains absolute path
+   *
+   * @param string $data_dir
+   *  platform related data dir path absolute or relative
+   * @return bool
+   *  If the data dir is an absolute path true otherwise false
+   */
+  public static function isDataDirValid(string $data_dir): bool {
+    return OS::isWindows()
+      ? !!preg_match('/^[a-z]\:\\/ius', $data_dir) // @phpstan-ignore-line
+      : $data_dir[0] === '/'
+    ;
   }
 }
