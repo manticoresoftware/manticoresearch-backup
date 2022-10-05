@@ -219,7 +219,7 @@ class FileStorage {
     $result = array_reduce($paths, function (bool $carry, string $path) use ($preserve_path, $to) {
       $dest = $to . ($preserve_path ? $path : (DIRECTORY_SEPARATOR . basename($path))); // $path - absolute path
       if ($preserve_path) {
-        $this->createDir($dest, dirname($path), true);
+        $this->createDir(is_file($path) ? dirname($dest) : $dest, dirname($path), true);
       }
       if (is_file($path)) {
         $is_ok = $this->copyFile($path, $dest);

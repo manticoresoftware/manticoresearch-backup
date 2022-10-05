@@ -41,7 +41,7 @@ class ManticoreBackup {
     $is_ok = $Storage->copyPaths([
       $Client->getConfig()->path,
       $Client->getConfig()->schema_path,
-    ], $destination['config']);
+    ], $destination['config'], true);
     println(LogLevel::Info, '  config files - ' . get_op_result($is_ok));
 
     $result = true;
