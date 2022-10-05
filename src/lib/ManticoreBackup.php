@@ -46,7 +46,7 @@ class ManticoreBackup {
 
     $result = true;
 
-    // We back up state and external files first because they are usually small enough
+    // We back up state first because they are usually small enough
     if ($is_all) {
       // - Backup global state files
       println(LogLevel::Info, 'Backing up global state files...');
@@ -54,21 +54,7 @@ class ManticoreBackup {
       $is_ok = $Storage->copyPaths($files, $destination['state'], true);
       println(LogLevel::Info, '  global state files – ' . get_op_result($is_ok));
 
-      // - backup external files for each index
-      println(LogLevel::Info, 'Backing up external index files...');
-      foreach ($tables as $index => $type) {
-        println(LogLevel::Info, '  ' . $index . ' (' . $type . ')...');
-        // SHOW SETTINGS is not supported for distributed tables, so we simply skip it
-        if ($type === 'distributed') {
-          println(LogLevel::Info, colored('   SKIP', TextColor::LightYellow));
-        } else {
-          $files = $Client->getIndexExternalFiles($index);
-          $is_ok = $Storage->copyPaths($files, $destination['external'], true);
-          println(LogLevel::Info, '   ' . get_op_result($is_ok));
-          $result = $result && $is_ok;
-        }
-      }
-
+      // @phpstan-ignore-next-line
       $result = $result && $is_ok;
     }
 

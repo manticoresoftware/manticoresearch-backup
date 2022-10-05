@@ -111,26 +111,6 @@ class ManticoreClient {
     ];
   }
 
-
-  /**
-   * Get settings for requested index and return external files if it has
-   *
-   * @param string $index
-   *  Name of index to check
-   * @return array<string>
-   *  List of files to backup or just empty array in case nothing to backup
-   */
-  public function getIndexExternalFiles(string $index): array {
-    $result = [];
-    $settings = $this->execute('SHOW INDEX ' . $index . ' SETTINGS');
-    preg_match_all('/^\s*(stopwords|wordforms|exceptions)\s*=\s*(.*)$/ium', $settings[0]['data'][0]['Value'], $m);
-    if ($m) {
-      $result = array_map('trim', $m[2]);
-    }
-
-    return $result;
-  }
-
   public function flushAttributes(): void {
     $this->execute('FLUSH ATTRIBUTES');
   }
