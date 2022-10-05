@@ -31,4 +31,28 @@ class ManticoreConfigTest extends TestCase {
     $this->assertEquals('/usr/local/lib/manticore', $Config->plugin_dir);
     $this->assertEquals('/usr/local/var/manticore/manticore.json', $Config->schema_path);
   }
+
+  public function testParsingFailedInCaseRelativeDataDir(): void {
+    $tmp_dir = FileStorage::getTmpDir();
+    $config_path = $tmp_dir . DIRECTORY_SEPARATOR . 'manticore.conf';
+    file_put_contents($config_path, <<<"EOF"
+      common {
+        plugin_dir = /usr/local/lib/manticore
+      }
+
+      searchd {
+          listen = 127.0.0.1:9312
+          listen = 127.0.0.1:9306:mysql
+          listen = 127.0.0.1:9308:http
+          log = /usr/local/var/log/manticore/searchd.log
+          query_log = /usr/local/var/log/manticore/query.log
+          pid_file = /usr/local/var/run/manticore/searchd.pid
+          data_dir = ./relative/path
+          query_log_format = sphinxql
+      }
+    EOF);
+    $this->expectException(InvalidPathException::class);
+    $this->expectExceptionMessage('The data_dir parameter in searchd config should contain absolute path');
+    new ManticoreConfig($config_path);
+  }
 }
