@@ -54,7 +54,6 @@ The directory with name `backup-%date%` is created in the  *--target-dir* folder
 | Folder | Description |
 |-|-|
 | data | The path to store all files (tables) from the searchd data dir |
-| external | All external files are going here with preserving root paths |
 | config | The directory is for saving configs, mainly manticore.json and manticore.conf |
 | state | The searchd state files backup dir |
 | versions.json | This file contains versions of manticore where current backup was made |

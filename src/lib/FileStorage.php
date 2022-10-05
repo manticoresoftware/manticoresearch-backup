@@ -9,7 +9,7 @@ class FileStorage {
   /**
    * We store paths for current backup here
    *
-   * @var non-empty-array<'config'|'data'|'external'|'root'|'state',non-falsy-string>
+   * @var non-empty-array<'config'|'data'|'root'|'state',non-falsy-string>
    */
   protected array $backup_paths;
 
@@ -325,7 +325,7 @@ class FileStorage {
   /**
    * Get current file storage final backup destination
    *
-   * @return non-empty-array<'config'|'data'|'external'|'root'|'state',non-falsy-string>
+   * @return non-empty-array<'config'|'data'|'root'|'state',non-falsy-string>
    *  Absolute paths for storing different data types
    * @throws InvalidPathException
    */
@@ -352,14 +352,13 @@ class FileStorage {
       // Backup directory consists of next folders
       // data - tables stored here (from data dir and other files from there)
       // config – config related directory, we store there manticore.conf for all index backup
-      // external – all external files for index settings are stored here
       // state – all global state files are stored here
 
       $result = [];
       $result['root'] = $destination;
 
       // Now lets create additional directories
-      foreach (['data', 'config', 'external', 'state'] as $dir) {
+      foreach (['data', 'config', 'state'] as $dir) {
         $path = $destination . DIRECTORY_SEPARATOR . $dir;
         $result[$dir] = $path;
         $is_ok = mkdir($path, 0755);

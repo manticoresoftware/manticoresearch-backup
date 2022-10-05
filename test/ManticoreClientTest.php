@@ -27,9 +27,4 @@ class ManticoreClientTest extends TestCase {
     $this->assertContains('people_dist_local', $tables);
     $this->assertContains('people_dist_agent', $tables);
   }
-
-  public function testGetIndexExternalFiles(): void {
-    $files = $this->Client->getIndexExternalFiles('movie');
-    $this->assertEquals([], $files);
-  }
 }
