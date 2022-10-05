@@ -191,8 +191,8 @@ class ManticoreBackupTest extends TestCase {
     $this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'state');
     $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'versions.json');
 
-    $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.json');
-    $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.conf');
+    $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . $Config->path);
+    $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . $Config->schema_path);
 
     // Validate consistency of stored tables
     foreach ($tables as $index => $type) {
@@ -216,13 +216,13 @@ class ManticoreBackupTest extends TestCase {
     }
 
     // Check that the config file is valid
-    $dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.conf';
+    $dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->path;
     $this->assertEquals(
       FileStorage::getPathChecksum($dst_conf),
       FileStorage::getPathChecksum($Config->path)
     );
 
-    $dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'manticore.json';
+    $dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->schema_path;
     $this->assertEquals(
       FileStorage::getPathChecksum($dst_conf),
       FileStorage::getPathChecksum($Config->schema_path)
