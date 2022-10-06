@@ -140,7 +140,7 @@ class FileStorage {
 
     $root_dir = dirname($to);
     if (!is_dir($root_dir) || !is_writeable($root_dir)) {
-      throw new InvalidPathException('Cannot write to target directory - "' . $root_dir . '"');
+      throw new InvalidPathException('Cannot write to backup directory - "' . $root_dir . '"');
     }
 
     $result = true;
@@ -233,7 +233,7 @@ class FileStorage {
    */
   public function copyPaths(array $paths, string $to, bool $preserve_path = false): bool {
     if (!is_dir($to) || !is_writeable($to)) {
-      throw new InvalidPathException('Cannot write to target directory - "' . $to . '"');
+      throw new InvalidPathException('Cannot write to backup directory - "' . $to . '"');
     }
 
     $result = array_reduce($paths, function (bool $carry, string $path) use ($preserve_path, $to) {
@@ -377,7 +377,7 @@ class FileStorage {
   public function getBackupPaths(): array {
     if (!isset($this->backup_paths)) {
       $destination = $this->backup_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
-      // Check that target dir is writable
+      // Check that backup dir is writable
       if (!is_writable($this->backup_dir)) {
         throw new InvalidPathException('Backup directory is not writable');
       }
@@ -385,7 +385,7 @@ class FileStorage {
       // Do not let backup in same existing directory
       if (is_dir($destination)) {
         throw new InvalidPathException(
-          'Failed to create target directory for the backup, the dir already exists: ' . $destination
+          'Failed to create backup directory for the backup, the dir already exists: ' . $destination
         );
       }
 

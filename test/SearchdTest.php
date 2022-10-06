@@ -1,8 +1,6 @@
 <?php declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-
-class SearchdTest extends TestCase {
+class SearchdTest extends SearchdTestCase {
   public function testGetConfigPathWithoutInitFails(): void {
     if (isset(Searchd::$cmd)) {
       Searchd::$cmd = null;

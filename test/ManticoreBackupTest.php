@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 
 use PHPUnit\Framework\ExpectationFailedException;
-use PHPUnit\Framework\TestCase;
 
-class ManticoreBackupTest extends TestCase {
+class ManticoreBackupTest extends SearchdTestCase {
   public function testStoreAllTables(): void {
     [$Config, $Storage, $backup_dir] = $this->initTestEnv();
     $Client = new ManticoreClient($Config);
@@ -135,13 +134,6 @@ class ManticoreBackupTest extends TestCase {
     $backup_paths = $Storage->getBackupPaths();
     $this->assertDirectoryDoesNotExist($backup_paths['root']);
   }
-
-
-  // public function testStoreInterruption(): void {
-  //   [$Config, $Storage, $backup_dir] = $this->initTestEnv();
-
-  //   $Client = new ManticoreClient($Config);
-  // }
 
   /**
    * Helper to initialize initial configuration for testing

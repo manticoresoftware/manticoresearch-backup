@@ -5,10 +5,13 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . '..'
   . DIRECTORY_SEPARATOR . 'init.php'
 ;
 
+include_once __DIR__ . DIRECTORY_SEPARATOR . 'SearchdTestCase.php';
+
 system('id -u test 2>/dev/null || useradd test');
 
 FileStorage::deleteDir(FileStorage::getTmpDir(), false);
 
+SearchdTestCase::setUpBeforeClass();
 // Initialization of base tables to check and some data in it
 Searchd::init();
 $config_path = Searchd::getConfigPath();
@@ -68,3 +71,4 @@ $Client->execute("CREATE TABLE people_dist_local type='distributed' local='peopl
 // people_dist_agent table
 $Client->execute('DROP TABLE IF EXISTS people_dist_agent');
 $Client->execute("CREATE TABLE people_dist_agent type='distributed' agent='127.0.0.1:9312:people'");
+SearchdTestCase::tearDownAfterClass();

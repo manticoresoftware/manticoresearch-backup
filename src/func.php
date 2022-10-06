@@ -30,7 +30,7 @@ function validate_args(array $args): array {
       is_dir($options['backup-dir']) ||
       !is_writeable($options['backup-dir'])) {
       throw new InvalidArgumentException(
-        'Failed to find target dir to store backup: ' . ($options['backup-dir'] ?? 'none')
+        'Failed to find backup dir to store backup: ' . ($options['backup-dir'] ?? 'none')
       );
     }
   }
@@ -151,7 +151,7 @@ function show_help(): void {
       . '='
       . colored('path/to/backup', TextColor::LightBlue)
       . $nl
-    . "  This is a path to the target directory where a backup is stored.  The$nl"
+    . "  This is a path to the backup directory where a backup is stored.  The$nl"
     . "  directory must exist. This argument is required and has no default value.$nl"
     . "  On each backup run, it will create directory `backup-[datetime]` in the$nl"
     . "  provided directory and will copy all required tables to it. So the backup-dir$nl"
@@ -198,4 +198,28 @@ function error_handler(int $errno, string $errstr, string $errfile, int $errline
   }
 
   throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+}
+
+/**
+ * Helper function to use defer like statement in Go lang
+ *
+ * @param ?SplStack $Stack
+ * @param Callable $fn
+ * @return void
+ */
+function defer(?SplStack $Stack, callable $fn): void {
+  $Stack = $Stack ?? new SplStack();
+
+  $Stack->push(
+    new class($fn) {
+      protected $fn;
+      public function __construct(callable $fn) {
+        $this->fn = $fn;
+      }
+
+      public function __destruct() {
+        \call_user_func($this->fn);
+      }
+    }
+  );
 }

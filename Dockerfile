@@ -1,6 +1,6 @@
 FROM php:8.1.11-cli-buster
 
-ARG TARGET_ARCH=amd64
+ARG TARGET_ARCH=arm64
 ENV VERSION=0.2.1
 ENV SUFFIX=221005-c39fc10
 ENV DEB_PKG=manticore-executor_${VERSION}-${SUFFIX}_${TARGET_ARCH}.deb
@@ -44,5 +44,5 @@ searchd {\n\
 }\n" > "/etc/manticoresearch/manticore.conf"
 
 # Prevent the container from exiting
-ENTRYPOINT ["searchd"]
-CMD ["--nodetach"]
+ENTRYPOINT ["tail"]
+CMD ["-f", "/dev/null"]

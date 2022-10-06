@@ -14,7 +14,7 @@ If you want to backup only some tables feel free to use the `--tables=table1,tab
 
 | Argument | Description | Required |
 |-|-|-|
-| --backup-dir=path | This is the path to the target directory where a backup is stored. The direction must be created. The argument is required to pass, and it has no default value. On each backup run, the script will create a backup-[datetime] directory and copy all required tables to it. So backup-dir represents the container of all your backups, and it's safe to run the script multiple times.| + |
+| --backup-dir=path | This is the path to the backup directory where a backup is stored. The direction must be created. The argument is required to pass, and it has no default value. On each backup run, the script will create a backup-[datetime] directory and copy all required tables to it. So backup-dir represents the container of all your backups, and it's safe to run the script multiple times.| + |
 | --config=path | Path to manticore config. This is optional and in case if it's not passed we use default one for your platform. It's used to get the host and port to talk with the Manticore daemon. | optional |
 | --tables=table1,table1,... | A semicolon-separated list of tables is required to backup. If you want to backup all, just pass skip passing this argument to the script. You cannot give unexisting tables in your database to this argument. | optional |
 | --compress | Should we compress our indexers or not. The default – no. We use zstd for compression. | optional |

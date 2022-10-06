@@ -179,7 +179,7 @@ class ManticoreClient {
         false,
         $context
       );
-    } catch (ErrorException $E) {
+    } catch (ErrorException) {
       throw new SearchdException('Failed to connect to the manticoresearch daemon. Is it running?');
     }
 

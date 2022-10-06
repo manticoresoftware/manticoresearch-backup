@@ -1,8 +1,6 @@
 <?php declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-
-class ManticoreClientTest extends TestCase {
+class ManticoreClientTest extends SearchdTestCase {
   protected ManticoreClient $Client;
 
   public function setUp(): void {
