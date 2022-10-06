@@ -70,6 +70,10 @@ class FileStorage {
    * @throws InvalidPathException
    */
   public static function createDir(string $dir, ?string $origin = null, bool $recursive = false): void {
+    if (is_dir($dir)) {
+      throw new InvalidPathException("Failed to create directory because it exists already: $dir");
+    }
+
     $result = mkdir($dir, static::DIR_PERMISSION, $recursive);
     if (false === $result) {
       throw new InvalidPathException('Failed to create directory – "' . $dir . '"');
@@ -239,7 +243,10 @@ class FileStorage {
     $result = array_reduce($paths, function (bool $carry, string $path) use ($preserve_path, $to) {
       $dest = $to . ($preserve_path ? $path : (DIRECTORY_SEPARATOR . basename($path))); // $path - absolute path
       if ($preserve_path) {
-        $this->createDir(is_file($path) ? dirname($dest) : $dest, dirname($path), true);
+        $dir = is_file($path) ? dirname($dest) : $dest;
+        if (!is_dir($dir)) {
+          $this->createDir($dir, dirname($path), true);
+        }
       }
       if (is_file($path)) {
         $is_ok = $this->copyFile($path, $dest);
