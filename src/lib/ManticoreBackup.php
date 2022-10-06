@@ -66,7 +66,9 @@ class ManticoreBackup {
         return;
       }
 
-      $Client->unfreezeAll();
+      if (Searchd::isRunning()) {
+        $Client->unfreezeAll();
+      }
     };
     register_shutdown_function($unfreeze_fn, $Client);
 

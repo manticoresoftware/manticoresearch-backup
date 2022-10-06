@@ -77,13 +77,16 @@ class ScriptTest extends SearchdTestCase {
     $output = $this->exec('--restore');
     $this->assertStringContainsString('Failed to find backup dir to store backup', $output);
 
-    $tmp_dir = FileStorage::getTmpDir();
+    $tmp_dir = FileStorage::getTmpDir() . DIRECTORY_SEPARATOR . 'no-backup-test';
+    mkdir($tmp_dir, 0755);
     $output = $this->exec('--backup-dir=' . escapeshellarg($tmp_dir) . ' --restore');
     $this->assertStringContainsString('There are no backups available to restore', $output);
 
     $this->exec('--backup-dir=' . escapeshellarg($tmp_dir));
     $output = $this->exec('--backup-dir=' . escapeshellarg($tmp_dir) . ' --restore');
     $this->assertStringContainsString('Available backups: 1', $output);
+
+    FileStorage::deleteDir($tmp_dir);
   }
 
   /**
