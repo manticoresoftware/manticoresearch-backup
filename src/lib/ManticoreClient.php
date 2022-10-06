@@ -10,6 +10,12 @@ class ManticoreClient {
 
   public function __construct(ManticoreConfig $Config) {
     $this->Config = $Config;
+
+    // Validate config path or fail
+    $config_path = $this->getConfigPath();
+    if ($config_path !== $this->Config->path) {
+      throw new RuntimeException("Configs missmatched: '{$this->Config->path} <> {$config_path}");
+    }
   }
 
   /**
@@ -113,6 +119,19 @@ class ManticoreClient {
 
   public function flushAttributes(): void {
     $this->execute('FLUSH ATTRIBUTES');
+  }
+
+  /**
+   * This function is used to validate the config path of running daemon
+   *
+   * @return string
+   *  Path to config from SHOW SETTINGS query
+   */
+  public function getConfigPath(): string {
+    $result = $this->execute('SHOW SETTINGS');
+    $config_path = $result[0]['data'][0]['Value'];
+
+    return $config_path;
   }
 
   /**
