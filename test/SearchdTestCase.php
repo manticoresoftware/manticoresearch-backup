@@ -8,7 +8,7 @@ class SearchdTestCase extends TestCase {
   public static function setUpBeforeClass(): void {
     Searchd::init();
     if (!Searchd::isRunning()) {
-      shell_exec(Searchd::$cmd);
+      shell_exec(Searchd::$cmd); // @phpstan-ignore-line
     }
   }
 

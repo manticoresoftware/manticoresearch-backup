@@ -118,8 +118,15 @@ class ManticoreBackupRestoreTest extends TestCase {
   }
 
 
+  /**
+   * @return array{0:string,1:FileStorage}
+   */
   protected function initTestEnv(): array {
-    $backups = array_slice(scandir(static::$backup_dir), 2);
+    $files = scandir(static::$backup_dir);
+    if (false === $files) {
+      throw new Exception('Failed to scandir for files: ' . static::$backup_dir);
+    }
+    $backups = array_slice($files, 2);
     $this->assertArrayHasKey(0, $backups);
 
     $FileStorage = new FileStorage(static::$backup_dir);
@@ -135,5 +142,3 @@ class ManticoreBackupRestoreTest extends TestCase {
     }
   }
 }
-
-
