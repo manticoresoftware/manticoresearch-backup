@@ -98,6 +98,10 @@ function get_input_args(): array {
  * @return void
  */
 function println(LogLevel $level, string $message, string $eol = PHP_EOL): void {
+  // TODO: add --debug parameter? but now just skip it
+  if ($level === LogLevel::Debug) {
+    return;
+  }
   $ts = colored(date('Y-m-d H:i:s'), TextColor::LightYellow);
   $colored_level = match ($level) {
     LogLevel::Error => colored($level->name, TextColor::Red),
