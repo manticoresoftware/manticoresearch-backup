@@ -29,6 +29,26 @@ class ManticoreClient {
   }
 
   /**
+   * Helper function that we will use for first init of client and config
+   *
+   * @param string $config_path
+   * @return self
+   */
+  public static function init(string $config_path): self {
+    $Config = new ManticoreConfig($config_path);
+    $Client = new ManticoreClient($Config);
+
+    $versions = $Client->getVersions();
+    echo PHP_EOL . 'Manticore versions:' . PHP_EOL
+      . '  manticore: ' . $versions['manticore'] . PHP_EOL
+      . '  columnar: ' . $versions['columnar'] . PHP_EOL
+      . '  secondary: ' . $versions['secondary'] . PHP_EOL
+    ;
+
+    return $Client;
+  }
+
+  /**
    * This method freezes the index to perform safe copy of the data
    *
    * @param array<string>|string $tables

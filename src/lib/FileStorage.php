@@ -4,7 +4,7 @@ class FileStorage {
   const DIR_PERMISSION = 0755;
 
   /** @var string */
-  protected string $target_dir;
+  protected string $backup_dir;
 
   /**
    * We store paths for current backup here
@@ -14,29 +14,29 @@ class FileStorage {
   protected array $backup_paths;
 
   /**
-   * @param ?string $target_dir
+   * @param ?string $backup_dir
    *  The root destination of all files to be copied
    * @param bool $use_compression
    *  The flag that shows if we should to use compression with zstd or not
    */
-  public function __construct(?string $target_dir, protected bool $use_compression = false) {
-    if (isset($target_dir)) {
-      $this->setTargetDir($target_dir);
+  public function __construct(?string $backup_dir, protected bool $use_compression = false) {
+    if (isset($backup_dir)) {
+      $this->setTargetDir($backup_dir);
     }
   }
 
   /**
-   * Getter for $this->target_dir
+   * Getter for $this->backup_dir
    *
    * @return string
    * @throws RuntimeException
    */
-  public function getTargetDir(): ?string {
-    if (!isset($this->target_dir)) {
-      throw new RuntimeException('Target dir is not initialized.');
+  public function getBackupDir(): ?string {
+    if (!isset($this->backup_dir)) {
+      throw new RuntimeException('Backup dir is not initialized.');
     }
 
-    return $this->target_dir;
+    return $this->backup_dir;
   }
 
   /**
@@ -46,7 +46,7 @@ class FileStorage {
    * @return static
    */
   public function setTargetDir(string $dir): static {
-    $this->target_dir = rtrim($dir, DIRECTORY_SEPARATOR);
+    $this->backup_dir = rtrim($dir, DIRECTORY_SEPARATOR);
     return $this;
   }
 
@@ -146,8 +146,9 @@ class FileStorage {
     $result = true;
 
     $from_len = strlen($from) + 1;
+    $FileIterator = static::getFileIterator($from);
     /** @var SplFileInfo $File */
-    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($from)) as $File) {
+    foreach ($FileIterator as $File) {
       $dest_dir = $to . DIRECTORY_SEPARATOR . substr($File->getPath(), $from_len);
 
       // Skip directories
@@ -287,8 +288,9 @@ class FileStorage {
     }
 
     // In case if path is a directory, we do recursive check
+    $FileIterator = static::getFileIterator($path);
     /** @var SplFileInfo $File */
-    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path)) as $File) {
+    foreach ($FileIterator as $File) {
       if (!$File->isFile()) {
         continue;
       }
@@ -310,13 +312,10 @@ class FileStorage {
    * @return void
    */
   public static function deleteDir(string $dir, bool $remove_self = true): void {
-    $files = new RecursiveIteratorIterator(
-      new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-      RecursiveIteratorIterator::CHILD_FIRST
-    );
+    $FileIterator = static::getFileIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
 
     /** @var SplFileInfo $FileInfo */
-    foreach ($files as $FileInfo) {
+    foreach ($FileIterator as $FileInfo) {
       $fn = ($FileInfo->isDir() ? 'rmdir' : 'unlink');
       $fn($FileInfo->getRealPath());
     }
@@ -342,6 +341,33 @@ class FileStorage {
   }
 
   /**
+   * This methods sets the current backup path to use
+   * @param string $dir
+   *  Just directory that belongs to backup_dir path
+   * @return static
+   */
+  public function setBackupPathsUsingDir(string $dir): static {
+    $destination = $this->backup_dir . DIRECTORY_SEPARATOR . $dir;
+    // state – all global state files are stored here
+
+    $result = [];
+    $result['root'] = $destination;
+
+    // Now lets create additional directories
+    foreach (['data', 'config', 'state'] as $dir) {
+      $path = $destination . DIRECTORY_SEPARATOR . $dir;
+      $result[$dir] = $path;
+
+      if (!is_dir($path)) {
+        throw new InvalidArgumentException("Cannot find '$dir' in '$destination'");
+      }
+    }
+
+    $this->backup_paths = $result;
+    return $this;
+  }
+
+  /**
    * Get current file storage final backup destination
    *
    * @return non-empty-array<'config'|'data'|'root'|'state',non-falsy-string>
@@ -350,10 +376,10 @@ class FileStorage {
    */
   public function getBackupPaths(): array {
     if (!isset($this->backup_paths)) {
-      $destination = $this->target_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
+      $destination = $this->backup_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
       // Check that target dir is writable
-      if (!is_writable($this->target_dir)) {
-        throw new InvalidPathException('Target directory is not writable');
+      if (!is_writable($this->backup_dir)) {
+        throw new InvalidPathException('Backup directory is not writable');
       }
 
       // Do not let backup in same existing directory
@@ -393,6 +419,25 @@ class FileStorage {
   }
 
   /**
+   * This is helper func to extract full qualified original path from
+   *  the backup path we have
+   * @param string $backup_path
+   * @return string
+   *  Extracted original preserved path
+   */
+  public function getOriginRealPath(string $backup_path): string {
+    $backup_paths = $this->getBackupPaths();
+    $root_len = strlen($backup_paths['root']) + 1; // + 1 for dir separator
+    $real_path = substr($backup_path, $root_len);
+    $preserved_path = str_replace(['config', 'state'], '', $real_path, $count);
+    if ($count > 0) {
+      return $preserved_path;
+    }
+
+    return substr($real_path, 5); // strlen of "data/" = 5
+  }
+
+  /**
    * Thie method is required to clean up partial failed backup
    *  due to we do not support incremental backups or continue it
    *
@@ -408,5 +453,23 @@ class FileStorage {
     if (is_dir($this->backup_paths['root'])) {
       $this->deleteDir($this->backup_paths['root']);
     }
+  }
+
+  /**
+   * Get recursive iterator for all paths inside wanted dir
+   *
+   * @param string $dir
+   *  The directory where we should look into
+   * @param int $flags
+   * @return RecursiveIteratorIterator<RecursiveDirectoryIterator>
+   */
+  public static function getFileIterator(
+      string $dir,
+      int $flags = FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::CURRENT_AS_FILEINFO
+  ): RecursiveIteratorIterator {
+    return new RecursiveIteratorIterator(
+      new RecursiveDirectoryIterator($dir, $flags),
+      RecursiveIteratorIterator::CHILD_FIRST
+    );
   }
 }

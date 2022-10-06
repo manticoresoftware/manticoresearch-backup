@@ -14,44 +14,8 @@ $args = get_input_args();
 
 // Show help in case we passed help arg
 if (isset($args['h']) || isset($args['help'])) {
-    echo <<<EOF
-Usage: manticore_backup --backup-dir=path/to/backup [OPTIONS]
-
---backup-dir=path/to/backup
-  This is a path to the target directory where a backup is stored.  The
-  directory must exist. This argument is required and has no default value.
-  On each backup run, it will create directory `backup-[datetime]` in the
-  provided directory and will copy all required tables to it. So the backup-dir
-  is a container of all your backups, and it's safe to run the script multiple
-  times.
-
-OPTIONS:
-
---config=path/to/manticore.conf
-  Path to Manticore config. This is optional and in case it's not passed
-  we use a default one for your operating system. It's used to get the host
-  and port to talk with the Manticore daemon.
-
---tables=table1,table2,...
-  Semicolon-separated list of tables that you want to backup.
-  If you want to backup all, just skip this argument. All the provided tables
-  are supposed to exist in the Manticore instance you are backing up from.
-
---compress
-  Whether the backed up files should be compressed. Not by default.
-
---unlock
-  In rare cases when something goes wrong the tables can be left in
-  locked state. Using this argument you can unlock them.
-
---version
-  Show the current version.
-
---help
-  Show this help.
-
-EOF;
-    exit(0);
+  show_help();
+  exit(0);
 }
 
 // Show version in case we passed version arg
@@ -68,23 +32,52 @@ Searchd::init();
 // OK, now gather all options in an array with default values
 $options = validate_args($args); // @phpstan-ignore-line
 
-// First we parse config from passed / default config file
-$Config = new ManticoreConfig($options['config']);
-$Client = new ManticoreClient($Config);
-
-$versions = $Client->getVersions();
-echo PHP_EOL . 'Manticore versions:' . PHP_EOL
-  . '  manticore: ' . $versions['manticore'] . PHP_EOL
-  . '  columnar: ' . $versions['columnar'] . PHP_EOL
-  . '  secondary: ' . $versions['secondary'] . PHP_EOL
+echo 'Manticore config file: ' . $options['config'] . PHP_EOL
+  . (
+      isset($args['restore'])
+        ? ''
+        : 'Tables to backup: ' . ($options['tables'] ? implode(', ', $options['tables']) : 'all tables') . PHP_EOL
+  )
+  . 'Backup dir: ' . ($options['backup-dir'] ?? 'none') . PHP_EOL
 ;
 
 switch (true) {
   case isset($args['unlock']): // unlock
+    $Client = ManticoreClient::init($options['config']);
     $Client->unfreezeAll();
     break;
 
+  case isset($args['restore']): // restore
+    $Storage = new FileStorage($options['backup-dir']);
+
+    if ($options['restore'] === false) {
+      $backup_dir = $Storage->getBackupDir();
+      if (!$backup_dir) {
+        throw new InvalidArgumentException('There is no backup-dir detected');
+      }
+
+      $backups = glob($backup_dir . DIRECTORY_SEPARATOR . 'backup-*');
+      if ($backups) {
+        $prefix_len = strlen($backup_dir) + 1;
+        echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
+        foreach ($backups as $path) {
+          echo '  ' . substr($path, $prefix_len) . PHP_EOL;
+        }
+      } else {
+        echo PHP_EOL . 'There are no backups available to restore' .  PHP_EOL;
+      }
+      exit(0);
+    }
+
+    $Storage->setBackupPathsUsingDir($options['restore']);
+
+    // Here is when real restore is starting
+    ManticoreBackup::restore($Storage);
+    break;
+
   default: // backup
+    $Client = ManticoreClient::init($options['config']);
+
     $Storage = new FileStorage($options['backup-dir'], $options['compress']);
 
     // In case of backing up it's important to install signal handler

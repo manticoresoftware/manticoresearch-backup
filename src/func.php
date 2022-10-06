@@ -5,20 +5,23 @@
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>}
+ * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false}
  *  Options that we can use for access with predefined keys: config, backup-dir, all, tables
  */
 function validate_args(array $args): array {
   $options = [
-    'config' => $args['config'] ?? ($args['c'] ?? Searchd::getConfigPath()),
+    'config' => $args['config'] ?? ($args['c'] ?? (isset($args['restore']) ? '' : Searchd::getConfigPath())),
     'backup-dir' => $args['backup-dir'] ?? null,
     'compress' => isset($args['compress']),
     'tables' => array_filter(array_map('trim', explode(',', $args['tables'] ?? ''))),
+    'restore' => $args['restore'] ?? false,
   ];
 
   // Validate arguments
-  if (!is_file($options['config']) || !is_readable($options['config'])) {
-    throw new InvalidArgumentException('Failed to find passed config: ' . $options['config']);
+  if (!isset($args['restore'])) {
+    if (!is_file($options['config']) || !is_readable($options['config'])) {
+      throw new InvalidArgumentException('Failed to find passed config: ' . $options['config']);
+    }
   }
 
   // Run checks only if we really need it
@@ -37,11 +40,6 @@ function validate_args(array $args): array {
       'Failed to find ZSTD in PHP build. Please enable the ZSTD extension if you want to use compression'
     );
   }
-
-  echo 'Manticore config file: ' . $options['config'] . PHP_EOL
-    . 'Tables to backup: ' . ($options['tables'] ? implode(', ', $options['tables']) : 'all tables') . PHP_EOL
-    . 'Target dir: ' . ($options['backup-dir'] ?? 'none') . PHP_EOL
-  ;
 
   return $options;
 }
@@ -72,13 +70,13 @@ function format_bytes(int $bytes, int $precision = 3): string {
  *  Parsed options
  */
 function get_input_args(): array {
-  $args = getopt('', ['help', 'config:', 'tables:', 'backup-dir:', 'compress', 'unlock', 'version']);
+  $args = getopt('', ['help', 'config:', 'tables:', 'backup-dir:', 'compress', 'restore::', 'unlock', 'version']);
   if (false === $args) {
     throw new InvalidArgumentException('Error while parsing the arguments');
   }
 
   // Do not let user to pass non supported options to script
-  $supported_args = '!-h!-c!--help!--config!--tables!--backup-dir!--compress!--unlock!--version!';
+  $supported_args = '!--help!--config!--tables!--backup-dir!--compress!--restore!--unlock!--version!';
   $argv = $_SERVER['argv'];
   array_shift($argv);
 
@@ -138,6 +136,54 @@ function get_op_result(bool $is_ok): string {
     ? colored('OK', TextColor::LightGreen)
     : colored('Error', TextColor::LightRed)
   );
+}
+
+/**
+ * Helper to display help doc on --help arg
+ *
+ * @return void
+ */
+function show_help(): void {
+  $nl = PHP_EOL;
+  echo colored('Usage:', TextColor::LightYellow) . $nl
+    . "  manticore_backup --backup-dir=path/to/backup [OPTIONS]$nl$nl"
+    . colored('--backup-dir', TextColor::LightGreen)
+      . '='
+      . colored('path/to/backup', TextColor::LightBlue)
+      . $nl
+    . "  This is a path to the target directory where a backup is stored.  The$nl"
+    . "  directory must exist. This argument is required and has no default value.$nl"
+    . "  On each backup run, it will create directory `backup-[datetime]` in the$nl"
+    . "  provided directory and will copy all required tables to it. So the backup-dir$nl"
+    . "  is a container of all your backups, and it's safe to run the script multiple$nl"
+    . "  times.$nl$nl"
+    . colored('OPTIONS:', TextColor::LightYellow) . $nl . $nl
+    . colored('--config', TextColor::LightGreen)
+      . '='
+      . colored('path/to/manticore.conf', TextColor::LightBlue)
+      . $nl
+    . "  Path to Manticore config. This is optional and in case it's not passed$nl"
+    . "  we use a default one for your operating system. It's used to get the host$nl"
+    . "  and port to talk with the Manticore daemon.$nl$nl"
+    . colored('--tables', TextColor::LightGreen)
+      . '='
+      . colored('table1,table2,...', TextColor::LightBlue)
+      . $nl
+    . "  Semicolon-separated list of tables that you want to backup.$nl"
+    . "  If you want to backup all, just skip this argument. All the provided tables$nl"
+    . "  are supposed to exist in the Manticore instance you are backing up from.$nl$nl"
+    . colored('--compress', TextColor::LightGreen) . $nl
+    . "  Whether the backed up files should be compressed. Not by default.$nl$nl"
+    . colored('--restore', TextColor::LightGreen) . $nl
+    . "  Whether we should restore files from the passed backup version.$nl$nl"
+    . colored('--unlock', TextColor::LightGreen) . $nl
+    . "  In rare cases when something goes wrong the tables can be left in$nl"
+    . "  locked state. Using this argument you can unlock them.$nl$nl"
+    . colored('--version', TextColor::LightGreen) . $nl
+    . "  Show the current version.$nl$nl"
+    . colored('--help', TextColor::LightGreen) . $nl
+    . "  Show this help.$nl"
+  ;
 }
 
 function exception_handler(Throwable $E): void {

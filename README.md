@@ -18,6 +18,7 @@ If you want to backup only some tables feel free to use the `--tables=table1,tab
 | --config=path | Path to manticore config. This is optional and in case if it's not passed we use default one for your platform. It's used to get the host and port to talk with the Manticore daemon. | optional |
 | --tables=table1,table1,... | A semicolon-separated list of tables is required to backup. If you want to backup all, just pass skip passing this argument to the script. You cannot give unexisting tables in your database to this argument. | optional |
 | --compress | Should we compress our indexers or not. The default – no. We use zstd for compression. | optional |
+| --restore | Activate restore mode and move files from passed backup version to original destination. | optional |
 | --unlock | In case if something went wrong or tables are still in lock state we can run the script with this argument to unlock it all. | command |
 | --version | Show the current backup script version. | command |
 | --help | Show this help. | command |

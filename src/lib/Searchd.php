@@ -22,4 +22,16 @@ class Searchd {
     }
     return $m[1];
   }
+
+  /**
+   * Get the current status of the daemon if it's running or not
+   *
+   * @return bool
+   */
+  public static function isRunning(): bool {
+    $result_code = 0;
+    exec(static::$cmd . ' --status', result_code: $result_code);
+
+    return $result_code === 0;
+  }
 }
