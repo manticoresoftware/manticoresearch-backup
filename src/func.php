@@ -174,7 +174,7 @@ function show_help(): void {
     . "  are supposed to exist in the Manticore instance you are backing up from.$nl$nl"
     . colored('--compress', TextColor::LightGreen) . $nl
     . "  Whether the backed up files should be compressed. Not by default.$nl$nl"
-    . colored('--restore', TextColor::LightGreen) . $nl
+    . colored('--restore', TextColor::LightGreen) . '[=path/to/backup]'. $nl
     . "  Whether we should restore files from the passed backup version.$nl$nl"
     . colored('--unlock', TextColor::LightGreen) . $nl
     . "  In rare cases when something goes wrong the tables can be left in$nl"

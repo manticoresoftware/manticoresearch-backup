@@ -207,7 +207,7 @@ class FileStorage {
     $result = copy($from, $zstd_prefix . $to);
 
     if (!$this->use_compression) {
-      // If checksum missmatch we fail immediately
+      // If checksum mismatch we fail immediately
       if (md5_file($from, true) !== md5_file($to, true)) {
         throw new ChecksumException(
           'Failed to validate checksum for copying file from "' . $from . '" to "' . $to . '"'

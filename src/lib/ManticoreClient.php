@@ -14,7 +14,10 @@ class ManticoreClient {
     // Validate config path or fail
     $config_path = $this->getConfigPath();
     if ($config_path !== $this->Config->path) {
-      throw new RuntimeException("Configs missmatched: '{$this->Config->path} <> {$config_path}");
+      throw new RuntimeException(
+        "Configs mismatched: '{$this->Config->path} <> {$config_path}"
+         . ', make sure the instance you are backing up is using the provided config'
+      );
     }
   }
 
@@ -150,6 +153,11 @@ class ManticoreClient {
   public function getConfigPath(): string {
     $result = $this->execute('SHOW SETTINGS');
     $config_path = $result[0]['data'][0]['Value'];
+
+    // Fix issue with //manticore.conf path
+    if ($config_path[0] === '/') {
+      $config_path = '/' . ltrim($config_path, '/');
+    }
 
     return $config_path;
   }
