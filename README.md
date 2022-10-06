@@ -6,7 +6,7 @@ First, you must be sure that you run the script on the same machine where you ha
 
 Second, we recommend running it under the `root` user so the script will transfer ownership of files in that case. Otherwise, the backup will be made but with no ownership transfer. Anyway, you should remember that script must have access to the data dir of the manticore.
 
-You can start with `manticore_backup --config=path/to/manticore.conf --backup-dir=backupdir` to backup all tables to `backupdir` and use `path/to/manticore.conf` config of manticore. You can omit the *--config* argument; in that case, the script will find out the config path by using the `searchd --status` call.
+You can start with `manticore-backup --config=path/to/manticore.conf --backup-dir=backupdir` to backup all tables to `backupdir` and use `path/to/manticore.conf` config of manticore. You can omit the *--config* argument; in that case, the script will find out the config path by using the `searchd --status` call.
 
 If you want to backup only some tables feel free to use the `--tables=table1,table1` flag that will backup only required tables and skip all others.
 
@@ -25,7 +25,7 @@ If you want to backup only some tables feel free to use the `--tables=table1,tab
 
 ## Get more help?
 
-Just run `manticore_backup --help` or `manticore_backup -h` to display full help.
+Just run `manticore-backup --help` or `manticore-backup -h` to display full help.
 
 ## Structure
 
@@ -61,7 +61,7 @@ The directory with name `backup-%date%` is created in the  *--backup-dir* folder
 
 ## Building
 
-To build the final single script entrypoint you should to run `bin/build`. The final script can be found in build directory under the `build/manticore_backup`.
+To build the final single script entrypoint you should to run `bin/build`. The final script can be found in build directory under the `build/manticore-backup`.
 
 We recommend installing [manticore-executor](https://github.com/manticoresoftware/executor), and in that case, the script will use a custom-built PHP binary with all required extensions to run.
 

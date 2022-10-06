@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 class ScriptTest extends SearchdTestCase {
-  const CMD = './build/manticore_backup';
+  const CMD = './build/manticore-backup';
 
   public static function setUpBeforeClass(): void {
     parent::setUpBeforeClass();

@@ -146,7 +146,7 @@ function get_op_result(bool $is_ok): string {
 function show_help(): void {
   $nl = PHP_EOL;
   echo colored('Usage:', TextColor::LightYellow) . $nl
-    . "  manticore_backup --backup-dir=path/to/backup [OPTIONS]$nl$nl"
+    . "  manticore-backup --backup-dir=path/to/backup [OPTIONS]$nl$nl"
     . colored('--backup-dir', TextColor::LightGreen)
       . '='
       . colored('path/to/backup', TextColor::LightBlue)

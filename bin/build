@@ -2,7 +2,7 @@
 <?php
 define('BUILD_DIR', './build');
 
-$bin_file = BUILD_DIR . '/manticore_backup';
+$bin_file = BUILD_DIR . '/manticore-backup';
 $phar_file = $bin_file . '.phar';
 if (file_exists($phar_file)) {
   unlink($phar_file);
@@ -30,7 +30,7 @@ $bash = implode(PHP_EOL, [
   '#!/usr/bin/env bash',
   'executor=$(which manticore-executor || which php)',
   'tmp=$($executor -r \'echo sys_get_temp_dir();\')',
-  'php_file="$tmp/manticore_backup.phar"',
+  'php_file="$tmp/manticore-backup.phar"',
   'self_ts=$(date -r "$0" +%s)',
   'phar_ts=$(test -f "$php_file" && date -r $_ +%s || echo 0)',
   'test "$self_ts" -gt "$phar_ts" && echo \'<?php file_put_contents("\'$php_file\'", hex2bin("' . bin2hex(file_get_contents($phar_file)) . '"));\' | $executor',
