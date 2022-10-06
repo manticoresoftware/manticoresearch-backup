@@ -5,13 +5,13 @@
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{config:string,target-dir:?string,compress:bool,tables:array<string>}
- *  Options that we can use for access with predefined keys: config, target-dir, all, tables
+ * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>}
+ *  Options that we can use for access with predefined keys: config, backup-dir, all, tables
  */
 function validate_args(array $args): array {
   $options = [
     'config' => $args['config'] ?? ($args['c'] ?? Searchd::getConfigPath()),
-    'target-dir' => $args['target-dir'] ?? null,
+    'backup-dir' => $args['backup-dir'] ?? null,
     'compress' => isset($args['compress']),
     'tables' => array_filter(array_map('trim', explode(',', $args['tables'] ?? ''))),
   ];
@@ -23,11 +23,11 @@ function validate_args(array $args): array {
 
   // Run checks only if we really need it
   if (!isset($args['unlock'])) {
-    if (!isset($options['target-dir']) || !
-      is_dir($options['target-dir']) ||
-      !is_writeable($options['target-dir'])) {
+    if (!isset($options['backup-dir']) || !
+      is_dir($options['backup-dir']) ||
+      !is_writeable($options['backup-dir'])) {
       throw new InvalidArgumentException(
-        'Failed to find target dir to store backup: ' . ($options['target-dir'] ?? 'none')
+        'Failed to find target dir to store backup: ' . ($options['backup-dir'] ?? 'none')
       );
     }
   }
@@ -40,7 +40,7 @@ function validate_args(array $args): array {
 
   echo 'Manticore config file: ' . $options['config'] . PHP_EOL
     . 'Tables to backup: ' . ($options['tables'] ? implode(', ', $options['tables']) : 'all tables') . PHP_EOL
-    . 'Target dir: ' . ($options['target-dir'] ?? 'none') . PHP_EOL
+    . 'Target dir: ' . ($options['backup-dir'] ?? 'none') . PHP_EOL
   ;
 
   return $options;
@@ -72,13 +72,13 @@ function format_bytes(int $bytes, int $precision = 3): string {
  *  Parsed options
  */
 function get_input_args(): array {
-  $args = getopt('hc:', ['help', 'config:', 'tables:', 'target-dir:', 'compress', 'unlock', 'version']);
+  $args = getopt('', ['help', 'config:', 'tables:', 'backup-dir:', 'compress', 'unlock', 'version']);
   if (false === $args) {
     throw new InvalidArgumentException('Error while parsing the arguments');
   }
 
   // Do not let user to pass non supported options to script
-  $supported_args = '!-h!-c!--help!--config!--tables!--target-dir!--compress!--unlock!--version!';
+  $supported_args = '!-h!-c!--help!--config!--tables!--backup-dir!--compress!--unlock!--version!';
   $argv = $_SERVER['argv'];
   array_shift($argv);
 

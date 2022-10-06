@@ -59,10 +59,23 @@ class ManticoreBackup {
     }
 
     // - Lock all tables to make sure that we will have no new data there
+    // Make sure that in case any exception or whatever we will unlock all indexes
+    $is_done = false;
+    $unfreeze_fn = function (ManticoreClient $Client) use (&$is_done) {
+      if ($is_done) { // @phpstan-ignore-line
+        return;
+      }
+
+      $Client->unfreezeAll();
+    };
+    register_shutdown_function($unfreeze_fn, $Client);
+
     // And run FLUSH ATTRIBUTES
     // We do lock twice just to keep logic for crawling one by one for each index
     $Client->freeze(array_keys($tables));
     $Client->flushAttributes();
+
+    $Config = $Client->getConfig();
 
     // - First backup index data
     // Lets copy index one by one with freeze
@@ -74,20 +87,25 @@ class ManticoreBackup {
         '  ' . $index . ' ('  . $type . ') [' . format_bytes($Storage::calculateFilesSize($files)) . ']...'
       );
 
-      $backup_path = $destination['data'] . DIRECTORY_SEPARATOR . $index;
-      $is_ok = mkdir($backup_path, 0755);
-      if (false === $is_ok) {
-        $Client->unfreeze($index);
-        throw new SearchdException(
-          'Failed to create target directory for index – "' . $backup_path . '"'
-        );
+      // We will have no directory for distributed indexes and so should not back it up
+      if ($type === 'distributed') {
+        println(LogLevel::Info, '  ' . colored('SKIP', TextColor::LightYellow));
+        continue;
       }
+
+      $backup_path = $destination['data'] . DIRECTORY_SEPARATOR . $index;
+      $Storage->createDir(
+        $backup_path,
+        $Config->data_dir . DIRECTORY_SEPARATOR . $index
+      );
 
       $is_ok = $Storage->copyPaths($files, $backup_path);
       println(LogLevel::Info, '   ' . get_op_result($is_ok));
       $result = $result && $is_ok;
       $Client->unfreeze($index);
     }
+
+    $is_done = true;
 
     if (false === $result) {
       throw new Exception(
@@ -147,7 +165,7 @@ class ManticoreBackup {
       $result = $all_tables;
     }
 
-    $is_all = !array_diff($all_table_names, array_keys($tables));
+    $is_all = !$tables || !array_diff($all_table_names, $tables);
     // If we have no tables in our database – we should stop
     if (!$result) {
       throw new RuntimeException('You have no tables to backup.');

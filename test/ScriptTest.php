@@ -10,15 +10,13 @@ class ScriptTest extends TestCase {
   }
 
   public function testHelpArg(): void {
-    foreach (['-h', '--help'] as $arg) {
-      $output = $this->exec($arg);
-      $this->assertStringContainsString('--help', $output);
-      $this->assertStringContainsString('--target-dir', $output);
-      $this->assertStringContainsString('--config', $output);
-      $this->assertStringContainsString('--tables', $output);
-      $this->assertStringContainsString('--unlock', $output);
-      $this->assertStringContainsString('--version', $output);
-    }
+    $output = $this->exec('--help');
+    $this->assertStringContainsString('--help', $output);
+    $this->assertStringContainsString('--backup-dir', $output);
+    $this->assertStringContainsString('--config', $output);
+    $this->assertStringContainsString('--tables', $output);
+    $this->assertStringContainsString('--unlock', $output);
+    $this->assertStringContainsString('--version', $output);
   }
 
   public function testNoTargetDirArgProducesError(): void {
@@ -27,7 +25,7 @@ class ScriptTest extends TestCase {
   }
 
   public function testNonExistingTargetDirProducesError(): void {
-    $output = $this->exec('--target-dir=non-existing-dir');
+    $output = $this->exec('--backup-dir=non-existing-dir');
     $this->assertStringContainsString('Failed to find target dir to store backup', $output);
   }
 
@@ -57,11 +55,11 @@ class ScriptTest extends TestCase {
     $output = $this->exec('--versio');
     $this->assertStringContainsString('Unknown option: --versio', $output);
 
-    $output = $this->exec('--target-dir1');
-    $this->assertStringContainsString('Unknown option: --target-dir1', $output);
+    $output = $this->exec('--backup-dir1');
+    $this->assertStringContainsString('Unknown option: --backup-dir1', $output);
 
-    $output = $this->exec('--target-dir1=tratata');
-    $this->assertStringContainsString('Unknown option: --target-dir1', $output);
+    $output = $this->exec('--backup-dir1=tratata');
+    $this->assertStringContainsString('Unknown option: --backup-dir1', $output);
   }
 
   public function testUnlockArg(): void {

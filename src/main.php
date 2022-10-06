@@ -15,19 +15,19 @@ $args = get_input_args();
 // Show help in case we passed help arg
 if (isset($args['h']) || isset($args['help'])) {
     echo <<<EOF
-Usage: manticore_backup --target-dir=path/to/backup [OPTIONS]
+Usage: manticore_backup --backup-dir=path/to/backup [OPTIONS]
 
---target-dir=path/to/backup
+--backup-dir=path/to/backup
   This is a path to the target directory where a backup is stored.  The
   directory must exist. This argument is required and has no default value.
   On each backup run, it will create directory `backup-[datetime]` in the
-  provided directory and will copy all required tables to it. So the target-dir
+  provided directory and will copy all required tables to it. So the backup-dir
   is a container of all your backups, and it's safe to run the script multiple
   times.
 
 OPTIONS:
 
---config=path/to/manticore.conf | -c=path/to/manticore.conf
+--config=path/to/manticore.conf
   Path to Manticore config. This is optional and in case it's not passed
   we use a default one for your operating system. It's used to get the host
   and port to talk with the Manticore daemon.
@@ -47,7 +47,7 @@ OPTIONS:
 --version
   Show the current version.
 
---help | -h
+--help
   Show this help.
 
 EOF;
@@ -85,7 +85,7 @@ switch (true) {
     break;
 
   default: // backup
-    $Storage = new FileStorage($options['target-dir'], $options['compress']);
+    $Storage = new FileStorage($options['backup-dir'], $options['compress']);
 
     // In case of backing up it's important to install signal handler
     if (function_exists('pcntl_async_signals')) {

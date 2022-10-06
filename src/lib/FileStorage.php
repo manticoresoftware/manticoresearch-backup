@@ -76,7 +76,7 @@ class FileStorage {
     }
 
     if ($origin) {
-      static::transferOwnership($origin, $dir);
+      static::transferOwnership($origin, $dir, $recursive);
     }
   }
 
@@ -87,10 +87,16 @@ class FileStorage {
    *  The path which ownership we transfer from
    * @param string $to
    *  The path where we transfer ownership to
+   * @param bool $recursive
+   *  If we should transfer it in recursive way folder by folder
    * @return void
    * @throws RuntimeException
    */
-  public static function transferOwnership(string $from, string $to): void {
+  public static function transferOwnership(string $from, string $to, bool $recursive = false): void {
+    if (basename($from) !== basename($to)) {
+      return;
+    }
+
     $file_uid = fileowner($from);
     $file_gid = filegroup($from);
     $file_perm = fileperms($from);
@@ -103,6 +109,19 @@ class FileStorage {
       chown($to, $file_uid);
       chgrp($to, $file_gid);
       chmod($to, $file_perm);
+    }
+
+    // In case we need to transfer recursive we do self function call
+    // and it goes while the directory name matches exactly in name
+    if ($recursive) {
+      $from_pos = strrpos($from, DIRECTORY_SEPARATOR);
+      $to_pos = strrpos($to, DIRECTORY_SEPARATOR);
+      if (false !== $from_pos && false !== $to_pos) {
+        static::transferOwnership(
+          substr($from, 0, $from_pos),
+          substr($to, 0, $to_pos)
+        );
+      }
     }
   }
 

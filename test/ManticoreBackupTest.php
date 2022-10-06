@@ -156,12 +156,12 @@ class ManticoreBackupTest extends TestCase {
     mkdir($backup_dir, 0755);
 
     $options = validate_args([
-      'target-dir' => $backup_dir,
+      'backup-dir' => $backup_dir,
     ]);
 
     return [
       new ManticoreConfig($options['config']),
-      new FileStorage($options['target-dir']),
+      new FileStorage($options['backup-dir']),
       $backup_dir,
     ];
   }
@@ -190,8 +190,15 @@ class ManticoreBackupTest extends TestCase {
     $this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'state');
     $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'versions.json');
 
-    $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . $Config->path);
-    $this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'config' . $Config->schema_path);
+    $origin_config_path = $Config->path;
+    $target_config_path = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->path;
+    $this->assertFileExists($target_config_path);
+    $this->assertOwnershipIsOK($origin_config_path, $target_config_path);
+
+    $origin_schema_path = $Config->schema_path;
+    $target_schema_path = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->schema_path;
+    $this->assertFileExists($target_schema_path);
+    $this->assertOwnershipIsOK($origin_schema_path, $target_schema_path);
 
     // Validate consistency of stored tables
     foreach ($tables as $index => $type) {
@@ -200,7 +207,11 @@ class ManticoreBackupTest extends TestCase {
         continue;
       }
 
-      $this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . $index);
+      $origin_index_dir = $Config->data_dir . DIRECTORY_SEPARATOR . $index;
+      $target_index_dir = $basedir . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . $index;
+      $this->assertDirectoryExists($target_index_dir);
+
+      $this->assertOwnershipIsOK($origin_index_dir, $target_index_dir, true);
 
       // Remove lock file to fix issue with checksums validations cuz we do not move this file
       $lock_file = $Config->data_dir . DIRECTORY_SEPARATOR .  $index . DIRECTORY_SEPARATOR . $index . '.lock';
@@ -234,9 +245,38 @@ class ManticoreBackupTest extends TestCase {
       $dest_path = $basedir . DIRECTORY_SEPARATOR . 'state' . $state_path;
       $this->$check_fn($dest_path);
       if ($is_all) {
+        $this->assertOwnershipIsOK($state_path, $dest_path);
         $this->assertEquals(
           FileStorage::getPathChecksum($state_path),
           FileStorage::getPathChecksum($dest_path)
+        );
+      }
+    }
+  }
+
+  /**
+   * Helper function to validate that ownership is successfuly transferred
+   *
+   * @param string $source
+   * @param string $target
+   * @return void
+   */
+  protected function assertOwnershipIsOK(string $source, string $target, bool $recursive = true): void {
+    $this->assertEquals(fileperms($source), fileperms($target));
+    $this->assertEquals(fileowner($source), fileowner($target));
+    $this->assertEquals(filegroup($source), filegroup($target));
+
+    // In case we pass dir and have recursive = true, check all folder
+    if ($recursive && is_dir($target)) {
+      $files = scandir($target);
+      if (false === $files) {
+        throw new Exception("Failed to scan dir '$target' for files");
+      }
+
+      foreach (array_slice($files, 2) as $file) {
+        $this->assertOwnershipIsOK(
+          $source . DIRECTORY_SEPARATOR . $file,
+          $target . DIRECTORY_SEPARATOR . $file
         );
       }
     }
