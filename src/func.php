@@ -199,27 +199,3 @@ function error_handler(int $errno, string $errstr, string $errfile, int $errline
 
   throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
-
-/**
- * Helper function to use defer like statement in Go lang
- *
- * @param ?SplStack $Stack
- * @param Callable $fn
- * @return void
- */
-function defer(?SplStack $Stack, callable $fn): void {
-  $Stack = $Stack ?? new SplStack();
-
-  $Stack->push(
-    new class($fn) {
-      protected $fn;
-      public function __construct(callable $fn) {
-        $this->fn = $fn;
-      }
-
-      public function __destruct() {
-        \call_user_func($this->fn);
-      }
-    }
-  );
-}
