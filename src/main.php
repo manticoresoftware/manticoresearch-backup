@@ -62,8 +62,8 @@ switch (true) {
         echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
         foreach ($backups as $path) {
           $dir = substr($path, $prefix_len);
-          $ts = strtotime(explode('-', $dir)[1] ?? 0);
-          $date = date('M d Y H:i:s', $ts);
+          $ts = strtotime(explode('-', $dir)[1] ?? '0');
+          $date = $ts ? date('M d Y H:i:s', $ts) : '?';
           echo '  ' . $dir . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
         }
       } else {
