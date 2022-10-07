@@ -30,7 +30,7 @@ function validate_args(array $args): array {
       is_dir($options['backup-dir']) ||
       !is_writeable($options['backup-dir'])) {
       throw new InvalidArgumentException(
-        'Failed to find target dir to store backup: ' . ($options['backup-dir'] ?? 'none')
+        'Failed to find backup dir to store backup: ' . ($options['backup-dir'] ?? 'none')
       );
     }
   }
@@ -98,6 +98,10 @@ function get_input_args(): array {
  * @return void
  */
 function println(LogLevel $level, string $message, string $eol = PHP_EOL): void {
+  // TODO: add --debug parameter? but now just skip it
+  if ($level === LogLevel::Debug) {
+    return;
+  }
   $ts = colored(date('Y-m-d H:i:s'), TextColor::LightYellow);
   $colored_level = match ($level) {
     LogLevel::Error => colored($level->name, TextColor::Red),
@@ -146,12 +150,12 @@ function get_op_result(bool $is_ok): string {
 function show_help(): void {
   $nl = PHP_EOL;
   echo colored('Usage:', TextColor::LightYellow) . $nl
-    . "  manticore_backup --backup-dir=path/to/backup [OPTIONS]$nl$nl"
+    . "  manticore-backup --backup-dir=path/to/backup [OPTIONS]$nl$nl"
     . colored('--backup-dir', TextColor::LightGreen)
       . '='
       . colored('path/to/backup', TextColor::LightBlue)
       . $nl
-    . "  This is a path to the target directory where a backup is stored.  The$nl"
+    . "  This is a path to the backup directory where a backup is stored.  The$nl"
     . "  directory must exist. This argument is required and has no default value.$nl"
     . "  On each backup run, it will create directory `backup-[datetime]` in the$nl"
     . "  provided directory and will copy all required tables to it. So the backup-dir$nl"
