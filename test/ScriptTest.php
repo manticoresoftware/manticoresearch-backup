@@ -1,11 +1,10 @@
 <?php declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-
-class ScriptTest extends TestCase {
-  const CMD = './build/manticore_backup';
+class ScriptTest extends SearchdTestCase {
+  const CMD = './build/manticore-backup';
 
   public static function setUpBeforeClass(): void {
+    parent::setUpBeforeClass();
     system('./bin/build');
   }
 
@@ -16,17 +15,18 @@ class ScriptTest extends TestCase {
     $this->assertStringContainsString('--config', $output);
     $this->assertStringContainsString('--tables', $output);
     $this->assertStringContainsString('--unlock', $output);
+    $this->assertStringContainsString('--restore', $output);
     $this->assertStringContainsString('--version', $output);
   }
 
   public function testNoTargetDirArgProducesError(): void {
     $output = $this->exec('');
-    $this->assertStringContainsString('Failed to find target dir to store backup', $output);
+    $this->assertStringContainsString('Failed to find backup dir to store backup', $output);
   }
 
   public function testNonExistingTargetDirProducesError(): void {
     $output = $this->exec('--backup-dir=non-existing-dir');
-    $this->assertStringContainsString('Failed to find target dir to store backup', $output);
+    $this->assertStringContainsString('Failed to find backup dir to store backup', $output);
   }
 
   public function testNonExistingConfigProducesError(): void {
@@ -71,6 +71,22 @@ class ScriptTest extends TestCase {
     $this->assertMatchesRegularExpression('/people_dist_agent...' . PHP_EOL . '[^\r\n]+OK/', $output);
     $this->assertMatchesRegularExpression('/people_dist_local...' . PHP_EOL . '[^\r\n]+OK/', $output);
     $this->assertMatchesRegularExpression('/people_pq...' . PHP_EOL . '[^\r\n]+OK/', $output);
+  }
+
+  public function testRestoreArg(): void {
+    $output = $this->exec('--restore');
+    $this->assertStringContainsString('Failed to find backup dir to store backup', $output);
+
+    $tmp_dir = FileStorage::getTmpDir() . DIRECTORY_SEPARATOR . 'no-backup-test';
+    mkdir($tmp_dir, 0755);
+    $output = $this->exec('--backup-dir=' . escapeshellarg($tmp_dir) . ' --restore');
+    $this->assertStringContainsString('There are no backups available to restore', $output);
+
+    $this->exec('--backup-dir=' . escapeshellarg($tmp_dir));
+    $output = $this->exec('--backup-dir=' . escapeshellarg($tmp_dir) . ' --restore');
+    $this->assertStringContainsString('Available backups: 1', $output);
+
+    FileStorage::deleteDir($tmp_dir);
   }
 
   /**

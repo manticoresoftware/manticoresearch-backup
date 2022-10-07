@@ -70,6 +70,10 @@ class FileStorage {
    * @throws InvalidPathException
    */
   public static function createDir(string $dir, ?string $origin = null, bool $recursive = false): void {
+    if (is_dir($dir)) {
+      throw new InvalidPathException("Failed to create directory because it exists already: $dir");
+    }
+
     $result = mkdir($dir, static::DIR_PERMISSION, $recursive);
     if (false === $result) {
       throw new InvalidPathException('Failed to create directory – "' . $dir . '"');
@@ -140,7 +144,7 @@ class FileStorage {
 
     $root_dir = dirname($to);
     if (!is_dir($root_dir) || !is_writeable($root_dir)) {
-      throw new InvalidPathException('Cannot write to target directory - "' . $root_dir . '"');
+      throw new InvalidPathException('Cannot write to backup directory - "' . $root_dir . '"');
     }
 
     $result = true;
@@ -207,7 +211,7 @@ class FileStorage {
     $result = copy($from, $zstd_prefix . $to);
 
     if (!$this->use_compression) {
-      // If checksum missmatch we fail immediately
+      // If checksum mismatch we fail immediately
       if (md5_file($from, true) !== md5_file($to, true)) {
         throw new ChecksumException(
           'Failed to validate checksum for copying file from "' . $from . '" to "' . $to . '"'
@@ -233,13 +237,16 @@ class FileStorage {
    */
   public function copyPaths(array $paths, string $to, bool $preserve_path = false): bool {
     if (!is_dir($to) || !is_writeable($to)) {
-      throw new InvalidPathException('Cannot write to target directory - "' . $to . '"');
+      throw new InvalidPathException('Cannot write to backup directory - "' . $to . '"');
     }
 
     $result = array_reduce($paths, function (bool $carry, string $path) use ($preserve_path, $to) {
       $dest = $to . ($preserve_path ? $path : (DIRECTORY_SEPARATOR . basename($path))); // $path - absolute path
       if ($preserve_path) {
-        $this->createDir(is_file($path) ? dirname($dest) : $dest, dirname($path), true);
+        $dir = is_file($path) ? dirname($dest) : $dest;
+        if (!is_dir($dir)) {
+          $this->createDir($dir, dirname($path), true);
+        }
       }
       if (is_file($path)) {
         $is_ok = $this->copyFile($path, $dest);
@@ -377,7 +384,7 @@ class FileStorage {
   public function getBackupPaths(): array {
     if (!isset($this->backup_paths)) {
       $destination = $this->backup_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
-      // Check that target dir is writable
+      // Check that backup dir is writable
       if (!is_writable($this->backup_dir)) {
         throw new InvalidPathException('Backup directory is not writable');
       }
@@ -385,7 +392,7 @@ class FileStorage {
       // Do not let backup in same existing directory
       if (is_dir($destination)) {
         throw new InvalidPathException(
-          'Failed to create target directory for the backup, the dir already exists: ' . $destination
+          'Failed to create backup directory for the backup, the dir already exists: ' . $destination
         );
       }
 

@@ -61,7 +61,10 @@ switch (true) {
         $prefix_len = strlen($backup_dir) + 1;
         echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
         foreach ($backups as $path) {
-          echo '  ' . substr($path, $prefix_len) . PHP_EOL;
+          $dir = substr($path, $prefix_len);
+          $ts = strtotime(explode('-', $dir)[1] ?? '0');
+          $date = $ts ? date('M d Y H:i:s', $ts) : '?';
+          echo '  ' . $dir . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
         }
       } else {
         echo PHP_EOL . 'There are no backups available to restore' .  PHP_EOL;

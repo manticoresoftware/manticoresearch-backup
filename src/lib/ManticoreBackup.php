@@ -8,7 +8,7 @@ class ManticoreBackup {
   const MIN_PHP_VERSION = '8.1';
 
   /**
-   * Store the wanted tables in target dir as backup
+   * Store the wanted tables in backup dir as backup
    *
    * @param ManticoreClient $Client
    *  Initialized client to interract with manticore search daemon
@@ -66,7 +66,9 @@ class ManticoreBackup {
         return;
       }
 
-      $Client->unfreezeAll();
+      if (Searchd::isRunning()) {
+        $Client->unfreezeAll();
+      }
     };
     register_shutdown_function($unfreeze_fn, $Client);
 
@@ -134,12 +136,12 @@ class ManticoreBackup {
     $t = microtime(true);
     $backup = $Storage->getBackupPaths();
 
-    // // First, validate that searchd is not running, otherwise we cannot replace directories
-    // if (Searchd::isRunning()) {
-    //   throw new Exception(
-    //     'Cannot initiate the restore process due to searchd daemon is running.'
-    //   );
-    // }
+    // First, validate that searchd is not running, otherwise we cannot replace directories
+    if (Searchd::isRunning()) {
+      throw new Exception(
+        'Cannot initiate the restore process due to searchd daemon is running.'
+      );
+    }
 
     /** @var ?ManticoreConfig $Config */
     $Config = null;
@@ -203,6 +205,9 @@ class ManticoreBackup {
 
       $from = $File->getRealPath();
       $to = dirname($Storage->getOriginRealPath($from));
+      if (!is_dir($to)) {
+        FileStorage::createDir($to, $from);
+      }
       println(LogLevel::Debug, '  ' . $from . ' -> ' . $to);
 
       $is_ok = $is_ok && $Storage->copyPaths([$from], $to);
