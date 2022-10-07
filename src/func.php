@@ -171,11 +171,13 @@ function show_help(): void {
       . $nl
     . "  Semicolon-separated list of tables that you want to backup.$nl"
     . "  If you want to backup all, just skip this argument. All the provided tables$nl"
-    . "  are supposed to exist in the Manticore instance you are backing up from.$nl$nl"
+    . "  are supposed to exist in the Manticore instance you are backing up from,"
+    . "  otherwise the backup will fail.$nl$nl"
     . colored('--compress', TextColor::LightGreen) . $nl
     . "  Whether the backed up files should be compressed. Not by default.$nl$nl"
-    . colored('--restore', TextColor::LightGreen) . $nl
-    . "  Whether we should restore files from the passed backup version.$nl$nl"
+    . colored('--restore[=backup]', TextColor::LightGreen) . $nl
+    . "  Restore from --backup-dir. Just --restore lists available backups."
+    . "  --restore=backup will restore from <--backup-dir>/backup.$nl$nl"
     . colored('--unlock', TextColor::LightGreen) . $nl
     . "  In rare cases when something goes wrong the tables can be left in$nl"
     . "  locked state. Using this argument you can unlock them.$nl$nl"
