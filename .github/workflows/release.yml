@@ -304,97 +304,92 @@ jobs:
     strategy:
       matrix:
         include:
-          - pkg: deb
+          - artifact: artifact-deb-amd64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: amd64
             distro: stretch
-          - pkg: deb
+          - artifact: artifact-deb-arm64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: arm64
             distro: stretch
-          - pkg: deb
+          - artifact: artifact-deb-amd64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: amd64
             distro: buster
-          - pkg: deb
+          - artifact: artifact-deb-arm64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: arm64
             distro: buster
-          - pkg: deb
+          - artifact: artifact-deb-amd64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: amd64
             distro: xenial
-          - pkg: deb
+          - artifact: artifact-deb-arm64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: arm64
             distro: xenial
-          - pkg: deb
+          - artifact: artifact-deb-amd64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: amd64
             distro: bionic
-          - pkg: deb
+          - artifact: artifact-deb-arm64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: arm64
             distro: bionic
-          - pkg: deb
+          - artifact: artifact-deb-amd64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: amd64
             distro: focal
-          - pkg: deb
+          - artifact: artifact-deb-arm64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: arm64
             distro: focal
-          - pkg: deb
+          - artifact: artifact-deb-amd64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: amd64
             distro: jammy
-          - pkg: deb
+          - artifact: artifact-deb-arm64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: arm64
             distro: jammy
-          - pkg: deb
+          - artifact: artifact-deb-amd64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: amd64
             distro: bullseye
-          - pkg: deb
+          - artifact: artifact-deb-arm64
+            ext: deb
             script: bin/upload_repo_deb
-            arch: arm64
             distro: bullseye
-          - pkg: rpm
+          - artifact: artifact-rpm-amd64
+            ext: rpm
             script: bin/upload_repo_rpm
-            arch: amd64
             distro: 7
-          - pkg: rpm
+          - artifact: artifact-rpm-arm64
+            ext: rpm
             script: bin/upload_repo_rpm
-            arch: arm64
             distro: 7
-          - pkg: rpm
+          - artifact: artifact-rpm-amd64
+            ext: rpm
             script: bin/upload_repo_rpm
-            arch: amd64
             distro: 8
-          - pkg: rpm
+          - artifact: artifact-rpm-arm64
+            ext: rpm
             script: bin/upload_repo_rpm
-            arch: arm64
             distro: 8
-          - pkg: macos-12
+          - artifact: artifact
+            ext: tar.gz
             script: bin/upload_repo_arc
-            arch: amd64
             distro: ""
-          # - pkg: windows
-          #   script: bin/upload_repo_arc
-          #   arch: amd64
-          #   distro: ""
     steps:
       - uses: actions/checkout@v3
       - run: mkdir build
       - uses: actions/download-artifact@v3
         with:
-          name: artifact-${{ matrix.pkg }}-${{ matrix.arch }}
+          name: ${{ matrix.artifact }}
           path: ./build
-
       - id: vars
         run: |
-          echo "::set-output name=asset_name::$(ls ./build/*.${{ matrix.pkg }} | head -n 1)"
+          echo "::set-output name=asset_name::$(ls ./build/*.${{ matrix.ext }} | head -n 1)"
 
       - name: Deploy package
         run: |
