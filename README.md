@@ -4,7 +4,7 @@
 
 Read the [official documentation](https://manual.manticoresearch.com/dev/Securing_and_compacting_an_index/Backup_and_restore) for all the information about using the tool.
 
-# Developer documentation
+## Developer documentation
 
 ## Structure
 
@@ -26,7 +26,6 @@ Read the [official documentation](https://manual.manticoresearch.com/dev/Securin
 2. Try to write the code so that we can use it in different OSes (Windows, Linux, and any other where PHP can be used).
 3. We can use external binaries like `rsync` or any others, but we should maintain the native behavior so that we can still use the script when there is no such dependency.
 4. Tests should cover every new feature or extension to the script.
-
 
 ## Backup structure
 

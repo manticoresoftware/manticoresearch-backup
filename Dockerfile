@@ -44,5 +44,5 @@ searchd {\n\
 }\n" > "/etc/manticoresearch/manticore.conf"
 
 # Prevent the container from exiting
-ENTRYPOINT ["searchd"]
-CMD ["--nodetach"]
+ENTRYPOINT ["tail"]
+CMD ["-f", "/dev/null"]
