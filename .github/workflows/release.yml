@@ -69,8 +69,9 @@ jobs:
           ls -la ./*.rpm
           version=$( echo ${{ github.ref_name }} | cut -c2- )
           rpm_path="./${{ env.APP_NAME }}-${version}-1.el7.x86_64.rpm"
-          cp $rpm_path "./${{ env.APP_NAME }}-${version}-el7.x86_64.rpm"
-          mv $rpm_path "./${{ env.APP_NAME }}-${version}-el8.x86_64.rpm"
+          rpm_suffix=$( date +%y%m%d ).${GITHUB_SHA:0:7}
+          cp $rpm_path "./${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el7.x86_64.rpm"
+          mv $rpm_path "./${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el8.x86_64.rpm"
 
           ls -la ./*.deb
           deb_path="./${{ env.APP_NAME }}_${version}_amd64.deb"
@@ -170,8 +171,9 @@ jobs:
           ls -la ./artifacts/*.rpm
           version=$( echo ${{ github.ref_name }} | cut -c2- )
           rpm_path="./artifacts/${{ env.APP_NAME }}-v${version}-1.el7.aarch64.rpm"
-          cp $rpm_path "./artifacts/${{ env.APP_NAME }}-${version}-el7.aarch64.rpm"
-          mv $rpm_path "./artifacts/${{ env.APP_NAME }}-${version}-el8.aarch64.rpm"
+          rpm_suffix=$( date +%y%m%d ).${GITHUB_SHA:0:7}
+          cp $rpm_path "./artifacts/${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el7.aarch64.rpm"
+          mv $rpm_path "./artifacts/${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el8.aarch64.rpm"
 
       - uses: actions/upload-artifact@v3
         with:

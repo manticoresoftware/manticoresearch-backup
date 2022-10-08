@@ -15,7 +15,7 @@ copy_to() {
 # bundleaarch=0
 # bundleintel=0
 
-for f in build/*."el$DISTRO".rpm; do
+for f in build/*.el$DISTRO.rpm; do
   echo "file $f"
   tail=$(echo "$f" | sed 's_build/__g;s/[a-z]*-//g;')
   # VER=$(echo "$tail" | cut -d. -f1,2,3,4,5)
