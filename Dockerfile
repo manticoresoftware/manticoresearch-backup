@@ -1,18 +1,19 @@
 FROM php:8.1.11-cli-buster
 
 ARG TARGET_ARCH=amd64
-ENV VERSION=0.2.1
-ENV SUFFIX=221005-c39fc10
-ENV DEB_PKG=manticore-executor_${VERSION}-${SUFFIX}_${TARGET_ARCH}.deb
+ENV EXECUTOR_VERSION=0.2.9
+ENV EXECUTOR_SUFFIX=221009-75ba5cc
+ENV DEB_PKG=manticore-executor_${EXECUTOR_VERSION}-${EXECUTOR_SUFFIX}_${TARGET_ARCH}.deb
+ENV MANTICORE_VERSION=5.0.3-221008-fc6390a9a
 RUN apt -y update && apt -y upgrade && \
   apt -y install figlet git zip unzip wget curl gpg && \
   \
   wget https://repo.manticoresearch.com/manticore-dev-repo.noarch.deb && \
   dpkg -i manticore-dev-repo.noarch.deb && \
-  apt -y update && apt -y install manticore && \
+  apt -y update && apt -y install manticore=${MANTICORE_VERSION} && \
   apt-get -y autoremove && apt-get -y clean && \
   \
-  wget https://github.com/manticoresoftware/executor/releases/download/v${VERSION}/${DEB_PKG} && \
+  wget https://github.com/manticoresoftware/executor/releases/download/v${EXECUTOR_VERSION}/${DEB_PKG} && \
   dpkg -i ${DEB_PKG} && \
   rm -f ${DEB_PKG}
 
