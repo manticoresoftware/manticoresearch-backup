@@ -10,8 +10,8 @@
 */
 
 enum LogLevel {
-  case Error;
-  case Warn;
-  case Info;
-  case Debug;
+	case Error;
+	case Warn;
+	case Info;
+	case Debug;
 }
