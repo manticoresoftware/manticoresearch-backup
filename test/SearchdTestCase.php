@@ -16,15 +16,19 @@ class SearchdTestCase extends TestCase {
 
 	public static function setUpBeforeClass(): void {
 		Searchd::init();
-		if (!Searchd::isRunning()) {
-			shell_exec(Searchd::$cmd); // @phpstan-ignore-line
+		if (Searchd::isRunning()) {
+			return;
 		}
+
+		shell_exec(Searchd::$cmd); // @phpstan-ignore-line
 	}
 
 	public static function tearDownAfterClass(): void {
-		if (is_file(static::SEARCHD_PID_FILE)) {
-			$pid = intval(file_get_contents(static::SEARCHD_PID_FILE));
-			posix_kill($pid, 9);
+		if (!is_file(static::SEARCHD_PID_FILE)) {
+			return;
 		}
+
+		$pid = intval(file_get_contents(static::SEARCHD_PID_FILE));
+		posix_kill($pid, 9);
 	}
 }

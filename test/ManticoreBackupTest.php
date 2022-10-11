@@ -9,7 +9,6 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-use PHPUnit\Framework\ExpectationFailedException;
 
 class ManticoreBackupTest extends SearchdTestCase {
 	public function testStoreAllTables(): void {
@@ -18,15 +17,16 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	  // Backup of all tables
 		ManticoreBackup::store($Client, $Storage, []);
-		$this->assertBackupIsOK($Client,
-		$backup_dir,
-		[
-			'movie' => 'rt',
-			'people' => 'rt',
-			'people_pq' => 'percolate',
-			'people_dist_local' => 'distributed',
-			'people_dist_agent' => 'distributed',
-		]
+		$this->assertBackupIsOK(
+			$Client,
+			$backup_dir,
+			[
+				'movie' => 'rt',
+				'people' => 'rt',
+				'people_pq' => 'percolate',
+				'people_dist_local' => 'distributed',
+				'people_dist_agent' => 'distributed',
+			]
 		);
 	}
 
@@ -81,18 +81,20 @@ class ManticoreBackupTest extends SearchdTestCase {
 		[$Config, $Storage] = $this->initTestEnv();
 		$Client = new ManticoreMockedClient($Config);
 		$Client->setTimeout(1);
-		$Client->setTimeoutFn(function () use ($Client, $Storage): bool {
-			static $count = 0;
-			++$count;
-			if ($count < 3) {
-				return false;
+		$Client->setTimeoutFn(
+			function () use ($Client, $Storage): bool {
+				static $count = 0;
+				++$count;
+				if ($count < 3) {
+					return false;
+				}
+
+				$fn = $Client->getSignalHandlerFn($Storage);
+				$fn(15);
+
+				return true;
 			}
-
-			$fn = $Client->getSignalHandlerFn($Storage);
-			$fn(15);
-
-			return true;
-		});
+		);
 
 	  // Run test
 		$this->expectException(Exception::class);
@@ -114,28 +116,30 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$Client = new ManticoreMockedClient($Config);
 
 		$Client->setTimeout(1);
-		$Client->setTimeoutFn(function () use ($Storage): bool {
-			static $count = 0, $is_processed = false;
-			++$count;
-			if ($count < 3) {
+		$Client->setTimeoutFn(
+			function () use ($Storage): bool {
+				static $count = 0, $is_processed = false;
+				++$count;
+				if ($count < 3) {
+					return false;
+				}
+
+				if (!$is_processed) {
+					echo 'processing';
+				  // Get current backup paths and make it read only after 1st index copied
+					$backup_paths = $Storage->getBackupPaths();
+
+					$rw_data_dir = $backup_paths['data'] . '-rw';
+					rename($backup_paths['data'], $rw_data_dir);
+
+				  // Create read only dir and modify it in FileStorage
+					$this->mount($rw_data_dir, $backup_paths['root'], 'ro');
+					$is_processed = true;
+				}
+
 				return false;
 			}
-
-			if (!$is_processed) {
-				echo 'processing';
-			  // Get current backup paths and make it read only after 1st index copied
-				$backup_paths = $Storage->getBackupPaths();
-
-				$rw_data_dir = $backup_paths['data'] . '-rw';
-				rename($backup_paths['data'], $rw_data_dir);
-
-			  // Create read only dir and modify it in FileStorage
-				$this->mount($rw_data_dir, $backup_paths['root'], 'ro');
-				$is_processed = true;
-			}
-
-			return false;
-		});
+		);
 
 		$this->expectException(Throwable::class);
 		ManticoreBackup::store($Client, $Storage, ['people', 'movie']);
@@ -156,9 +160,11 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$backup_dir = $tmp_dir . DIRECTORY_SEPARATOR . 'backup-test-' . uniqid();
 		mkdir($backup_dir, 0755);
 
-		$options = validate_args([
-			'backup-dir' => $backup_dir,
-		]);
+		$options = validate_args(
+			[
+				'backup-dir' => $backup_dir,
+			]
+		);
 
 		return [
 			new ManticoreConfig($options['config']),
@@ -174,8 +180,6 @@ class ManticoreBackupTest extends SearchdTestCase {
    * @param string $backup_dir
    * @param array<string,string> $tables
    * @return void
-   * @throws InvalidArgumentException
-   * @throws ExpectationFailedException
    */
 	protected function assertBackupIsOK(ManticoreClient $Client, string $backup_dir, array $tables) {
 		$dirs = glob($backup_dir . DIRECTORY_SEPARATOR . '*');
@@ -221,22 +225,22 @@ class ManticoreBackupTest extends SearchdTestCase {
 			}
 
 			$this->assertEquals(
-			FileStorage::getPathChecksum($Config->data_dir . DIRECTORY_SEPARATOR .  $index),
-			FileStorage::getPathChecksum($basedir . DIRECTORY_SEPARATOR . 'data'. DIRECTORY_SEPARATOR . $index)
+				FileStorage::getPathChecksum($Config->data_dir . DIRECTORY_SEPARATOR .  $index),
+				FileStorage::getPathChecksum($basedir . DIRECTORY_SEPARATOR . 'data'. DIRECTORY_SEPARATOR . $index)
 			);
 		}
 
 	  // Check that the config file is valid
 		$dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->path;
 		$this->assertEquals(
-		FileStorage::getPathChecksum($dst_conf),
-		FileStorage::getPathChecksum($Config->path)
+			FileStorage::getPathChecksum($dst_conf),
+			FileStorage::getPathChecksum($Config->path)
 		);
 
 		$dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->schema_path;
 		$this->assertEquals(
-		FileStorage::getPathChecksum($dst_conf),
-		FileStorage::getPathChecksum($Config->schema_path)
+			FileStorage::getPathChecksum($dst_conf),
+			FileStorage::getPathChecksum($Config->schema_path)
 		);
 
 	  // State files
@@ -245,13 +249,15 @@ class ManticoreBackupTest extends SearchdTestCase {
 		foreach ($Config->getStatePaths() as $state_path) {
 			$dest_path = $basedir . DIRECTORY_SEPARATOR . 'state' . $state_path;
 			$this->$check_fn($dest_path);
-			if ($is_all) {
-				$this->assertOwnershipIsOK($state_path, $dest_path);
-				$this->assertEquals(
+			if (!$is_all) {
+				continue;
+			}
+
+			$this->assertOwnershipIsOK($state_path, $dest_path);
+			$this->assertEquals(
 				FileStorage::getPathChecksum($state_path),
 				FileStorage::getPathChecksum($dest_path)
-				);
-			}
+			);
 		}
 	}
 
@@ -268,18 +274,20 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$this->assertEquals(filegroup($source), filegroup($target));
 
 	  // In case we pass dir and have recursive = true, check all folder
-		if ($recursive && is_dir($target)) {
-			$files = scandir($target);
-			if (false === $files) {
-				throw new Exception("Failed to scan dir '$target' for files");
-			}
+		if (!$recursive || !is_dir($target)) {
+			return;
+		}
 
-			foreach (array_slice($files, 2) as $file) {
-				$this->assertOwnershipIsOK(
+		$files = scandir($target);
+		if (false === $files) {
+			throw new Exception("Failed to scan dir '$target' for files");
+		}
+
+		foreach (array_slice($files, 2) as $file) {
+			$this->assertOwnershipIsOK(
 				$source . DIRECTORY_SEPARATOR . $file,
 				$target . DIRECTORY_SEPARATOR . $file
-				);
-			}
+			);
 		}
 	}
 
@@ -295,9 +303,11 @@ class ManticoreBackupTest extends SearchdTestCase {
 	protected function mount(string $source, string $target, string $opt): void {
 		mkdir($target, 0444, true);
 		shell_exec("mount '$source' '$target' -o 'bind,noload,$opt'");
-		register_shutdown_function(function () use ($target): void {
-			shell_exec("umount '$target'");
-		});
+		register_shutdown_function(
+			function () use ($target): void {
+				shell_exec("umount '$target'");
+			}
+		);
 	}
 }
 
