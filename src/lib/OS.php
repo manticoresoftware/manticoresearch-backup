@@ -17,17 +17,17 @@ class OS {
    * @return bool
    *  True in case if we use windows as running OS
    */
-  public static function isWindows(): bool {
-    return strncasecmp(PHP_OS, 'WIN', 3) == 0;
-  }
+	public static function isWindows(): bool {
+		return strncasecmp(PHP_OS, 'WIN', 3) == 0;
+	}
 
   /**
    * @return bool
    *  True in case if we use Linux as running OS
    */
-  public static function isLinux(): bool {
-    return PHP_OS === 'Linux';
-  }
+	public static function isLinux(): bool {
+		return PHP_OS === 'Linux';
+	}
 
   /**
    * Little helper to find the real path to executoable depending on running os
@@ -37,16 +37,16 @@ class OS {
    *  The path to found executoable
    * @throws Exception
    */
-  public static function which(string $program): string {
-    $result = match (static::isWindows()) {
-      true => exec('where ' . $program),
-      false => exec('which ' . $program . ' 2> /dev/null'),
-    };
+	public static function which(string $program): string {
+		$result = match (static::isWindows()) {
+			true => exec('where ' . $program),
+			false => exec('which ' . $program . ' 2> /dev/null'),
+		};
 
-    if (!$result) {
-      throw new Exception(__METHOD__  . ': failed to find "' . $program . '" in search path');
-    }
+		if (!$result) {
+			throw new Exception(__METHOD__  . ': failed to find "' . $program . '" in search path');
+		}
 
-    return $result;
-  }
+		return $result;
+	}
 }
