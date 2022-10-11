@@ -1,5 +1,21 @@
 <?php declare(strict_types=1);
 
+/*
+  Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 2 or any later
+  version. You should have received a copy of the GPL license along with this
+  program; if you did not, you can find it at http://www.gnu.org/
+*/
+
+// Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License version 2 or any later
+// version. You should have received a copy of the GPL license along with this
+// program; if you did not, you can find it at http://www.gnu.org/
+
 /**
  * 0. Check dependencies (? still no deps and thats good) and minimal PHP versions
  * 1. Parse the arguments
@@ -14,15 +30,15 @@ $args = get_input_args();
 
 // Show help in case we passed help arg
 if (isset($args['h']) || isset($args['help'])) {
-  show_help();
-  exit(0);
+	show_help();
+	exit(0);
 }
 
 // Show version in case we passed version arg
 if (isset($args['version'])) {
-  echo 'Manticore Backup version: ' . ManticoreBackup::VERSION . PHP_EOL;
-  echo 'Minimum PHP version required: ' . ManticoreBackup::MIN_PHP_VERSION . PHP_EOL;
-  exit(0);
+	echo 'Manticore Backup version: ' . ManticoreBackup::VERSION . PHP_EOL;
+	echo 'Minimum PHP version required: ' . ManticoreBackup::MIN_PHP_VERSION . PHP_EOL;
+	exit(0);
 }
 
 // Here the point when we start to check dependecies
@@ -34,74 +50,74 @@ $options = validate_args($args); // @phpstan-ignore-line
 
 echo 'Manticore config file: ' . $options['config'] . PHP_EOL
   . (
-      isset($args['restore'])
-        ? ''
-        : 'Tables to backup: ' . ($options['tables'] ? implode(', ', $options['tables']) : 'all tables') . PHP_EOL
+	  isset($args['restore'])
+		? ''
+		: 'Tables to backup: ' . ($options['tables'] ? implode(', ', $options['tables']) : 'all tables') . PHP_EOL
   )
   . 'Backup dir: ' . ($options['backup-dir'] ?? 'none') . PHP_EOL
 ;
 
 switch (true) {
-  case isset($args['unlock']): // unlock
-    $Client = ManticoreClient::init($options['config']);
-    $Client->unfreezeAll();
-    break;
+	case isset($args['unlock']): // unlock
+		$Client = ManticoreClient::init($options['config']);
+		$Client->unfreezeAll();
+	break;
 
-  case isset($args['restore']): // restore
-    $Storage = new FileStorage($options['backup-dir']);
+	case isset($args['restore']): // restore
+		$Storage = new FileStorage($options['backup-dir']);
 
-    if ($options['restore'] === false) {
-      $backup_dir = $Storage->getBackupDir();
-      if (!$backup_dir) {
-        throw new InvalidArgumentException('There is no backup-dir detected');
-      }
+		if ($options['restore'] === false) {
+			$backup_dir = $Storage->getBackupDir();
+			if (!$backup_dir) {
+				throw new InvalidArgumentException('There is no backup-dir detected');
+			}
 
-      $backups = glob($backup_dir . DIRECTORY_SEPARATOR . 'backup-*');
-      if ($backups) {
-        $prefix_len = strlen($backup_dir) + 1;
-        echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
-        foreach ($backups as $path) {
-          $dir = substr($path, $prefix_len);
-          $ts = strtotime(explode('-', $dir)[1] ?? '0');
-          $date = $ts ? date('M d Y H:i:s', $ts) : '?';
-          echo '  ' . $dir . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
-        }
-      } else {
-        echo PHP_EOL . 'There are no backups available to restore' .  PHP_EOL;
-      }
-      exit(0);
-    }
+			$backups = glob($backup_dir . DIRECTORY_SEPARATOR . 'backup-*');
+			if ($backups) {
+				$prefix_len = strlen($backup_dir) + 1;
+				echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
+				foreach ($backups as $path) {
+					$dir = substr($path, $prefix_len);
+					$ts = strtotime(explode('-', $dir)[1] ?? '0');
+					$date = $ts ? date('M d Y H:i:s', $ts) : '?';
+					echo '  ' . $dir . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
+				}
+			} else {
+				echo PHP_EOL . 'There are no backups available to restore' .  PHP_EOL;
+			}
+			exit(0);
+		}
 
-    $Storage->setBackupPathsUsingDir($options['restore']);
+		$Storage->setBackupPathsUsingDir($options['restore']);
 
-    // Here is when real restore is starting
-    ManticoreBackup::restore($Storage);
-    break;
+	  // Here is when real restore is starting
+		ManticoreBackup::restore($Storage);
+	break;
 
-  default: // backup
-    $Client = ManticoreClient::init($options['config']);
+	default: // backup
+		$Client = ManticoreClient::init($options['config']);
 
-    $Storage = new FileStorage($options['backup-dir'], $options['compress']);
+		$Storage = new FileStorage($options['backup-dir'], $options['compress']);
 
-    // In case of backing up it's important to install signal handler
-    if (function_exists('pcntl_async_signals')) {
-      pcntl_async_signals(true);
-      $signal_handler = $Client->getSignalHandlerFn($Storage);
-      pcntl_signal(SIGQUIT, $signal_handler);
-      pcntl_signal(SIGINT, $signal_handler);
-      pcntl_signal(SIGTERM, $signal_handler);
-      pcntl_signal(SIGSEGV, $signal_handler);
-    }
-    // Check if we run as root otherwise show warning
-    // ! getmyuid returns different uid in docker image
-    if (!OS::isWindows() && posix_getuid() !== 0) {
-      echo PHP_EOL . 'WARNING: we couldn\'t fully preserve permissions of the files'
-        . ' you\'ve backed up. Be careful when you restore from the backup or'
-        . ' re-run the backup as root' . PHP_EOL
-      ;
-    }
+	  // In case of backing up it's important to install signal handler
+		if (function_exists('pcntl_async_signals')) {
+			pcntl_async_signals(true);
+			$signal_handler = $Client->getSignalHandlerFn($Storage);
+			pcntl_signal(SIGQUIT, $signal_handler);
+			pcntl_signal(SIGINT, $signal_handler);
+			pcntl_signal(SIGTERM, $signal_handler);
+			pcntl_signal(SIGSEGV, $signal_handler);
+		}
+	  // Check if we run as root otherwise show warning
+	  // ! getmyuid returns different uid in docker image
+		if (!OS::isWindows() && posix_getuid() !== 0) {
+			echo PHP_EOL . 'WARNING: we couldn\'t fully preserve permissions of the files'
+			. ' you\'ve backed up. Be careful when you restore from the backup or'
+			. ' re-run the backup as root' . PHP_EOL
+			;
+		}
 
-    ManticoreBackup::store($Client, $Storage, $options['tables']);
+		ManticoreBackup::store($Client, $Storage, $options['tables']);
 }
 
 println(LogLevel::Info, 'Done');
