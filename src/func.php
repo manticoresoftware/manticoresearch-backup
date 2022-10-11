@@ -35,18 +35,18 @@ function validate_args(array $args): array {
 
   // Run checks only if we really need it
 	if (!isset($args['unlock'])) {
-		if (!isset($options['backup-dir']) || !
-		is_dir($options['backup-dir']) ||
-		!is_writeable($options['backup-dir'])) {
+		if (!isset($options['backup-dir'])
+		|| !is_dir($options['backup-dir'])
+		|| !is_writeable($options['backup-dir'])) {
 			throw new InvalidArgumentException(
-			'Failed to find backup dir to store backup: ' . ($options['backup-dir'] ?? 'none')
+				'Failed to find backup dir to store backup: ' . ($options['backup-dir'] ?? 'none')
 			);
 		}
 	}
 
 	if ($options['compress'] && !function_exists('zstd_compress')) {
 		throw new RuntimeException(
-		'Failed to find ZSTD in PHP build. Please enable the ZSTD extension if you want to use compression'
+			'Failed to find ZSTD in PHP build. Please enable the ZSTD extension if you want to use compression'
 		);
 	}
 
@@ -120,8 +120,8 @@ function println(LogLevel $level, string $message, string $eol = PHP_EOL): void 
 	fwrite(
 	// TODO: find the way how to assert stderr in phpunit
 	// $level === LogLevel::Error ? STDERR : STDOUT,
-	STDOUT,
-	"$ts [$colored_level] {$message}{$eol}"
+		STDOUT,
+		"$ts [$colored_level] {$message}{$eol}"
 	);
 }
 

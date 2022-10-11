@@ -105,7 +105,7 @@
 	<!-- Warn about lines longer than 100 chars, and error for lines longer than 135 chars. -->
 	<rule ref="Generic.Files.LineLength">
 		<properties>
-			<!-- <property name="lineLimit" value="100" /> -->
+			<property name="lineLimit" value="120" />
 			<property name="absoluteLineLimit" value="120" />
 		</properties>
 	</rule>
@@ -127,7 +127,7 @@
 	</rule>
 	<rule ref="Generic.Metrics.CyclomaticComplexity">
 		<properties>
-			<!-- <property name="complexity" value="15" /> -->
+			<property name="complexity" value="30" />
 			<property name="absoluteComplexity" value="30" />
 		</properties>
 	</rule>
@@ -141,5 +141,4 @@
 			<property name="requiredSpacesBeforeColon" value="0" />
 		</properties>
 	</rule>
-	<!-- <rule ref="Squiz.Operators.ComparisonOperatorUsage"/> -->
 </ruleset>

@@ -40,16 +40,18 @@ class ManticoreBackupRestoreTest extends TestCase {
 		foreach ($paths as $path) {
 			$path = rtrim($path, DIRECTORY_SEPARATOR);
 			$path_bak = $path . '.bak';
-			if (file_exists($path_bak)) {
-				if (file_exists($path)) {
-					if (is_dir($path_bak)) {
-						FileStorage::deleteDir($path_bak);
-					} else {
-						unlink($path_bak);
-					}
+			if (!file_exists($path_bak)) {
+				continue;
+			}
+
+			if (file_exists($path)) {
+				if (is_dir($path_bak)) {
+					FileStorage::deleteDir($path_bak);
 				} else {
-					shell_exec("mv '$path_bak' '$path'");
+					unlink($path_bak);
 				}
+			} else {
+				shell_exec("mv '$path_bak' '$path'");
 			}
 		}
 	}
@@ -146,8 +148,10 @@ class ManticoreBackupRestoreTest extends TestCase {
 
 	protected function safeDelete(string $path): void {
 		$path = rtrim($path, DIRECTORY_SEPARATOR);
-		if (file_exists($path)) {
-			shell_exec("mv '$path' '$path.bak'");
+		if (!file_exists($path)) {
+			return;
 		}
+
+		shell_exec("mv '$path' '$path.bak'");
 	}
 }

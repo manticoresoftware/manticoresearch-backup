@@ -16,7 +16,8 @@ class ManticoreConfigTest extends TestCase {
 		$tmp_dir = FileStorage::getTmpDir();
 		$config_path = $tmp_dir . DIRECTORY_SEPARATOR . 'manticore.conf';
 	  // TODO: use windows paths for windows machine tests run
-		file_put_contents($config_path, <<<"EOF"
+		file_put_contents(
+			$config_path, <<<"EOF"
       common {
         plugin_dir = /usr/local/lib/manticore
       }
@@ -31,7 +32,8 @@ class ManticoreConfigTest extends TestCase {
           data_dir = /usr/local/var/manticore
           query_log_format = sphinxql
       }
-    EOF);
+    EOF
+		);
 		$Config = new ManticoreConfig($config_path);
 		$this->assertEquals($config_path, $Config->path);
 		$this->assertEquals('127.0.0.1', $Config->host);
@@ -44,7 +46,8 @@ class ManticoreConfigTest extends TestCase {
 	public function testParsingFailedInCaseRelativeDataDir(): void {
 		$tmp_dir = FileStorage::getTmpDir();
 		$config_path = $tmp_dir . DIRECTORY_SEPARATOR . 'manticore.conf';
-		file_put_contents($config_path, <<<"EOF"
+		file_put_contents(
+			$config_path, <<<"EOF"
       common {
         plugin_dir = /usr/local/lib/manticore
       }
@@ -59,7 +62,8 @@ class ManticoreConfigTest extends TestCase {
           data_dir = ./relative/path
           query_log_format = sphinxql
       }
-    EOF);
+    EOF
+		);
 		$this->expectException(InvalidPathException::class);
 		$this->expectExceptionMessage('The data_dir parameter in searchd config should contain absolute path');
 		new ManticoreConfig($config_path);

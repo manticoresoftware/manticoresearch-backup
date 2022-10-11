@@ -32,7 +32,8 @@ $Client = new ManticoreClient($Config);
 // people table
 $Client->execute('DROP TABLE IF EXISTS people');
 $Client->execute('CREATE TABLE people (name text, age int)');
-$Client->execute("
+$Client->execute(
+	"
   INSERT INTO people (id, name, age)
   VALUES
     (1, 'Vasya Pupkin', 19),
@@ -40,38 +41,45 @@ $Client->execute("
     (3, 'Dylan Maison', 44),
     (4, 'Jessica Alba', 29),
     (5, 'John Wick', 55)
-");
+"
+);
 $Client->execute('FLUSH RAMCHUNK people');
-$Client->execute("
+$Client->execute(
+	"
   INSERT INTO people (id, name, age)
   VALUES
     (6, 'Nicolas Pumpkin', 15),
     (7, 'Halle Berry', 33),
     (8, 'Dan Douglas', 54)
-");
+"
+);
 
 
 // movie table
 $Client->execute('DROP TABLE IF EXISTS movie');
 $Client->execute('CREATE TABLE movie (title text, year int)');
-$Client->execute("
+$Client->execute(
+	"
   INSERT INTO movie (id, title, year)
   VALUES
     (1, 'Conjuring', 2022),
     (2, 'The Avengers', 2020),
     (3, 'Avatar', 2009)
-");
+"
+);
 
 // people_pq table
 $Client->execute('DROP TABLE IF EXISTS people_pq');
 $Client->execute("CREATE TABLE people_pq (name text) type='percolate'");
-$Client->execute("
+$Client->execute(
+	"
   INSERT INTO people_pq (query)
   VALUES
     ('@name Halle'),
     ('@name Nicolas'),
     ('@name Dan')
-");
+"
+);
 
 // people_dist_local table
 $Client->execute('DROP TABLE IF EXISTS people_dist_local');

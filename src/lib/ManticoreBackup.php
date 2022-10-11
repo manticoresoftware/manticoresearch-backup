@@ -47,10 +47,12 @@ class ManticoreBackup {
 
 	  // - backup config files
 		println(LogLevel::Info, 'Backing up config files...');
-		$is_ok = $Storage->copyPaths([
-			$Client->getConfig()->path,
-			$Client->getConfig()->schema_path,
-		], $destination['config'], true);
+		$is_ok = $Storage->copyPaths(
+			[
+				$Client->getConfig()->path,
+				$Client->getConfig()->schema_path,
+			], $destination['config'], true
+		);
 		println(LogLevel::Info, '  config files - ' . get_op_result($is_ok));
 
 		$result = true;
@@ -75,9 +77,11 @@ class ManticoreBackup {
 				return;
 			}
 
-			if (Searchd::isRunning()) {
-				$Client->unfreezeAll();
+			if (!Searchd::isRunning()) {
+				return;
 			}
+
+			$Client->unfreezeAll();
 		};
 		register_shutdown_function($unfreeze_fn, $Client);
 
@@ -94,8 +98,8 @@ class ManticoreBackup {
 		foreach ($tables as $index => $type) {
 			$files = $Client->freeze($index);
 			println(
-			LogLevel::Info,
-			'  ' . $index . ' ('  . $type . ') [' . format_bytes($Storage::calculateFilesSize($files)) . ']...'
+				LogLevel::Info,
+				'  ' . $index . ' ('  . $type . ') [' . format_bytes($Storage::calculateFilesSize($files)) . ']...'
 			);
 
 		  // We will have no directory for distributed indexes and so should not back it up
@@ -106,8 +110,8 @@ class ManticoreBackup {
 
 			$backup_path = $destination['data'] . DIRECTORY_SEPARATOR . $index;
 			$Storage->createDir(
-			$backup_path,
-			$Config->data_dir . DIRECTORY_SEPARATOR . $index
+				$backup_path,
+				$Config->data_dir . DIRECTORY_SEPARATOR . $index
 			);
 
 			$is_ok = $Storage->copyPaths($files, $backup_path);
@@ -120,8 +124,8 @@ class ManticoreBackup {
 
 		if (false === $result) {
 			throw new Exception(
-			'Failed to make backup of tables. '
-			. 'Please check that you have rights to access the source and destinations directories'
+				'Failed to make backup of tables. '
+				. 'Please check that you have rights to access the source and destinations directories'
 			);
 		}
 
@@ -148,7 +152,7 @@ class ManticoreBackup {
 	  // First, validate that searchd is not running, otherwise we cannot replace directories
 		if (Searchd::isRunning()) {
 			throw new Exception(
-			'Cannot initiate the restore process due to searchd daemon is running.'
+				'Cannot initiate the restore process due to searchd daemon is running.'
 			);
 		}
 
@@ -156,14 +160,16 @@ class ManticoreBackup {
 		$Config = null;
 
 	  // Second, lets check that destination is available to move files and we have nothing there
-		static::validateRestore($Storage, $backup['config'], function (SplFileInfo $File) use (&$Config): bool {
-		  // TODO: remove this hardcode, we can store the path to config when doing backup
-			if ($File->getFilename() === 'manticore.conf') {
-				$Config = new ManticoreConfig($File->getRealPath());
-			}
+		static::validateRestore(
+			$Storage, $backup['config'], function (SplFileInfo $File) use (&$Config): bool {
+			// TODO: remove this hardcode, we can store the path to config when doing backup
+				if ($File->getFilename() === 'manticore.conf') {
+					$Config = new ManticoreConfig($File->getRealPath());
+				}
 
-			return false;
-		});
+				return false;
+			}
+		);
 
 		if (!isset($Config)) {
 			throw new Exception('Failed to find config file in original backup');
@@ -287,8 +293,8 @@ class ManticoreBackup {
 			}
 			unset($index_diff);
 			$result = array_intersect_key(
-			$all_tables,
-			array_flip($tables)
+				$all_tables,
+				array_flip($tables)
 			);
 		} else {
 			$result = $all_tables;

@@ -24,8 +24,8 @@ class ManticoreClient {
 		$config_path = $this->getConfigPath();
 		if ($config_path !== $this->Config->path) {
 			throw new RuntimeException(
-			"Configs mismatched: '{$this->Config->path} <> {$config_path}"
-			 . ', make sure the instance you are backing up is using the provided config'
+				"Configs mismatched: '{$this->Config->path} <> {$config_path}"
+				. ', make sure the instance you are backing up is using the provided config'
 			);
 		}
 	}
@@ -105,13 +105,15 @@ class ManticoreClient {
    */
 	public function unfreezeAll(): bool {
 		println(LogLevel::Info, PHP_EOL . 'Unfreezing all tables...');
-		return array_reduce(array_keys($this->getTables()), function (bool $carry, string $index): bool {
-			println(LogLevel::Info, '  ' . $index . '...');
-			$is_ok = $this->unfreeze($index);
-			println(LogLevel::Info, '   ' . get_op_result($is_ok));
-			$carry = $carry && $is_ok;
-			return $carry;
-		}, true);
+		return array_reduce(
+			array_keys($this->getTables()), function (bool $carry, string $index): bool {
+				println(LogLevel::Info, '  ' . $index . '...');
+				$is_ok = $this->unfreeze($index);
+				println(LogLevel::Info, '   ' . get_op_result($is_ok));
+				$carry = $carry && $is_ok;
+				return $carry;
+			}, true
+		);
 	}
 
   /**
@@ -123,8 +125,8 @@ class ManticoreClient {
 	public function getTables(): array {
 		$result = $this->execute('SHOW TABLES');
 		return array_combine(
-		array_column($result[0]['data'], 'Index'),
-		array_column($result[0]['data'], 'Type')
+			array_column($result[0]['data'], 'Index'),
+			array_column($result[0]['data'], 'Type')
 		);
 	}
 
@@ -186,15 +188,15 @@ class ManticoreClient {
 				'header'  => 'Content-type: application/json',
 				'content' => http_build_query(compact('query')),
 				'ignore_errors' => false,
-				'timeout' =>  3,
+				'timeout' => 3,
 			],
 		];
 		$context = stream_context_create($opts);
 		try {
 			$result = file_get_contents(
-			'http://' . $this->Config->host . ':' . $this->Config->port . static::API_PATH,
-			false,
-			$context
+				'http://' . $this->Config->host . ':' . $this->Config->port . static::API_PATH,
+				false,
+				$context
 			);
 		} catch (ErrorException) {
 			throw new SearchdException('Failed to connect to the manticoresearch daemon. Is it running?');

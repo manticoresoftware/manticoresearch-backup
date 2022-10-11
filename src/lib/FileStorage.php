@@ -29,9 +29,11 @@ class FileStorage {
    *  The flag that shows if we should to use compression with zstd or not
    */
 	public function __construct(?string $backup_dir, protected bool $use_compression = false) {
-		if (isset($backup_dir)) {
-			$this->setTargetDir($backup_dir);
+		if (!isset($backup_dir)) {
+			return;
 		}
+
+		$this->setTargetDir($backup_dir);
 	}
 
   /**
@@ -88,9 +90,11 @@ class FileStorage {
 			throw new InvalidPathException('Failed to create directory – "' . $dir . '"');
 		}
 
-		if ($origin) {
-			static::transferOwnership($origin, $dir, $recursive);
+		if (!$origin) {
+			return;
 		}
+
+		static::transferOwnership($origin, $dir, $recursive);
 	}
 
   /**
@@ -126,16 +130,20 @@ class FileStorage {
 
 	  // In case we need to transfer recursive we do self function call
 	  // and it goes while the directory name matches exactly in name
-		if ($recursive) {
-			$from_pos = strrpos($from, DIRECTORY_SEPARATOR);
-			$to_pos = strrpos($to, DIRECTORY_SEPARATOR);
-			if (false !== $from_pos && false !== $to_pos) {
-				static::transferOwnership(
-				substr($from, 0, $from_pos),
-				substr($to, 0, $to_pos)
-				);
-			}
+		if (!$recursive) {
+			return;
 		}
+
+		$from_pos = strrpos($from, DIRECTORY_SEPARATOR);
+		$to_pos = strrpos($to, DIRECTORY_SEPARATOR);
+		if (false === $from_pos || false === $to_pos) {
+			return;
+		}
+
+		static::transferOwnership(
+			substr($from, 0, $from_pos),
+			substr($to, 0, $to_pos)
+		);
 	}
 
   /**
@@ -174,8 +182,8 @@ class FileStorage {
 			}
 
 			$result = $result && $this->copyFile(
-			$File->getPathname(),
-			$dest_dir . DIRECTORY_SEPARATOR . $File->getBasename()
+				$File->getPathname(),
+				$dest_dir . DIRECTORY_SEPARATOR . $File->getBasename()
 			);
 		}
 
@@ -212,7 +220,7 @@ class FileStorage {
 			$to .= '.zst';
 			if (!function_exists('zstd_compress')) {
 				throw new RuntimeException(
-				'Failed to find zstd_compress please make sure that you have ZSTD extensions compiled in'
+					'Failed to find zstd_compress please make sure that you have ZSTD extensions compiled in'
 				);
 			}
 			$zstd_prefix = 'compress.zstd://';
@@ -223,7 +231,7 @@ class FileStorage {
 		  // If checksum mismatch we fail immediately
 			if (md5_file($from, true) !== md5_file($to, true)) {
 				throw new ChecksumException(
-				'Failed to validate checksum for copying file from "' . $from . '" to "' . $to . '"'
+					'Failed to validate checksum for copying file from "' . $from . '" to "' . $to . '"'
 				);
 			}
 		}
@@ -249,22 +257,28 @@ class FileStorage {
 			throw new InvalidPathException('Cannot write to backup directory - "' . $to . '"');
 		}
 
-		$result = array_reduce($paths, function (bool $carry, string $path) use ($preserve_path, $to) {
-			$dest = $to . ($preserve_path ? $path : (DIRECTORY_SEPARATOR . basename($path))); // $path - absolute path
-			if ($preserve_path) {
-				$dir = is_file($path) ? dirname($dest) : $dest;
-				if (!is_dir($dir)) {
-					$this->createDir($dir, dirname($path), true);
+		$result = array_reduce(
+			$paths, function (bool $carry, string $path) use ($preserve_path, $to) {
+				$dest = $to . (
+					$preserve_path
+						? $path
+						: (DIRECTORY_SEPARATOR . basename($path))
+				); // $path - absolute path
+				if ($preserve_path) {
+					$dir = is_file($path) ? dirname($dest) : $dest;
+					if (!is_dir($dir)) {
+						$this->createDir($dir, dirname($path), true);
+					}
 				}
-			}
-			if (is_file($path)) {
-				$is_ok = $this->copyFile($path, $dest);
-			} else {
-				$is_ok = $this->copyDir($path, $dest);
-			}
-			$carry = $carry && $is_ok;
-			return $carry;
-		}, true);
+				if (is_file($path)) {
+					$is_ok = $this->copyFile($path, $dest);
+				} else {
+					$is_ok = $this->copyDir($path, $dest);
+				}
+				$carry = $carry && $is_ok;
+				return $carry;
+			}, true
+		);
 
 		return $result;
 	}
@@ -278,10 +292,12 @@ class FileStorage {
    *  Sum of all files sizes in bytes
    */
 	public static function calculateFilesSize(array $files): int {
-		return array_reduce($files, function (int $carry, string $file) {
-			$carry += filesize($file);
-			return $carry;
-		}, 0);
+		return array_reduce(
+			$files, function (int $carry, string $file) {
+				$carry += filesize($file);
+				return $carry;
+			}, 0
+		);
 	}
 
   /**
@@ -337,9 +353,11 @@ class FileStorage {
 		}
 
 	  // If we should remove also own directory, just do it
-		if ($remove_self) {
-			rmdir($dir);
+		if (!$remove_self) {
+			return;
 		}
+
+		rmdir($dir);
 	}
 
   /**
@@ -401,7 +419,7 @@ class FileStorage {
 		  // Do not let backup in same existing directory
 			if (is_dir($destination)) {
 				throw new InvalidPathException(
-				'Failed to create backup directory for the backup, the dir already exists: ' . $destination
+					'Failed to create backup directory for the backup, the dir already exists: ' . $destination
 				);
 			}
 
@@ -466,9 +484,11 @@ class FileStorage {
 		}
 
 	  // Try to delete destination root path if it exists
-		if (is_dir($this->backup_paths['root'])) {
-			$this->deleteDir($this->backup_paths['root']);
+		if (!is_dir($this->backup_paths['root'])) {
+			return;
 		}
+
+		$this->deleteDir($this->backup_paths['root']);
 	}
 
   /**
@@ -484,8 +504,8 @@ class FileStorage {
 		int $flags = FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::CURRENT_AS_FILEINFO
 	): RecursiveIteratorIterator {
 		return new RecursiveIteratorIterator(
-		new RecursiveDirectoryIterator($dir, $flags),
-		RecursiveIteratorIterator::CHILD_FIRST
+			new RecursiveDirectoryIterator($dir, $flags),
+			RecursiveIteratorIterator::CHILD_FIRST
 		);
 	}
 }
