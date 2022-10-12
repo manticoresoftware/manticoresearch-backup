@@ -9,18 +9,17 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+use Manticoresearch\Lib\ManticoreBackup;
+
 // Initialize autoloading
 $dir = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src';
 include_once $dir . DIRECTORY_SEPARATOR . 'func.php';
 spl_autoload_register(
 	function ($class_name) use ($dir) {
-		$ns = (false === strpos($class_name, 'Exception') ? 'lib' : 'exception');
-		$class_file = $dir . DIRECTORY_SEPARATOR . $ns . DIRECTORY_SEPARATOR . $class_name . '.php';
-		if (!file_exists($class_file)) {
-			return;
-		}
-
-		include_once $class_file;
+		include_once $dir . DIRECTORY_SEPARATOR
+			. str_replace('\\', DIRECTORY_SEPARATOR, $class_name)
+			. '.php'
+		;
 	}
 );
 unset($dir);

@@ -9,6 +9,10 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+namespace Manticoresearch\Lib;
+
+use Manticoresearch\Exception\SearchdException;
+
 /**
  * This class is used for communication with manticore searchd HTTP protocol by using SQL endpoint
  */
@@ -23,7 +27,7 @@ class ManticoreClient {
 	  // Validate config path or fail
 		$config_path = $this->getConfigPath();
 		if ($config_path !== $this->Config->path) {
-			throw new RuntimeException(
+			throw new \RuntimeException(
 				"Configs mismatched: '{$this->Config->path} <> {$config_path}"
 				. ', make sure the instance you are backing up is using the provided config'
 			);
@@ -198,7 +202,7 @@ class ManticoreClient {
 				false,
 				$context
 			);
-		} catch (ErrorException) {
+		} catch (\ErrorException) {
 			throw new SearchdException('Failed to connect to the manticoresearch daemon. Is it running?');
 		}
 
@@ -213,9 +217,9 @@ class ManticoreClient {
   /**
    * Get signal handler for received signals on interruption
    *
-   * @return Closure
+   * @return \Closure
    */
-	public function getSignalHandlerFn(FileStorage $Storage): Closure {
+	public function getSignalHandlerFn(FileStorage $Storage): \Closure {
 		return function (int $signal) use ($Storage): void {
 			println(LogLevel::Warn, 'Caught signal ' . $signal);
 			$Storage->cleanUp();

@@ -9,5 +9,11 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-class InvalidPathException extends Exception {
+namespace Manticoresearch\Lib;
+
+enum LogLevel {
+	case Error;
+	case Warn;
+	case Info;
+	case Debug;
 }

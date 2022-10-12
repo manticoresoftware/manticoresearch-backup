@@ -9,6 +9,10 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+namespace Manticoresearch\Lib;
+
+use Manticoresearch\Exception\InvalidPathException;
+
 class Searchd {
 	public static ?string $cmd;
 
@@ -18,12 +22,12 @@ class Searchd {
 
 	public static function getConfigPath(): string {
 		if (!isset(static::$cmd)) {
-			throw new InvalidArgumentException('You should run Searchd::init before trying to access static methods');
+			throw new \InvalidArgumentException('You should run Searchd::init before trying to access static methods');
 		}
 
 		$output = shell_exec(static::$cmd . ' --status');
 		if (!is_string($output)) {
-			throw new RuntimeException('Unable to get config path');
+			throw new \RuntimeException('Unable to get config path');
 		}
 		preg_match('/using config file \'([^\']+)\'/ium', $output, $m);
 		if (!$m) {

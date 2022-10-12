@@ -9,6 +9,9 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+use Manticoresearch\Exception\InvalidPathException;
+use Manticoresearch\Lib\FileStorage;
+use Manticoresearch\Lib\ManticoreConfig;
 use PHPUnit\Framework\TestCase;
 
 class ManticoreConfigTest extends TestCase {

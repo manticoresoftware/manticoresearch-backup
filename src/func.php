@@ -9,6 +9,10 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+use Manticoresearch\Lib\LogLevel;
+use Manticoresearch\Lib\Searchd;
+use Manticoresearch\Lib\TextColor;
+
 /**
  * Validate args and return parsed options to use
  *

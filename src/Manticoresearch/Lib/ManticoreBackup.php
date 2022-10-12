@@ -9,6 +9,10 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+namespace Manticoresearch\Lib;
+
+use Manticoresearch\Exception\InvalidPathException;
+
 /**
  * This class is used to initialize config, parse it and launch the backup process
  */
@@ -26,7 +30,7 @@ class ManticoreBackup {
    * @param array<string> $tables
    *  List of tables to store. In case if its empty array we store all tables
    * @return void
-   * @throws RuntimeException
+   * @throws \RuntimeException
    */
 	public static function store(ManticoreClient $Client, FileStorage $Storage, array $tables = []): void {
 		println(LogLevel::Info, 'Starting the backup...');
@@ -123,7 +127,7 @@ class ManticoreBackup {
 		$is_done = true;
 
 		if (false === $result) {
-			throw new Exception(
+			throw new \Exception(
 				'Failed to make backup of tables. '
 				. 'Please check that you have rights to access the source and destinations directories'
 			);
@@ -151,7 +155,7 @@ class ManticoreBackup {
 
 	  // First, validate that searchd is not running, otherwise we cannot replace directories
 		if (Searchd::isRunning()) {
-			throw new Exception(
+			throw new \Exception(
 				'Cannot initiate the restore process due to searchd daemon is running.'
 			);
 		}
@@ -161,7 +165,7 @@ class ManticoreBackup {
 
 	  // Second, lets check that destination is available to move files and we have nothing there
 		static::validateRestore(
-			$Storage, $backup['config'], function (SplFileInfo $File) use (&$Config): bool {
+			$Storage, $backup['config'], function (\SplFileInfo $File) use (&$Config): bool {
 			// TODO: remove this hardcode, we can store the path to config when doing backup
 				if ($File->getFilename() === 'manticore.conf') {
 					$Config = new ManticoreConfig($File->getRealPath());
@@ -172,21 +176,21 @@ class ManticoreBackup {
 		);
 
 		if (!isset($Config)) {
-			throw new Exception('Failed to find config file in original backup');
+			throw new \Exception('Failed to find config file in original backup');
 		}
 
 		static::validateRestore($Storage, $backup['state']);
 
 	  // Valdiate indexes
 		if (!is_dir($Config->data_dir)) {
-			throw new Exception('Failed to find data dir, make sure that it exists: ' . $Config->data_dir);
+			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $Config->data_dir);
 		}
 
 		$DataIterator = $Storage->getFileIterator($Config->data_dir);
 		$has_files = $DataIterator->valid() && iterator_count($DataIterator) > 2;
 
 		if ($has_files) {
-			throw new Exception('The data dir to restore is not empty: ' . $Config->data_dir);
+			throw new \Exception('The data dir to restore is not empty: ' . $Config->data_dir);
 		}
 
 	  // All checks are done here, so we can safely start to move all files
@@ -194,7 +198,7 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Restoring config files...');
 		$ConfigIterator = $Storage->getFileIterator($backup['config']);
 		$is_ok = true;
-	  /** @var SplFileInfo $File */
+	  /** @var \SplFileInfo $File */
 		foreach ($ConfigIterator as $File) {
 			if (!$File->isFile()) {
 				continue;
@@ -212,7 +216,7 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Restoring state files...');
 		$StateIterator = $Storage->getFileIterator($backup['state']);
 		$is_ok = true;
-	  /** @var SplFileInfo $File */
+	  /** @var \SplFileInfo $File */
 		foreach ($StateIterator as $File) {
 			if (!$File->isFile()) {
 				continue;
@@ -233,7 +237,7 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Restoring data files...');
 		$DataIterator = $Storage->getFileIterator($backup['data']);
 		$is_ok = true;
-	  /** @var SplFileInfo $File */
+	  /** @var \SplFileInfo $File */
 		foreach ($DataIterator as $File) {
 			if (!$File->isFile()) {
 				continue;
@@ -289,7 +293,7 @@ class ManticoreBackup {
 		if ($tables) {
 			$index_diff = array_diff($tables, $all_table_names);
 			if ($index_diff) {
-				throw new InvalidArgumentException('Can\'t find some of the tables: ' . implode(', ', $index_diff));
+				throw new \InvalidArgumentException('Can\'t find some of the tables: ' . implode(', ', $index_diff));
 			}
 			unset($index_diff);
 			$result = array_intersect_key(
@@ -303,7 +307,7 @@ class ManticoreBackup {
 		$is_all = !$tables || !array_diff($all_table_names, $tables);
 	  // If we have no tables in our database – we should stop
 		if (!$result) {
-			throw new RuntimeException('You have no tables to backup.');
+			throw new \RuntimeException('You have no tables to backup.');
 		}
 		return [$is_all, $result];
 	}
@@ -324,15 +328,15 @@ class ManticoreBackup {
    *
    * @param FileStorage $Storage
    * @param string $backup_path
-   * @param ?Closure $fn
+   * @param ?\Closure $fn
    *  It receives SplFileInfo as argument
    *  It returns true for skip next logic in cycle or false otherwise
    * @return void
-   * @throws Exception
+   * @throws \Exception
    */
-	protected static function validateRestore(FileStorage $Storage, string $backup_path, ?Closure $fn = null): void {
+	protected static function validateRestore(FileStorage $Storage, string $backup_path, ?\Closure $fn = null): void {
 		$FileIterator = $Storage->getFileIterator($backup_path);
-	  /** @var SplFileInfo $File */
+	  /** @var \SplFileInfo $File */
 		foreach ($FileIterator as $File) {
 			if (!$File->isFile()) {
 				continue;
@@ -348,7 +352,7 @@ class ManticoreBackup {
 
 			$preserved_path = $Storage->getOriginRealPath($File->getRealPath());
 			if (is_file($preserved_path)) {
-				throw new Exception('Destination file already exists: ' . $preserved_path);
+				throw new \Exception('Destination file already exists: ' . $preserved_path);
 			}
 		}
 	}
