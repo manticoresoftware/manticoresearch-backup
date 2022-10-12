@@ -124,8 +124,6 @@ class ManticoreBackup {
 			$Client->unfreeze($index);
 		}
 
-		$is_done = true;
-
 		if (false === $result) {
 			throw new \Exception(
 				'Failed to make backup of tables. '

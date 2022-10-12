@@ -262,7 +262,7 @@ class FileStorage {
 			throw new InvalidPathException('Cannot write to backup directory - "' . $to . '"');
 		}
 
-		$result = array_reduce(
+		return array_reduce(
 			$paths, function (bool $carry, string $path) use ($preserve_path, $to) {
 				$dest = $to . (
 					$preserve_path
@@ -284,8 +284,6 @@ class FileStorage {
 				return $carry;
 			}, true
 		);
-
-		return $result;
 	}
 
   /**

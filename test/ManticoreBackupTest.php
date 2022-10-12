@@ -125,23 +125,22 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$Client->setTimeout(1);
 		$Client->setTimeoutFn(
 			function () use ($Storage): bool {
-				static $count = 0, $is_processed = false;
+				static $count = 0;
 				++$count;
 				if ($count < 3) {
 					return false;
 				}
 
-				if (!$is_processed) {
+				// Get current backup paths and make it read only after 1st index copied
+				$backup_paths = $Storage->getBackupPaths();
+				if (is_writable($backup_paths['root'])) {
 					echo 'processing';
-				  // Get current backup paths and make it read only after 1st index copied
-					$backup_paths = $Storage->getBackupPaths();
 
 					$rw_data_dir = $backup_paths['data'] . '-rw';
 					rename($backup_paths['data'], $rw_data_dir);
 
 				  // Create read only dir and modify it in FileStorage
 					$this->mount($rw_data_dir, $backup_paths['root'], 'ro');
-					$is_processed = true;
 				}
 
 				return false;
