@@ -23,10 +23,17 @@
 	<rule ref="SlevomatCodingStandard.Operators.DisallowEqualOperators"/>
 	<rule ref="SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure"/>
 	<rule ref="SlevomatCodingStandard.Functions.UnusedParameter"/>
-	<rule ref="SlevomatCodingStandard.Functions.UselessParameterDefaultValue"/>
+	<rule ref="SlevomatCodingStandard.Variables.UnusedVariable"/>
+	<rule ref="SlevomatCodingStandard.Variables.UselessVariable"/>
 	<rule ref="SlevomatCodingStandard.Namespaces.UnusedUses"/>
+	<rule ref="SlevomatCodingStandard.Exceptions.DeadCatch"/>
+	<rule ref="SlevomatCodingStandard.Functions.UselessParameterDefaultValue"/>
 	<rule ref="SlevomatCodingStandard.Classes.ModernClassNameReference"/>
-	<rule ref="Squiz.Strings.DoubleQuoteUsage.NotRequired" />
+	<rule ref="SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator"/>
+	<rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses"/>
+	<rule ref="SlevomatCodingStandard.TypeHints.DisallowMixedTypeHint"/>
+	<rule ref="SlevomatCodingStandard.PHP.TypeCast"/>
+	<rule ref="Squiz.Strings.DoubleQuoteUsage.NotRequired"/>
 	<rule ref="PSR2">
 		<exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
 		<exclude name="Squiz.Functions.MultiLineFunctionDeclaration.BraceOnSameLine"/>
@@ -88,6 +95,9 @@
 				<element key="create_function" value="null"/>
 				<element key="phpinfo" value="null"/>
 				<element key="list" value="null"/>
+				<element key="array" value="null"/>
+				<element key="strval" value="null"/>
+				<element key="intval" value="null"/>
 			</property>
 		</properties>
 	</rule>
