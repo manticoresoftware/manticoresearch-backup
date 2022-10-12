@@ -1,13 +1,32 @@
 {
-    "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "squizlabs/php_codesniffer": "^3.7",
-        "slevomat/coding-standard": "^8.5",
-        "phpstan/phpstan": "^1.8"
-    },
-    "config": {
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    }
+	"name": "manticoresoftware/manticoresearch-backup",
+	"description": "Backup tool for Manticore Search",
+	"keywords": ["search", "backup", "manticoresearch"],
+	"license": "GPL-2.0-or-later",
+	"type": "library",
+	"require": {
+		"php": ">=8.1"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.5",
+		"squizlabs/php_codesniffer": "^3.7",
+		"slevomat/coding-standard": "^8.5",
+		"phpstan/phpstan": "^1.8"
+	},
+	"autoload": {
+		"psr-4": {
+			"Manticoresearch\\" : "src/"
+		}
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"authors": [
+		{
+			"name": "Manticore Software LTD",
+			"email": "contact@manticoresoftware.com"
+		}
+	]
 }

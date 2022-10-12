@@ -9,6 +9,10 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+namespace Manticoresearch\Lib;
+
+use Manticoresearch\Exception\InvalidPathException;
+
 /**
  * Helper config parser for use in backup and client components
  */
@@ -33,7 +37,7 @@ class ManticoreConfig {
 	public function __construct(string $config_path) {
 		$config = file_get_contents($config_path);
 		if (false === $config) {
-			throw new InvalidArgumentException('Failed to read config file: ' . $config_path);
+			throw new \InvalidArgumentException('Failed to read config file: ' . $config_path);
 		}
 
 		$this->path = $config_path;

@@ -9,6 +9,8 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+namespace Manticoresearch\Lib;
+
 /**
  * This is the little helper class to detect which os we run on
  */
@@ -35,7 +37,7 @@ class OS {
    * @param string $program
    * @return string
    *  The path to found executoable
-   * @throws Exception
+   * @throws \Exception
    */
 	public static function which(string $program): string {
 		$result = match (static::isWindows()) {
@@ -44,7 +46,7 @@ class OS {
 		};
 
 		if (!$result) {
-			throw new Exception(__METHOD__  . ': failed to find "' . $program . '" in search path');
+			throw new \Exception(__METHOD__  . ': failed to find "' . $program . '" in search path');
 		}
 
 		return $result;

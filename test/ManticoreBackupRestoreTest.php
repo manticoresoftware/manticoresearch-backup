@@ -9,6 +9,11 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+use Manticoresearch\Lib\FileStorage;
+use Manticoresearch\Lib\ManticoreBackup;
+use Manticoresearch\Lib\ManticoreClient;
+use Manticoresearch\Lib\ManticoreConfig;
+use Manticoresearch\Lib\Searchd;
 use PHPUnit\Framework\TestCase;
 
 class ManticoreBackupRestoreTest extends TestCase {

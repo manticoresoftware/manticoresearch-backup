@@ -9,6 +9,11 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+namespace Manticoresearch\Lib;
+
+use Manticoresearch\Exception\ChecksumException;
+use Manticoresearch\Exception\InvalidPathException;
+
 class FileStorage {
 	const DIR_PERMISSION = 0755;
 
@@ -40,11 +45,11 @@ class FileStorage {
    * Getter for $this->backup_dir
    *
    * @return string
-   * @throws RuntimeException
+   * @throws \RuntimeException
    */
 	public function getBackupDir(): ?string {
 		if (!isset($this->backup_dir)) {
-			throw new RuntimeException('Backup dir is not initialized.');
+			throw new \RuntimeException('Backup dir is not initialized.');
 		}
 
 		return $this->backup_dir;
@@ -107,7 +112,7 @@ class FileStorage {
    * @param bool $recursive
    *  If we should transfer it in recursive way folder by folder
    * @return void
-   * @throws RuntimeException
+   * @throws \RuntimeException
    */
 	public static function transferOwnership(string $from, string $to, bool $recursive = false): void {
 		if (basename($from) !== basename($to)) {
@@ -118,7 +123,7 @@ class FileStorage {
 		$file_gid = filegroup($from);
 		$file_perm = fileperms($from);
 		if (false === $file_uid || false === $file_gid || false === $file_perm) {
-			throw new RuntimeException('Failed to find out file ownership info for source path: ' . $from);
+			throw new \RuntimeException('Failed to find out file ownership info for source path: ' . $from);
 		}
 
 	  // Next functions works only on non windows systems
@@ -168,7 +173,7 @@ class FileStorage {
 
 		$from_len = strlen($from) + 1;
 		$FileIterator = static::getFileIterator($from);
-	  /** @var SplFileInfo $File */
+	  /** @var \SplFileInfo $File */
 		foreach ($FileIterator as $File) {
 			$dest_dir = $to . DIRECTORY_SEPARATOR . substr($File->getPath(), $from_len);
 
@@ -219,7 +224,7 @@ class FileStorage {
 		if ($this->use_compression) {
 			$to .= '.zst';
 			if (!function_exists('zstd_compress')) {
-				throw new RuntimeException(
+				throw new \RuntimeException(
 					'Failed to find zstd_compress please make sure that you have ZSTD extensions compiled in'
 				);
 			}
@@ -314,14 +319,14 @@ class FileStorage {
 		if (is_file($path)) {
 			$checksum = md5_file($path);
 			if (false === $checksum) {
-				throw new RuntimeException('Failed to get checksum for file: ' . $path);
+				throw new \RuntimeException('Failed to get checksum for file: ' . $path);
 			}
 			return $checksum;
 		}
 
 	  // In case if path is a directory, we do recursive check
 		$FileIterator = static::getFileIterator($path);
-	  /** @var SplFileInfo $File */
+	  /** @var \SplFileInfo $File */
 		foreach ($FileIterator as $File) {
 			if (!$File->isFile()) {
 				continue;
@@ -344,9 +349,9 @@ class FileStorage {
    * @return void
    */
 	public static function deleteDir(string $dir, bool $remove_self = true): void {
-		$FileIterator = static::getFileIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
+		$FileIterator = static::getFileIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
 
-	  /** @var SplFileInfo $FileInfo */
+	  /** @var \SplFileInfo $FileInfo */
 		foreach ($FileIterator as $FileInfo) {
 			$fn = ($FileInfo->isDir() ? 'rmdir' : 'unlink');
 			$fn($FileInfo->getRealPath());
@@ -393,7 +398,7 @@ class FileStorage {
 			$result[$dir] = $path;
 
 			if (!is_dir($path)) {
-				throw new InvalidArgumentException("Cannot find '$dir' in '$destination'");
+				throw new \InvalidArgumentException("Cannot find '$dir' in '$destination'");
 			}
 		}
 
@@ -497,15 +502,15 @@ class FileStorage {
    * @param string $dir
    *  The directory where we should look into
    * @param int $flags
-   * @return RecursiveIteratorIterator<RecursiveDirectoryIterator>
+   * @return \RecursiveIteratorIterator<\RecursiveDirectoryIterator>
    */
 	public static function getFileIterator(
 		string $dir,
-		int $flags = FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::CURRENT_AS_FILEINFO
-	): RecursiveIteratorIterator {
-		return new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator($dir, $flags),
-			RecursiveIteratorIterator::CHILD_FIRST
+		int $flags = \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO
+	): \RecursiveIteratorIterator {
+		return new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator($dir, $flags),
+			\RecursiveIteratorIterator::CHILD_FIRST
 		);
 	}
 }

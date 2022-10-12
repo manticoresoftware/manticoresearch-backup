@@ -9,9 +9,7 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-enum LogLevel {
-	case Error;
-	case Warn;
-	case Info;
-	case Debug;
+namespace Manticoresearch\Exception;
+
+class InvalidPathException extends \Exception {
 }

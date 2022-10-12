@@ -1,5 +1,12 @@
 <?php declare(strict_types=1);
 
+use Manticoresearch\Exception\InvalidPathException;
+use Manticoresearch\Lib\FileStorage;
+use Manticoresearch\Lib\ManticoreBackup;
+use Manticoresearch\Lib\ManticoreClient;
+use Manticoresearch\Lib\ManticoreConfig;
+use Manticoresearch\Lib\Searchd;
+
 /*
   Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)
 

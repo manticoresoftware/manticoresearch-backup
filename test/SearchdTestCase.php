@@ -9,6 +9,7 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
+use Manticoresearch\Lib\Searchd;
 use PHPUnit\Framework\TestCase;
 
 class SearchdTestCase extends TestCase {

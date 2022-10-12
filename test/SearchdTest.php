@@ -1,5 +1,7 @@
 <?php declare(strict_types=1);
 
+use Manticoresearch\Lib\Searchd;
+
 /*
   Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)
 
