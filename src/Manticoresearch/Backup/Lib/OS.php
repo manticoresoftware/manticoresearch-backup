@@ -9,7 +9,7 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-namespace Manticoresearch\Lib;
+namespace Manticoresearch\Backup\Lib;
 
 /**
  * This is the little helper class to detect which os we run on

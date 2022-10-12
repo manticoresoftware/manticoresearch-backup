@@ -9,10 +9,10 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-use Manticoresearch\Lib\FileStorage;
-use Manticoresearch\Lib\ManticoreClient;
-use Manticoresearch\Lib\ManticoreConfig;
-use Manticoresearch\Lib\Searchd;
+use Manticoresearch\Backup\Lib\FileStorage;
+use Manticoresearch\Backup\Lib\ManticoreClient;
+use Manticoresearch\Backup\Lib\ManticoreConfig;
+use Manticoresearch\Backup\Lib\Searchd;
 
 include_once __DIR__ . DIRECTORY_SEPARATOR . '..'
   . DIRECTORY_SEPARATOR . 'src'

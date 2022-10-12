@@ -9,7 +9,7 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-namespace Manticoresearch\Lib;
+namespace Manticoresearch\Backup\Lib;
 
 enum LogLevel {
 	case Error;

@@ -9,13 +9,13 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-use Manticoresearch\Lib\FileStorage;
-use Manticoresearch\Lib\LogLevel;
-use Manticoresearch\Lib\ManticoreBackup;
-use Manticoresearch\Lib\ManticoreClient;
-use Manticoresearch\Lib\OS;
-use Manticoresearch\Lib\Searchd;
-use Manticoresearch\Lib\TextColor;
+use Manticoresearch\Backup\Lib\FileStorage;
+use Manticoresearch\Backup\Lib\LogLevel;
+use Manticoresearch\Backup\Lib\ManticoreBackup;
+use Manticoresearch\Backup\Lib\ManticoreClient;
+use Manticoresearch\Backup\Lib\OS;
+use Manticoresearch\Backup\Lib\Searchd;
+use Manticoresearch\Backup\Lib\TextColor;
 
 /**
  * 0. Check dependencies (? still no deps and thats good) and minimal PHP versions
