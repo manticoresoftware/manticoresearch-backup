@@ -29,7 +29,7 @@ class SearchdTestCase extends TestCase {
 			return;
 		}
 
-		$pid = intval(file_get_contents(static::SEARCHD_PID_FILE));
+		$pid = (int)file_get_contents(static::SEARCHD_PID_FILE);
 		posix_kill($pid, 9);
 	}
 }

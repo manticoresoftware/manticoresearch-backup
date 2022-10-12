@@ -76,12 +76,14 @@ function format_bytes(int $bytes, int $precision = 3): string {
 	return round(pow(1024, $base - floor($base)), $precision) . $sfx[floor($base)];
 }
 
+// @codingStandardsIgnoreStart
 /**
  * Extract passed arguments and check for known only
  *
  * @return array<string,array<int,mixed>|string|false>
  *  Parsed options
  */
+// @codingStandardsIgnoreEnd
 function get_input_args(): array {
 	$args = getopt('', ['help', 'config:', 'tables:', 'backup-dir:', 'compress', 'restore::', 'unlock', 'version']);
 	if (false === $args) {

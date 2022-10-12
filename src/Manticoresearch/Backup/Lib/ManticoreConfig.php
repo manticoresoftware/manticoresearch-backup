@@ -68,10 +68,10 @@ class ManticoreConfig {
 					}
 					$listen = substr($value, 0, $http_pos);
 					if (false === strpos($listen, ':')) {
-						$this->port = intval($listen);
+						$this->port = (int)$listen;
 					} else {
 						$this->host = strtok($listen, ':');
-						$this->port = intval(strtok(':'));
+						$this->port = (int)strtok(':');
 					}
 				} else { // In this case we have path/file directive
 					$this->$key = $value;
