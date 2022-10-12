@@ -9,9 +9,9 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-use Manticoresearch\Exception\InvalidPathException;
-use Manticoresearch\Lib\FileStorage;
-use Manticoresearch\Lib\OS;
+use Manticoresearch\Backup\Exception\InvalidPathException;
+use Manticoresearch\Backup\Lib\FileStorage;
+use Manticoresearch\Backup\Lib\OS;
 use PHPUnit\Framework\TestCase;
 
 class FileStorageTest extends TestCase {

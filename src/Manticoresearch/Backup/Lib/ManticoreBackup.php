@@ -9,9 +9,9 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-namespace Manticoresearch\Lib;
+namespace Manticoresearch\Backup\Lib;
 
-use Manticoresearch\Exception\InvalidPathException;
+use Manticoresearch\Backup\Exception\InvalidPathException;
 
 /**
  * This class is used to initialize config, parse it and launch the backup process

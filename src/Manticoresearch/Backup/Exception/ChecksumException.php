@@ -9,7 +9,7 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-namespace Manticoresearch\Exception;
+namespace Manticoresearch\Backup\Exception;
 
-class SearchdException extends \Exception {
+class ChecksumException extends \Exception {
 }

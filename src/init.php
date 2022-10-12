@@ -9,7 +9,7 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-use Manticoresearch\Lib\ManticoreBackup;
+use Manticoresearch\Backup\Lib\ManticoreBackup;
 
 // Initialize autoloading
 $dir = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src';

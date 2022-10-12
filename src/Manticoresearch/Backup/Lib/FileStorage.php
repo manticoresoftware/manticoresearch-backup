@@ -9,10 +9,10 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-namespace Manticoresearch\Lib;
+namespace Manticoresearch\Backup\Lib;
 
-use Manticoresearch\Exception\ChecksumException;
-use Manticoresearch\Exception\InvalidPathException;
+use Manticoresearch\Backup\Exception\ChecksumException;
+use Manticoresearch\Backup\Exception\InvalidPathException;
 
 class FileStorage {
 	const DIR_PERMISSION = 0755;

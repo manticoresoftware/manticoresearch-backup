@@ -9,9 +9,9 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-namespace Manticoresearch\Lib;
+namespace Manticoresearch\Backup\Lib;
 
-use Manticoresearch\Exception\SearchdException;
+use Manticoresearch\Backup\Exception\SearchdException;
 
 /**
  * This class is used for communication with manticore searchd HTTP protocol by using SQL endpoint

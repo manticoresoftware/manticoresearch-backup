@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-use Manticoresearch\Lib\ManticoreClient;
-use Manticoresearch\Lib\ManticoreConfig;
-use Manticoresearch\Lib\Searchd;
+use Manticoresearch\Backup\Lib\ManticoreClient;
+use Manticoresearch\Backup\Lib\ManticoreConfig;
+use Manticoresearch\Backup\Lib\Searchd;
 
 /*
   Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)
