@@ -62,17 +62,7 @@ class ManticoreConfig {
 			foreach ($m[1] as $n => $key) {
 				$value = $m[2][$n];
 				if ($n === 'listen') { // in case of we need to parse
-					$http_pos = strpos($value, ':http');
-					if (false === $http_pos) {
-						continue;
-					}
-					$listen = substr($value, 0, $http_pos);
-					if (false === strpos($listen, ':')) {
-						$this->port = (int)$listen;
-					} else {
-						$this->host = strtok($listen, ':');
-						$this->port = (int)strtok(':');
-					}
+					$this->parseHostPort($value);
 				} else { // In this case we have path/file directive
 					$this->$key = $value;
 				}
@@ -94,6 +84,25 @@ class ManticoreConfig {
 		;
 	}
 
+	/**
+	 * This is helper function that parses host and port from config directive
+	 *
+	 * @param string $value
+	 * @return void
+	 */
+	protected function parseHostPort(string $value): void {
+		$http_pos = strpos($value, ':http');
+		if (false === $http_pos) {
+			return;
+		}
+		$listen = substr($value, 0, $http_pos);
+		if (false === strpos($listen, ':')) {
+			$this->port = (int)$listen;
+		} else {
+			$this->host = strtok($listen, ':');
+			$this->port = (int)strtok(':');
+		}
+	}
 
   /**
    * This functions returns global state files that we can backup

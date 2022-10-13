@@ -212,7 +212,28 @@ class ManticoreBackup {
 
 	  // Now restore states
 		println(LogLevel::Info, 'Restoring state files...');
-		$StateIterator = $Storage->getFileIterator($backup['state']);
+		$is_ok = static::restoreState($Storage, $backup['state']);
+		println(LogLevel::Info, '  state files - ' . get_op_result($is_ok));
+
+	  // And the final piece – indexes (data dir)
+		println(LogLevel::Info, 'Restoring data files...');
+		$is_ok = static::restoreData($Storage, $Config, $backup['data']);
+		println(LogLevel::Info, '  tables\' files - ' . get_op_result($is_ok));
+
+	  // Done
+		$t = round(microtime(true) - $t, 2);
+
+		println(LogLevel::Info, "The backup '{$backup['root']}' was successfully restored.");
+		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
+	}
+
+	/**
+	 * @param FileStorage $Storage
+	 * @param string $path
+	 * @return bool
+	 */
+	protected static function restoreState(FileStorage $Storage, string $path): bool {
+		$StateIterator = $Storage->getFileIterator($path);
 		$is_ok = true;
 	  /** @var \SplFileInfo $File */
 		foreach ($StateIterator as $File) {
@@ -229,11 +250,18 @@ class ManticoreBackup {
 
 			$is_ok = $is_ok && $Storage->copyPaths([$from], $to);
 		}
-		println(LogLevel::Info, '  config files - ' . get_op_result($is_ok));
 
-	  // And the final piece – indexes (data dir)
-		println(LogLevel::Info, 'Restoring data files...');
-		$DataIterator = $Storage->getFileIterator($backup['data']);
+		return $is_ok;
+	}
+
+	/**
+	 * @param FileStorage $Storage
+	 * @param ManticoreConfig $Config
+	 * @param string $path
+	 * @return bool
+	 */
+	protected static function restoreData(FileStorage $Storage, ManticoreConfig $Config, string $path): bool {
+		$DataIterator = $Storage->getFileIterator($path);
 		$is_ok = true;
 	  /** @var \SplFileInfo $File */
 		foreach ($DataIterator as $File) {
@@ -250,14 +278,8 @@ class ManticoreBackup {
 
 			$is_ok = $is_ok && $Storage->copyPaths([$from], $to);
 		}
-		println(LogLevel::Info, '  config files - ' . get_op_result($is_ok));
 
-
-	  // Done
-		$t = round(microtime(true) - $t, 2);
-
-		println(LogLevel::Info, "The backup '{$backup['root']}' was successfully restored.");
-		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
+		return $is_ok;
 	}
 
   /**
