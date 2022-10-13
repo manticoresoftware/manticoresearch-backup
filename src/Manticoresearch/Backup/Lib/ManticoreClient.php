@@ -78,7 +78,7 @@ class ManticoreClient {
 			$tables = [$tables];
 		}
 		$tables_string = implode(', ', $tables);
-		$result = $this->execute('LOCK ' . $tables_string);
+		$result = $this->execute('FREEZE ' . $tables_string);
 		if ($result[0]['error']) {
 			throw new SearchdException('Failed to get lock for tables - ' . $tables_string);
 		}
@@ -97,7 +97,7 @@ class ManticoreClient {
 		if (is_string($tables)) {
 			$tables = [$tables];
 		}
-		$result = $this->execute('UNLOCK ' . implode(', ', $tables));
+		$result = $this->execute('UNFREEZE ' . implode(', ', $tables));
 		return !$result[0]['error'];
 	}
 
