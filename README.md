@@ -51,7 +51,7 @@ The final script is a PHP Phar archive that can be run with [PHP](https://php.ne
 
 ## Developing
 
-To develop and run the system without building process you should use `build/run` script that do all the magic.
+To develop and run the system without building process you should use `bin/run` script that do all the magic.
 
 ## Tests
 
