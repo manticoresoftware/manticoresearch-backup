@@ -16,10 +16,14 @@ $dir = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 's
 include_once $dir . DIRECTORY_SEPARATOR . 'func.php';
 spl_autoload_register(
 	function ($class_name) use ($dir) {
-		include_once $dir . DIRECTORY_SEPARATOR
+		$file_path = $dir . DIRECTORY_SEPARATOR
 			. str_replace('\\', DIRECTORY_SEPARATOR, $class_name)
 			. '.php'
 		;
+		if (!file_exists($file_path)) {
+			return;
+		}
+		include_once $file_path;
 	}
 );
 unset($dir);
