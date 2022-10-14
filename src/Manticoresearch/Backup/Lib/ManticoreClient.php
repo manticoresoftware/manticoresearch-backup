@@ -55,10 +55,30 @@ class ManticoreClient {
 		$Client = new ManticoreClient($Config);
 
 		$versions = $Client->getVersions();
+		$ver_num = strtok($versions['manticore'], ' ');
+
+		if ($ver_num === false || version_compare($ver_num, Searchd::MIN_VERSION) <= 0) {
+			$ver_sfx = strtok(' ');
+			if (false === $ver_sfx) {
+				throw new \RuntimeException('Failed to find the version of the manticore searchd');
+			}
+
+			$is_old = $ver_num < Searchd::MIN_VERSION;
+			if (!$is_old) {
+				[, $ver_date] = explode('@', $ver_sfx);
+				$is_old = $ver_date < Searchd::MIN_DATE;
+			}
+
+			if ($is_old) {
+				throw new \RuntimeException(
+					'You are running old version of manticore searchd, minimum required: ' . Searchd::MIN_VERSION
+				);
+			}
+		}
 		echo PHP_EOL . 'Manticore versions:' . PHP_EOL
-		. '  manticore: ' . $versions['manticore'] . PHP_EOL
-		. '  columnar: ' . $versions['columnar'] . PHP_EOL
-		. '  secondary: ' . $versions['secondary'] . PHP_EOL
+			. '  manticore: ' . $versions['manticore'] . PHP_EOL
+			. '  columnar: ' . $versions['columnar'] . PHP_EOL
+			. '  secondary: ' . $versions['secondary'] . PHP_EOL
 		;
 
 		return $Client;
@@ -143,8 +163,9 @@ class ManticoreClient {
 	public function getVersions(): array {
 		$result = $this->execute('SHOW STATUS LIKE \'version\'');
 		$version = $result[0]['data'][0]['Value'] ?? '';
-		$match_expr = '/^(\d+\.\d+\.\d+)[^\(]+(\(columnar\s*(\d+\.\d+\.\d+)\s*[^\)]+\))?'
-		. '([^\(]*\(secondary\s(\d+\.\d+\.\d+)[^\)]+\))?$/ius'
+		$ver_pattern = '(\d+\.\d+\.\d+[^\(\)]+)';
+		$match_expr = "/^{$ver_pattern}(\(columnar\s{$ver_pattern}\))?"
+			. "([^\(]*\(secondary\s{$ver_pattern}\))?$/ius"
 		;
 		preg_match($match_expr, $version, $m);
 

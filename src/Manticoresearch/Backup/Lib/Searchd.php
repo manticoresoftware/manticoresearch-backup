@@ -14,6 +14,9 @@ namespace Manticoresearch\Backup\Lib;
 use Manticoresearch\Backup\Exception\InvalidPathException;
 
 class Searchd {
+	const MIN_VERSION = '5.0.3';
+	const MIN_DATE = '221012';
+
 	public static ?string $cmd;
 
 	public static function init(): void {
