@@ -188,7 +188,13 @@ class ManticoreClient {
    */
 	public function getConfigPath(): string {
 		$result = $this->execute('SHOW SETTINGS');
-		$config_path = $result[0]['data'][0]['Value'];
+		$config_path = realpath($result[0]['data'][0]['Value']);
+
+		if (false === $config_path) {
+			throw new \RuntimeException(
+        'Unable to get config path from SHOW SETTINGS'
+      );
+		}
 
 	  // Fix issue with //manticore.conf path
 		if ($config_path[0] === '/') {
