@@ -69,25 +69,25 @@ echo 'Manticore config file: ' . $options['config'] . PHP_EOL
 
 switch (true) {
 	case isset($args['unlock']): // unlock
-		$Client = ManticoreClient::init($options['config']);
-		$Client->unfreezeAll();
+		$client = ManticoreClient::init($options['config']);
+		$client->unfreezeAll();
 	break;
 
 	case isset($args['restore']): // restore
-		$Storage = new FileStorage($options['backup-dir']);
+		$storage = new FileStorage($options['backup-dir']);
 
 		if ($options['restore'] === false) {
-			$backup_dir = $Storage->getBackupDir();
-			if (!$backup_dir) {
+			$backupDir = $storage->getBackupDir();
+			if (!$backupDir) {
 				throw new InvalidArgumentException('There is no backup-dir detected');
 			}
 
-			$backups = glob($backup_dir . DIRECTORY_SEPARATOR . 'backup-*');
+			$backups = glob($backupDir . DIRECTORY_SEPARATOR . 'backup-*');
 			if ($backups) {
-				$prefix_len = strlen($backup_dir) + 1;
+				$prefixLen = strlen($backupDir) + 1;
 				echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
 				foreach ($backups as $path) {
-					$dir = substr($path, $prefix_len);
+					$dir = substr($path, $prefixLen);
 					$ts = strtotime(explode('-', $dir)[1] ?? '0');
 					$date = $ts ? date('M d Y H:i:s', $ts) : '?';
 					echo '  ' . $dir . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
@@ -98,25 +98,25 @@ switch (true) {
 			exit(0);
 		}
 
-		$Storage->setBackupPathsUsingDir($options['restore']);
+		$storage->setBackupPathsUsingDir($options['restore']);
 
 	  // Here is when real restore is starting
-		ManticoreBackup::restore($Storage);
+		ManticoreBackup::restore($storage);
 	break;
 
 	default: // backup
-		$Client = ManticoreClient::init($options['config']);
+		$client = ManticoreClient::init($options['config']);
 
-		$Storage = new FileStorage($options['backup-dir'], $options['compress']);
+		$storage = new FileStorage($options['backup-dir'], $options['compress']);
 
 	  // In case of backing up it's important to install signal handler
 		if (function_exists('pcntl_async_signals')) {
 			pcntl_async_signals(true);
-			$signal_handler = $Client->getSignalHandlerFn($Storage);
-			pcntl_signal(SIGQUIT, $signal_handler);
-			pcntl_signal(SIGINT, $signal_handler);
-			pcntl_signal(SIGTERM, $signal_handler);
-			pcntl_signal(SIGSEGV, $signal_handler);
+			$signalHandler = $client->getSignalHandlerFn($storage);
+			pcntl_signal(SIGQUIT, $signalHandler);
+			pcntl_signal(SIGINT, $signalHandler);
+			pcntl_signal(SIGTERM, $signalHandler);
+			pcntl_signal(SIGSEGV, $signalHandler);
 		} else {
 			echo PHP_EOL . 'WARNING: you should install pcntl extension'
 				. ' for proper interruption signal handling'
@@ -133,7 +133,7 @@ switch (true) {
 			;
 		}
 
-		ManticoreBackup::store($Client, $Storage, $options['tables']);
+		ManticoreBackup::store($client, $storage, $options['tables']);
 }
 
 println(LogLevel::Info, 'Done');

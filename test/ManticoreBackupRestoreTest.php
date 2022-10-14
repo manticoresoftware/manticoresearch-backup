@@ -17,120 +17,120 @@ use Manticoresearch\Backup\Lib\Searchd;
 use PHPUnit\Framework\TestCase;
 
 class ManticoreBackupRestoreTest extends TestCase {
-	protected static string $backup_dir;
-	protected static ManticoreConfig $Config;
+	protected static string $backupDir;
+	protected static ManticoreConfig $config;
 
 	public static function setUpBeforeClass(): void {
-		static::$backup_dir = FileStorage::getTmpDir() . DIRECTORY_SEPARATOR . 'restore-test';
-		mkdir(static::$backup_dir, 0777);
+		static::$backupDir = FileStorage::getTmpDir() . DIRECTORY_SEPARATOR . 'restore-test';
+		mkdir(static::$backupDir, 0777);
 
 		SearchdTestCase::setUpBeforeClass();
 		Searchd::init();
-		static::$Config = new ManticoreConfig(Searchd::getConfigPath());
-		$Client = new ManticoreClient(static::$Config);
+		static::$config = new ManticoreConfig(Searchd::getConfigPath());
+		$client = new ManticoreClient(static::$config);
 
-		$FileStorage = new FileStorage(static::$backup_dir);
-		ManticoreBackup::store($Client, $FileStorage);
+		$fileStorage = new FileStorage(static::$backupDir);
+		ManticoreBackup::store($client, $fileStorage);
 		SearchdTestCase::tearDownAfterClass();
 	}
 
 	public function tearDown(): void {
 		$paths = [
-			static::$Config->path,
-			static::$Config->schema_path,
-			static::$Config->data_dir,
-			...static::$Config->getStatePaths(),
+			static::$config->path,
+			static::$config->schemaPath,
+			static::$config->dataDir,
+			...static::$config->getStatePaths(),
 		];
 
 		foreach ($paths as $path) {
 			$path = rtrim($path, DIRECTORY_SEPARATOR);
-			$path_bak = $path . '.bak';
-			if (!file_exists($path_bak)) {
+			$pathBak = $path . '.bak';
+			if (!file_exists($pathBak)) {
 				continue;
 			}
 
 			if (file_exists($path)) {
-				if (is_dir($path_bak)) {
-					FileStorage::deleteDir($path_bak);
+				if (is_dir($pathBak)) {
+					FileStorage::deleteDir($pathBak);
 				} else {
-					unlink($path_bak);
+					unlink($pathBak);
 				}
 			} else {
-				shell_exec("mv '$path_bak' '$path'");
+				shell_exec("mv '$pathBak' '$path'");
 			}
 		}
 	}
 
 	public function testRestoreFailedWhenSearchdLaunched(): void {
-		[, $FileStorage] = $this->initTestEnv();
+		[, $fileStorage] = $this->initTestEnv();
 
 		SearchdTestCase::setUpBeforeClass();
 		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('Cannot initiate the restore process due to searchd daemon is running.');
-		ManticoreBackup::restore($FileStorage);
+		ManticoreBackup::restore($fileStorage);
 		SearchdTestCase::tearDownAfterClass();
 	}
 
 	public function testRestoreFailedWhenOriginalConfigExists(): void {
 		SearchdTestCase::tearDownAfterClass();
 
-		[, $FileStorage] = $this->initTestEnv();
+		[, $fileStorage] = $this->initTestEnv();
 
 		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('Destination file already exists');
-		ManticoreBackup::restore($FileStorage);
+		ManticoreBackup::restore($fileStorage);
 	}
 
 	public function testRestoreFailedWhenOriginalSchemaExists(): void {
 		SearchdTestCase::tearDownAfterClass();
-		$this->safeDelete(static::$Config->path);
+		$this->safeDelete(static::$config->path);
 
-		[, $FileStorage] = $this->initTestEnv();
+		[, $fileStorage] = $this->initTestEnv();
 		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('Destination file already exists');
-		ManticoreBackup::restore($FileStorage);
+		ManticoreBackup::restore($fileStorage);
 	}
 
 	public function testRestoreFailedWhenDataDirIsNotEmpty(): void {
 		SearchdTestCase::tearDownAfterClass();
 
-		$this->safeDelete(static::$Config->path);
-		$this->safeDelete(static::$Config->schema_path);
+		$this->safeDelete(static::$config->path);
+		$this->safeDelete(static::$config->schemaPath);
 
-		[, $FileStorage] = $this->initTestEnv();
+		[, $fileStorage] = $this->initTestEnv();
 		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('Destination file already exists');
-		ManticoreBackup::restore($FileStorage);
+		ManticoreBackup::restore($fileStorage);
 	}
 
 	public function testRestoreFailedWhenStatePathExists(): void {
 		SearchdTestCase::tearDownAfterClass();
 
-		$this->safeDelete(static::$Config->path);
-		$this->safeDelete(static::$Config->schema_path);
-		$this->safeDelete(static::$Config->data_dir);
+		$this->safeDelete(static::$config->path);
+		$this->safeDelete(static::$config->schemaPath);
+		$this->safeDelete(static::$config->dataDir);
 
-		[, $FileStorage] = $this->initTestEnv();
+		[, $fileStorage] = $this->initTestEnv();
 		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('Destination file already exists');
-		ManticoreBackup::restore($FileStorage);
+		ManticoreBackup::restore($fileStorage);
 	}
 
 
 	public function testRestoreIsOK(): void {
 		SearchdTestCase::tearDownAfterClass();
-		$this->safeDelete(static::$Config->path);
-		$this->safeDelete(static::$Config->schema_path);
-		$this->safeDelete(static::$Config->data_dir);
-		array_map($this->safeDelete(...), static::$Config->getStatePaths());
-		mkdir(static::$Config->data_dir, 755); // <- create fresh to restore
+		$this->safeDelete(static::$config->path);
+		$this->safeDelete(static::$config->schemaPath);
+		$this->safeDelete(static::$config->dataDir);
+		array_map($this->safeDelete(...), static::$config->getStatePaths());
+		mkdir(static::$config->dataDir, 755); // <- create fresh to restore
 
-		[, $FileStorage] = $this->initTestEnv();
-		ManticoreBackup::restore($FileStorage);
+		[, $fileStorage] = $this->initTestEnv();
+		ManticoreBackup::restore($fileStorage);
 
-		$this->assertFileExists(static::$Config->path);
-		$this->assertFileExists(static::$Config->schema_path);
-		$this->assertDirectoryExists(static::$Config->data_dir);
+		$this->assertFileExists(static::$config->path);
+		$this->assertFileExists(static::$config->schemaPath);
+		$this->assertDirectoryExists(static::$config->dataDir);
 	}
 
 
@@ -138,17 +138,17 @@ class ManticoreBackupRestoreTest extends TestCase {
    * @return array{0:string,1:FileStorage}
    */
 	protected function initTestEnv(): array {
-		$files = scandir(static::$backup_dir);
+		$files = scandir(static::$backupDir);
 		if (false === $files) {
-			throw new Exception('Failed to scandir for files: ' . static::$backup_dir);
+			throw new Exception('Failed to scandir for files: ' . static::$backupDir);
 		}
 		$backups = array_slice($files, 2);
 		$this->assertArrayHasKey(0, $backups);
 
-		$FileStorage = new FileStorage(static::$backup_dir);
-		$backup_paths = $FileStorage->setBackupPathsUsingDir($backups[0])->getBackupPaths();
+		$fileStorage = new FileStorage(static::$backupDir);
+		$backupPaths = $fileStorage->setBackupPathsUsingDir($backups[0])->getBackupPaths();
 
-		return [$backup_paths['root'], $FileStorage];
+		return [$backupPaths['root'], $fileStorage];
 	}
 
 	protected function safeDelete(string $path): void {

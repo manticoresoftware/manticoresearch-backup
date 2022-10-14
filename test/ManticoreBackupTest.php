@@ -19,14 +19,14 @@ use Manticoresearch\Backup\Lib\Searchd;
 
 class ManticoreBackupTest extends SearchdTestCase {
 	public function testStoreAllTables(): void {
-		[$Config, $Storage, $backup_dir] = $this->initTestEnv();
-		$Client = new ManticoreClient($Config);
+		[$config, $storage, $backupDir] = $this->initTestEnv();
+		$client = new ManticoreClient($config);
 
 	  // Backup of all tables
-		ManticoreBackup::store($Client, $Storage, []);
+		ManticoreBackup::store($client, $storage, []);
 		$this->assertBackupIsOK(
-			$Client,
-			$backup_dir,
+			$client,
+			$backupDir,
 			[
 				'movie' => 'rt',
 				'people' => 'rt',
@@ -38,22 +38,22 @@ class ManticoreBackupTest extends SearchdTestCase {
 	}
 
 	public function testStoreAllTablesToSymlinkPath(): void {
-		[$Config, $Storage, $backup_dir] = $this->initTestEnv();
+		[$config, $storage, $backupDir] = $this->initTestEnv();
 		$uniq = uniqid();
-		$tmp_dir = $Storage->getTmpDir();
-		$base_dir = basename($backup_dir);
-		$real_path = "$tmp_dir-$uniq/first/second/$base_dir";
-		mkdir($real_path, 0755, true);
-		rename($backup_dir, $real_path);
-		shell_exec("ln -s '$real_path' '$backup_dir'");
+		$tmpDir = $storage->getTmpDir();
+		$baseDir = basename($backupDir);
+		$realPath = "$tmpDir-$uniq/first/second/$baseDir";
+		mkdir($realPath, 0755, true);
+		rename($backupDir, $realPath);
+		shell_exec("ln -s '$realPath' '$backupDir'");
 
-		$Client = new ManticoreClient($Config);
+		$client = new ManticoreClient($config);
 
 	  // Backup of all tables
-		ManticoreBackup::store($Client, $Storage, []);
+		ManticoreBackup::store($client, $storage, []);
 		$this->assertBackupIsOK(
-			$Client,
-			$backup_dir,
+			$client,
+			$backupDir,
 			[
 				'movie' => 'rt',
 				'people' => 'rt',
@@ -62,70 +62,70 @@ class ManticoreBackupTest extends SearchdTestCase {
 				'people_dist_agent' => 'distributed',
 			]
 		);
-		unlink($backup_dir);
-		rename($real_path, $backup_dir);
+		unlink($backupDir);
+		rename($realPath, $backupDir);
 	}
 
 	public function testStoreOnlyTwoTables(): void {
-		[$Config, $Storage, $backup_dir] = $this->initTestEnv();
-		$Client = new ManticoreClient($Config);
+		[$config, $storage, $backupDir] = $this->initTestEnv();
+		$client = new ManticoreClient($config);
 
-		ManticoreBackup::store($Client, $Storage, ['movie', 'people']);
-		$this->assertBackupIsOK($Client, $backup_dir, ['movie' => 'rt', 'people' => 'rt']);
+		ManticoreBackup::store($client, $storage, ['movie', 'people']);
+		$this->assertBackupIsOK($client, $backupDir, ['movie' => 'rt', 'people' => 'rt']);
 	}
 
 	public function testStoreOnlyOneIndex(): void {
-		[$Config, $Storage, $backup_dir] = $this->initTestEnv();
-		$Client = new ManticoreClient($Config);
+		[$config, $storage, $backupDir] = $this->initTestEnv();
+		$client = new ManticoreClient($config);
 
 	  // Backup only one
-		ManticoreBackup::store($Client, $Storage, ['people']);
-		$this->assertBackupIsOK($Client, $backup_dir, ['people' => 'rt']);
+		ManticoreBackup::store($client, $storage, ['people']);
+		$this->assertBackupIsOK($client, $backupDir, ['people' => 'rt']);
 	}
 
 	public function testStoreUnexistingIndexOnly(): void {
-		[$Config, $Storage] = $this->initTestEnv();
-		$Client = new ManticoreClient($Config);
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreClient($config);
 
 		$this->expectException(InvalidArgumentException::class);
-		ManticoreBackup::store($Client, $Storage, ['unknown']);
+		ManticoreBackup::store($client, $storage, ['unknown']);
 	}
 
 	public function testStoreExistingAndUnexistingTablesTogether(): void {
-		[$Config, $Storage] = $this->initTestEnv();
-		$Client = new ManticoreClient($Config);
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreClient($config);
 
 		$this->expectException(InvalidArgumentException::class);
-		ManticoreBackup::store($Client, $Storage, ['people', 'unknown']);
+		ManticoreBackup::store($client, $storage, ['people', 'unknown']);
 	}
 
 	public function testStoreFailsInCaseNoPermissionsToWriteTargetDir(): void {
-		[$Config, $Storage, $backup_dir] = $this->initTestEnv();
-		$Client = new ManticoreClient($Config);
+		[$config, $storage, $backupDir] = $this->initTestEnv();
+		$client = new ManticoreClient($config);
 
 	  // Create read only dir and modify it in FileStorage
-		$ro_backup_dir = '/mnt' . $backup_dir . '-ro';
-		$this->mount($backup_dir, $ro_backup_dir, 'ro');
-		$Storage->setTargetDir($ro_backup_dir);
+		$roBackupDir = '/mnt' . $backupDir . '-ro';
+		$this->mount($backupDir, $roBackupDir, 'ro');
+		$storage->setTargetDir($roBackupDir);
 
 	  // Run test
 		$this->expectException(InvalidPathException::class);
-		ManticoreBackup::store($Client, $Storage, ['people']);
+		ManticoreBackup::store($client, $storage, ['people']);
 	}
 
 	public function testStoreAbortedOnSignalCaught(): void {
-		[$Config, $Storage] = $this->initTestEnv();
-		$Client = new ManticoreMockedClient($Config);
-		$Client->setTimeout(1);
-		$Client->setTimeoutFn(
-			function () use ($Client, $Storage): bool {
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreMockedClient($config);
+		$client->setTimeout(1);
+		$client->setTimeoutFn(
+			function () use ($client, $storage): bool {
 				static $count = 0;
 				++$count;
 				if ($count < 3) {
 					return false;
 				}
 
-				$fn = $Client->getSignalHandlerFn($Storage);
+				$fn = $client->getSignalHandlerFn($storage);
 				$fn(15);
 
 				return true;
@@ -134,7 +134,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	  // Run test
 		$this->expectException(Exception::class);
-		ManticoreBackup::store($Client, $Storage, ['people', 'movie']);
+		ManticoreBackup::store($client, $storage, ['people', 'movie']);
 		$this->expectOutputRegex('/Caught signal 15/');
 		$this->expectOutputRegex('/Unfreezing all tables/');
 		$this->expectOutputRegex('/movie...' . PHP_EOL . '[^\r\n]+✓ OK/');
@@ -143,17 +143,17 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$this->expectOutputRegex('/people_dist_local...' . PHP_EOL . '[^\r\n]+✓ OK/');
 		$this->expectOutputRegex('/people_pq...' . PHP_EOL . '[^\r\n]+✓ OK/');
 
-		$backup_paths = $Storage->getBackupPaths();
-		$this->assertDirectoryDoesNotExist($backup_paths['root']);
+		$backupPaths = $storage->getBackupPaths();
+		$this->assertDirectoryDoesNotExist($backupPaths['root']);
 	}
 
 	public function testStoreAbortedOnPermissionChanges(): void {
-		[$Config, $Storage] = $this->initTestEnv();
-		$Client = new ManticoreMockedClient($Config);
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreMockedClient($config);
 
-		$Client->setTimeout(1);
-		$Client->setTimeoutFn(
-			function () use ($Storage): bool {
+		$client->setTimeout(1);
+		$client->setTimeoutFn(
+			function () use ($storage): bool {
 				static $count = 0;
 				++$count;
 				if ($count < 3) {
@@ -161,15 +161,15 @@ class ManticoreBackupTest extends SearchdTestCase {
 				}
 
 				// Get current backup paths and make it read only after 1st index copied
-				$backup_paths = $Storage->getBackupPaths();
-				if (is_writable($backup_paths['root'])) {
+				$backupPaths = $storage->getBackupPaths();
+				if (is_writable($backupPaths['root'])) {
 					echo 'processing';
 
-					$rw_data_dir = $backup_paths['data'] . '-rw';
-					rename($backup_paths['data'], $rw_data_dir);
+					$rwDataDir = $backupPaths['data'] . '-rw';
+					rename($backupPaths['data'], $rwDataDir);
 
 				  // Create read only dir and modify it in FileStorage
-					$this->mount($rw_data_dir, $backup_paths['root'], 'ro');
+					$this->mount($rwDataDir, $backupPaths['root'], 'ro');
 				}
 
 				return false;
@@ -177,10 +177,10 @@ class ManticoreBackupTest extends SearchdTestCase {
 		);
 
 		$this->expectException(Throwable::class);
-		ManticoreBackup::store($Client, $Storage, ['people', 'movie']);
+		ManticoreBackup::store($client, $storage, ['people', 'movie']);
 
-		$backup_paths = $Storage->getBackupPaths();
-		$this->assertDirectoryDoesNotExist($backup_paths['root']);
+		$backupPaths = $storage->getBackupPaths();
+		$this->assertDirectoryDoesNotExist($backupPaths['root']);
 	}
 
   /**
@@ -191,38 +191,38 @@ class ManticoreBackupTest extends SearchdTestCase {
 	  // Initialize all
 		Searchd::init();
 
-		$tmp_dir = FileStorage::getTmpDir();
-		$backup_dir = $tmp_dir . DIRECTORY_SEPARATOR . 'backup-test-' . uniqid();
-		mkdir($backup_dir, 0755);
+		$tmpDir = FileStorage::getTmpDir();
+		$backupDir = $tmpDir . DIRECTORY_SEPARATOR . 'backup-test-' . uniqid();
+		mkdir($backupDir, 0755);
 
 		$options = validate_args(
 			[
-				'backup-dir' => $backup_dir,
+				'backup-dir' => $backupDir,
 			]
 		);
 
 		return [
 			new ManticoreConfig($options['config']),
 			new FileStorage($options['backup-dir']),
-			$backup_dir,
+			$backupDir,
 		];
 	}
 
   /**
    * Helper function to assert that backup is done in proper mode
    *
-   * @param ManticoreClient $Client
-   * @param string $backup_dir
+   * @param ManticoreClient $client
+   * @param string $backupDir
    * @param array<string,string> $tables
    * @return void
    */
-	protected function assertBackupIsOK(ManticoreClient $Client, string $backup_dir, array $tables) {
-		$dirs = glob($backup_dir . DIRECTORY_SEPARATOR . '*');
+	protected function assertBackupIsOK(ManticoreClient $client, string $backupDir, array $tables) {
+		$dirs = glob($backupDir . DIRECTORY_SEPARATOR . '*');
 		$this->assertIsArray($dirs);
 	  // @phpstan-ignore-next-line
 		$basedir = $dirs[0];
 
-		$Config = $Client->getConfig();
+		$config = $client->getConfig();
 
 	  // Check that we created all required dirs
 		$this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'config');
@@ -230,15 +230,15 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$this->assertDirectoryExists($basedir . DIRECTORY_SEPARATOR . 'state');
 		$this->assertFileExists($basedir . DIRECTORY_SEPARATOR . 'versions.json');
 
-		$origin_config_path = $Config->path;
-		$target_config_path = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->path;
-		$this->assertFileExists($target_config_path);
-		$this->assertOwnershipIsOK($origin_config_path, $target_config_path);
+		$originConfigPath = $config->path;
+		$targetConfigPath = $basedir . DIRECTORY_SEPARATOR . 'config' . $config->path;
+		$this->assertFileExists($targetConfigPath);
+		$this->assertOwnershipIsOK($originConfigPath, $targetConfigPath);
 
-		$origin_schema_path = $Config->schema_path;
-		$target_schema_path = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->schema_path;
-		$this->assertFileExists($target_schema_path);
-		$this->assertOwnershipIsOK($origin_schema_path, $target_schema_path);
+		$originSchemaPath = $config->schemaPath;
+		$targetSchemaPath = $basedir . DIRECTORY_SEPARATOR . 'config' . $config->schemaPath;
+		$this->assertFileExists($targetSchemaPath);
+		$this->assertOwnershipIsOK($originSchemaPath, $targetSchemaPath);
 
 	  // Validate consistency of stored tables
 		foreach ($tables as $index => $type) {
@@ -247,51 +247,51 @@ class ManticoreBackupTest extends SearchdTestCase {
 				continue;
 			}
 
-			$origin_index_dir = $Config->data_dir . DIRECTORY_SEPARATOR . $index;
-			$target_index_dir = $basedir . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . $index;
-			$this->assertDirectoryExists($target_index_dir);
+			$originIndexDir = $config->dataDir . DIRECTORY_SEPARATOR . $index;
+			$targetIndexDir = $basedir . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . $index;
+			$this->assertDirectoryExists($targetIndexDir);
 
-			$this->assertOwnershipIsOK($origin_index_dir, $target_index_dir, true);
+			$this->assertOwnershipIsOK($originIndexDir, $targetIndexDir, true);
 
 		  // Remove lock file to fix issue with checksums validations cuz we do not move this file
-			$lock_file = $Config->data_dir . DIRECTORY_SEPARATOR .  $index . DIRECTORY_SEPARATOR . $index . '.lock';
-			if (file_exists($lock_file)) {
-				unlink($lock_file);
+			$lockFile = $config->dataDir . DIRECTORY_SEPARATOR .  $index . DIRECTORY_SEPARATOR . $index . '.lock';
+			if (file_exists($lockFile)) {
+				unlink($lockFile);
 			}
 
 			$this->assertEquals(
-				FileStorage::getPathChecksum($Config->data_dir . DIRECTORY_SEPARATOR .  $index),
+				FileStorage::getPathChecksum($config->dataDir . DIRECTORY_SEPARATOR .  $index),
 				FileStorage::getPathChecksum($basedir . DIRECTORY_SEPARATOR . 'data'. DIRECTORY_SEPARATOR . $index)
 			);
 		}
 
 	  // Check that the config file is valid
-		$dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->path;
+		$dstConf = $basedir . DIRECTORY_SEPARATOR . 'config' . $config->path;
 		$this->assertEquals(
-			FileStorage::getPathChecksum($dst_conf),
-			FileStorage::getPathChecksum($Config->path)
+			FileStorage::getPathChecksum($dstConf),
+			FileStorage::getPathChecksum($config->path)
 		);
 
-		$dst_conf = $basedir . DIRECTORY_SEPARATOR . 'config' . $Config->schema_path;
+		$dstConf = $basedir . DIRECTORY_SEPARATOR . 'config' . $config->schemaPath;
 		$this->assertEquals(
-			FileStorage::getPathChecksum($dst_conf),
-			FileStorage::getPathChecksum($Config->schema_path)
+			FileStorage::getPathChecksum($dstConf),
+			FileStorage::getPathChecksum($config->schemaPath)
 		);
 
 	  // State files
-		[$is_all] = ManticoreBackup::validateTables(array_keys($tables), $Client);
-		$check_fn = $is_all ? 'assertFileExists' : 'assertFileDoesNotExist';
-		foreach ($Config->getStatePaths() as $state_path) {
-			$dest_path = $basedir . DIRECTORY_SEPARATOR . 'state' . $state_path;
-			$this->$check_fn($dest_path);
-			if (!$is_all) {
+		[$isAll] = ManticoreBackup::validateTables(array_keys($tables), $client);
+		$checkFn = $isAll ? 'assertFileExists' : 'assertFileDoesNotExist';
+		foreach ($config->getStatePaths() as $statePath) {
+			$destPath = $basedir . DIRECTORY_SEPARATOR . 'state' . $statePath;
+			$this->$checkFn($destPath);
+			if (!$isAll) {
 				continue;
 			}
 
-			$this->assertOwnershipIsOK($state_path, $dest_path);
+			$this->assertOwnershipIsOK($statePath, $destPath);
 			$this->assertEquals(
-				FileStorage::getPathChecksum($state_path),
-				FileStorage::getPathChecksum($dest_path)
+				FileStorage::getPathChecksum($statePath),
+				FileStorage::getPathChecksum($destPath)
 			);
 		}
 	}
@@ -352,17 +352,17 @@ class ManticoreBackupTest extends SearchdTestCase {
 // @codingStandardsIgnoreStart
 class ManticoreMockedClient extends ManticoreClient {
   // @codingStandardsIgnoreEnd
-	protected int $timeout_sec = 0;
-	protected Closure $timeout_fn;
+	protected int $timeoutSec = 0;
+	protected Closure $timeoutFn;
 
   /**
    * Set delay timeout that we will use in case of calling freeze tables
    *
-   * @param int $timeout_sec
+   * @param int $timeoutSec
    * @return static
    */
-	public function setTimeout(int $timeout_sec): static {
-		$this->timeout_sec = $timeout_sec;
+	public function setTimeout(int $timeoutSec): static {
+		$this->timeoutSec = $timeoutSec;
 		return $this;
 	}
 
@@ -372,7 +372,7 @@ class ManticoreMockedClient extends ManticoreClient {
    * @return static
    */
 	public function setTimeoutFn(Closure $fn): static {
-		$this->timeout_fn = $fn;
+		$this->timeoutFn = $fn;
 		return $this;
 	}
 
@@ -380,15 +380,15 @@ class ManticoreMockedClient extends ManticoreClient {
    * @inheritdoc
    */
 	public function freeze(array|string $tables): array {
-		if ($this->timeout_sec > 0) {
-			if (isset($this->timeout_fn)) {
-				$fn = $this->timeout_fn;
-				$should_interrupt = $fn();
-				if ($should_interrupt) {
+		if ($this->timeoutSec > 0) {
+			if (isset($this->timeoutFn)) {
+				$fn = $this->timeoutFn;
+				$shouldInterrupt = $fn();
+				if ($shouldInterrupt) {
 					throw new Exception('Interrupted');
 				}
 			}
-			sleep($this->timeout_sec);
+			sleep($this->timeoutSec);
 		}
 		return parent::freeze($tables);
 	}

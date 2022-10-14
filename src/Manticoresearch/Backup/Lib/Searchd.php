@@ -50,9 +50,9 @@ class Searchd {
    * @return bool
    */
 	public static function isRunning(): bool {
-		$result_code = 0;
-		exec(static::$cmd . ' --status', result_code: $result_code);
+		$resultCode = 0;
+		exec(static::$cmd . ' --status', result_code: $resultCode);
 
-		return $result_code === 0;
+		return $resultCode === 0;
 	}
 }

@@ -91,13 +91,13 @@ function get_input_args(): array {
 	}
 
   // Do not let user to pass non supported options to script
-	$supported_args = '!--help!--config!--tables!--backup-dir!--compress!--restore!--unlock!--version!';
+	$supportedArgs = '!--help!--config!--tables!--backup-dir!--compress!--restore!--unlock!--version!';
 	$argv = $_SERVER['argv'];
 	array_shift($argv);
 
 	foreach ($argv as $arg) {
 		$arg = strtok($arg, '=');
-		if (false === strpos($supported_args, '!' . $arg . '!')) {
+		if (false === strpos($supportedArgs, '!' . $arg . '!')) {
 			throw new InvalidArgumentException('Unknown option: ' . $arg);
 		}
 	}
@@ -118,7 +118,7 @@ function println(LogLevel $level, string $message, string $eol = PHP_EOL): void 
 		return;
 	}
 	$ts = colored(date('Y-m-d H:i:s'), TextColor::LightYellow);
-	$colored_level = match ($level) {
+	$coloredLevel = match ($level) {
 		LogLevel::Error => colored($level->name, TextColor::Red),
 		default => $level->name,
 	};
@@ -127,7 +127,7 @@ function println(LogLevel $level, string $message, string $eol = PHP_EOL): void 
 	// TODO: find the way how to assert stderr in phpunit
 	// $level === LogLevel::Error ? STDERR : STDOUT,
 		STDOUT,
-		"$ts [$colored_level] {$message}{$eol}"
+		"$ts [$coloredLevel] {$message}{$eol}"
 	);
 }
 
@@ -147,11 +147,11 @@ function colored(string $message, TextColor $color): string {
 /**
  * We use this helper function to display emoji or non-emoji ok/false messages
  *
- * @param bool $is_ok
+ * @param bool $isOk
  * @return string
  */
-function get_op_result(bool $is_ok): string {
-	return ($is_ok
+function get_op_result(bool $isOk): string {
+	return ($isOk
 	? colored('OK', TextColor::LightGreen)
 	: colored('Error', TextColor::LightRed)
 	);
@@ -207,8 +207,8 @@ function show_help(): void {
 	;
 }
 
-function exception_handler(Throwable $E): void {
-	println(LogLevel::Error, $E->getMessage());
+function exception_handler(Throwable $e): void {
+	println(LogLevel::Error, $e->getMessage());
 	exit(1); // ? we can add method and fetch custom exit code on any exception
 }
 

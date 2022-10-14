@@ -157,4 +157,5 @@
 			<property name="requiredSpacesBeforeColon" value="0" />
 		</properties>
 	</rule>
+	<rule ref="Squiz.NamingConventions.ValidVariableName"/>
 </ruleset>

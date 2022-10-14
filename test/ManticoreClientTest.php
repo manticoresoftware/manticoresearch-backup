@@ -14,23 +14,23 @@ use Manticoresearch\Backup\Lib\Searchd;
 */
 
 class ManticoreClientTest extends SearchdTestCase {
-	protected ManticoreClient $Client;
+	protected ManticoreClient $client;
 
 	public function setUp(): void {
 		Searchd::init();
-		$Config = new ManticoreConfig(Searchd::getConfigPath());
-		$this->Client = new ManticoreClient($Config);
+		$config = new ManticoreConfig(Searchd::getConfigPath());
+		$this->client = new ManticoreClient($config);
 	}
 
 	public function testGetVersions(): void {
-		$versions = $this->Client->getVersions();
+		$versions = $this->client->getVersions();
 		$this->assertEquals('0.0.0', $versions['columnar']);
 		$this->assertEquals('0.0.0', $versions['secondary']);
 		$this->assertNotEquals('0.0.0', $versions['manticore']);
 	}
 
 	public function testGetTables(): void {
-		$tables = array_keys($this->Client->getTables());
+		$tables = array_keys($this->client->getTables());
 		$this->assertEquals(5, sizeof($tables));
 		$this->assertContains('movie', $tables);
 		$this->assertContains('people', $tables);
