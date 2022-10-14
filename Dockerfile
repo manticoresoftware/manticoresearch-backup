@@ -4,7 +4,7 @@ ARG TARGET_ARCH=amd64
 ENV EXECUTOR_VERSION=0.2.15
 ENV EXECUTOR_SUFFIX=221012-29f9461
 ENV DEB_PKG=manticore-executor_${EXECUTOR_VERSION}-${EXECUTOR_SUFFIX}_${TARGET_ARCH}.deb
-ENV MANTICORE_VERSION=5.0.3-221012-367738a54
+ENV MANTICORE_VERSION=5.0.3-221014-eea294ff2
 RUN apt -y update && apt -y upgrade && \
   apt -y install figlet git zip unzip wget curl gpg && \
   \
