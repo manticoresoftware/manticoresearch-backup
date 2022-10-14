@@ -79,8 +79,7 @@ class ManticoreClient {
    */
 	public static function init(string $config_path): self {
 		$Config = new ManticoreConfig($config_path);
-		$Client = new ManticoreClient($Config);
-		return $Client;
+		return new ManticoreClient($Config);
 	}
 
   /**
@@ -191,8 +190,8 @@ class ManticoreClient {
 
 		if (false === $config_path) {
 			throw new \RuntimeException(
-        'Unable to get config path from SHOW SETTINGS'
-      );
+				'Unable to get config path from SHOW SETTINGS'
+			);
 		}
 
 	  // Fix issue with //manticore.conf path
