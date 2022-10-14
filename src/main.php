@@ -44,7 +44,10 @@ if (isset($args['version'])) {
 
 // Here the point when we start to check dependecies
 // We do not check in the beginning of file just to let user read --help command
-Searchd::init();
+// TODO: hide the complexity and do internal static method for initialize inside Searchd
+if (!isset($args['config'])) {
+	Searchd::init();
+}
 
 // OK, now gather all options in an array with default values
 $options = validate_args($args); // @phpstan-ignore-line
