@@ -29,6 +29,10 @@ $Phar->stopBuffering();
 $bash = implode(PHP_EOL, [
   '#!/usr/bin/env bash',
   'executor=$(which manticore-executor || which php)',
+  'if [[ -z "$executor" ]]; then',
+  'echo >&2 Manticore Backup requires php or manticore-executor. Please install package "manticore-extra".',
+  'exit 1',
+  'fi',
   'tmp=$($executor -r \'echo sys_get_temp_dir();\')',
   'php_file="$tmp/manticore-backup.phar"',
   'self_ts=$(date -r "$0" +%s)',
