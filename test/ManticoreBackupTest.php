@@ -37,6 +37,35 @@ class ManticoreBackupTest extends SearchdTestCase {
 		);
 	}
 
+	public function testStoreAllTablesToSymlinkPath(): void {
+		[$Config, $Storage, $backup_dir] = $this->initTestEnv();
+		$uniq = uniqid();
+		$tmp_dir = $Storage->getTmpDir();
+		$base_dir = basename($backup_dir);
+		$real_path = "$tmp_dir-$uniq/first/second/$base_dir";
+		mkdir($real_path, 0755, true);
+		rename($backup_dir, $real_path);
+		shell_exec("ln -s '$real_path' '$backup_dir'");
+
+		$Client = new ManticoreClient($Config);
+
+	  // Backup of all tables
+		ManticoreBackup::store($Client, $Storage, []);
+		$this->assertBackupIsOK(
+			$Client,
+			$backup_dir,
+			[
+				'movie' => 'rt',
+				'people' => 'rt',
+				'people_pq' => 'percolate',
+				'people_dist_local' => 'distributed',
+				'people_dist_agent' => 'distributed',
+			]
+		);
+		unlink($backup_dir);
+		rename($real_path, $backup_dir);
+	}
+
 	public function testStoreOnlyTwoTables(): void {
 		[$Config, $Storage, $backup_dir] = $this->initTestEnv();
 		$Client = new ManticoreClient($Config);
