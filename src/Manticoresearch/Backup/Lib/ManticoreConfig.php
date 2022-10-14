@@ -21,26 +21,26 @@ class ManticoreConfig {
 	public string $host;
 	public int $port;
 
-	public string $data_dir;
-	public string $sphinxql_state;
-	public string $lemmatizer_base;
-	public string $plugin_dir;
+	public string $dataDir;
+	public string $sphinxqlState;
+	public string $lemmatizerBase;
+	public string $pluginDir;
 
-	public string $schema_path;
+	public string $schemaPath;
 
   /**
    * Initialization instance and parse the config
    *
-   * @param string $config_path
+   * @param string $configPath
    *  Path to manticore daemon searchd config
    */
-	public function __construct(string $config_path) {
-		$config = file_get_contents($config_path);
+	public function __construct(string $configPath) {
+		$config = file_get_contents($configPath);
 		if (false === $config) {
-			throw new \InvalidArgumentException('Failed to read config file: ' . $config_path);
+			throw new \InvalidArgumentException('Failed to read config file: ' . $configPath);
 		}
 
-		$this->path = $config_path;
+		$this->path = $configPath;
 		$this->parse($config);
 	}
 
@@ -64,20 +64,27 @@ class ManticoreConfig {
 				if ($n === 'listen') { // in case of we need to parse
 					$this->parseHostPort($value);
 				} else { // In this case we have path/file directive
-					$this->$key = $value;
+					$property = match ($key) {
+						'data_dir' => 'dataDir',
+						'lemmatizer_base' => 'lemmatizerBase',
+						'sphinxql_state' => 'sphinxqlState',
+						'plugin_dir' => 'pluginDir',
+						default => $key,
+					};
+					$this->$property = $value;
 				}
 			}
 		}
 
-		if (!isset($this->data_dir)) {
+		if (!isset($this->dataDir)) {
 			throw new InvalidPathException('Failed to detect data_dir from config file');
 		}
 
-		if (!static::isDataDirValid($this->data_dir)) {
+		if (!static::isDataDirValid($this->dataDir)) {
 			throw new InvalidPathException('The data_dir parameter in searchd config should contain absolute path');
 		}
 
-		$this->schema_path = $this->data_dir . '/manticore.json';
+		$this->schemaPath = $this->dataDir . '/manticore.json';
 
 		echo PHP_EOL . 'Manticore config' . PHP_EOL
 		. '  endpoint =  ' . $this->host . ':' . $this->port . PHP_EOL
@@ -91,11 +98,11 @@ class ManticoreConfig {
 	 * @return void
 	 */
 	protected function parseHostPort(string $value): void {
-		$http_pos = strpos($value, ':http');
-		if (false === $http_pos) {
+		$httpPos = strpos($value, ':http');
+		if (false === $httpPos) {
 			return;
 		}
-		$listen = substr($value, 0, $http_pos);
+		$listen = substr($value, 0, $httpPos);
 		if (false === strpos($listen, ':')) {
 			$this->port = (int)$listen;
 		} else {
@@ -112,16 +119,16 @@ class ManticoreConfig {
    */
 	public function getStatePaths(): array {
 		$result = [];
-		if (isset($this->sphinxql_state)) {
-			$result[] = $this->sphinxql_state;
+		if (isset($this->sphinxqlState)) {
+			$result[] = $this->sphinxqlState;
 		}
 
-		if (isset($this->lemmatizer_base)) {
-			$result[] = $this->lemmatizer_base;
+		if (isset($this->lemmatizerBase)) {
+			$result[] = $this->lemmatizerBase;
 		}
 
-		if (isset($this->plugin_dir) && is_dir($this->plugin_dir)) {
-			$result[] = $this->plugin_dir;
+		if (isset($this->pluginDir) && is_dir($this->pluginDir)) {
+			$result[] = $this->pluginDir;
 		}
 
 		return $result;
@@ -130,15 +137,15 @@ class ManticoreConfig {
   /**
    * This functions validates that data_dir is valid and it contains absolute path
    *
-   * @param string $data_dir
+   * @param string $dataDir
    *  platform related data dir path absolute or relative
    * @return bool
    *  If the data dir is an absolute path true otherwise false
    */
-	public static function isDataDirValid(string $data_dir): bool {
+	public static function isDataDirValid(string $dataDir): bool {
 		return OS::isWindows()
-		? !!preg_match('/^[a-z]\:\\/ius', $data_dir) // @phpstan-ignore-line
-		: $data_dir[0] === '/'
+		? !!preg_match('/^[a-z]\:\\/ius', $dataDir) // @phpstan-ignore-line
+		: $dataDir[0] === '/'
 		;
 	}
 }

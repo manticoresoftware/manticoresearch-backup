@@ -22,7 +22,7 @@ class SearchdTest extends SearchdTestCase {
 
 	public function testGetConfigPath(): void {
 		Searchd::init();
-		$config_path = Searchd::getConfigPath();
-		$this->assertFileExists($config_path);
+		$configPath = Searchd::getConfigPath();
+		$this->assertFileExists($configPath);
 	}
 }

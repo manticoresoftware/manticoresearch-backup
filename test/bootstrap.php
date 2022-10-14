@@ -28,16 +28,16 @@ FileStorage::deleteDir(FileStorage::getTmpDir(), false);
 SearchdTestCase::setUpBeforeClass();
 // Initialization of base tables to check and some data in it
 Searchd::init();
-$config_path = Searchd::getConfigPath();
+$configPath = Searchd::getConfigPath();
 Searchd::$cmd = null; // Reset static prop for further testing
 
-$Config = new ManticoreConfig($config_path);
-$Client = new ManticoreClient($Config);
+$config = new ManticoreConfig($configPath);
+$client = new ManticoreClient($config);
 
 // people table
-$Client->execute('DROP TABLE IF EXISTS people');
-$Client->execute('CREATE TABLE people (name text, age int)');
-$Client->execute(
+$client->execute('DROP TABLE IF EXISTS people');
+$client->execute('CREATE TABLE people (name text, age int)');
+$client->execute(
 	"
   INSERT INTO people (id, name, age)
   VALUES
@@ -48,8 +48,8 @@ $Client->execute(
     (5, 'John Wick', 55)
 "
 );
-$Client->execute('FLUSH RAMCHUNK people');
-$Client->execute(
+$client->execute('FLUSH RAMCHUNK people');
+$client->execute(
 	"
   INSERT INTO people (id, name, age)
   VALUES
@@ -61,9 +61,9 @@ $Client->execute(
 
 
 // movie table
-$Client->execute('DROP TABLE IF EXISTS movie');
-$Client->execute('CREATE TABLE movie (title text, year int)');
-$Client->execute(
+$client->execute('DROP TABLE IF EXISTS movie');
+$client->execute('CREATE TABLE movie (title text, year int)');
+$client->execute(
 	"
   INSERT INTO movie (id, title, year)
   VALUES
@@ -74,9 +74,9 @@ $Client->execute(
 );
 
 // people_pq table
-$Client->execute('DROP TABLE IF EXISTS people_pq');
-$Client->execute("CREATE TABLE people_pq (name text) type='percolate'");
-$Client->execute(
+$client->execute('DROP TABLE IF EXISTS people_pq');
+$client->execute("CREATE TABLE people_pq (name text) type='percolate'");
+$client->execute(
 	"
   INSERT INTO people_pq (query)
   VALUES
@@ -87,10 +87,10 @@ $Client->execute(
 );
 
 // people_dist_local table
-$Client->execute('DROP TABLE IF EXISTS people_dist_local');
-$Client->execute("CREATE TABLE people_dist_local type='distributed' local='people'");
+$client->execute('DROP TABLE IF EXISTS people_dist_local');
+$client->execute("CREATE TABLE people_dist_local type='distributed' local='people'");
 
 // people_dist_agent table
-$Client->execute('DROP TABLE IF EXISTS people_dist_agent');
-$Client->execute("CREATE TABLE people_dist_agent type='distributed' agent='127.0.0.1:9312:people'");
+$client->execute('DROP TABLE IF EXISTS people_dist_agent');
+$client->execute("CREATE TABLE people_dist_agent type='distributed' agent='127.0.0.1:9312:people'");
 SearchdTestCase::tearDownAfterClass();

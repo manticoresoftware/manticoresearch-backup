@@ -19,10 +19,10 @@ use Manticoresearch\Backup\Exception\SearchdException;
 class ManticoreClient {
 	const API_PATH = '/sql?mode=raw';
 
-	protected ManticoreConfig $Config;
+	protected ManticoreConfig $config;
 
-	public function __construct(ManticoreConfig $Config) {
-		$this->Config = $Config;
+	public function __construct(ManticoreConfig $config) {
+		$this->config = $config;
 
 		$versions = $this->getVersions();
 		$ver_num = strtok($versions['manticore'], ' ');
@@ -52,10 +52,10 @@ class ManticoreClient {
 		;
 
 	  // Validate config path or fail
-		$config_path = $this->getConfigPath();
-		if ($config_path !== $this->Config->path) {
+		$configPath = $this->getConfigPath();
+		if ($configPath !== $this->config->path) {
 			throw new \RuntimeException(
-				"Configs mismatched: '{$this->Config->path} <> {$config_path}"
+				"Configs mismatched: '{$this->config->path} <> {$configPath}"
 				. ', make sure the instance you are backing up is using the provided config'
 			);
 		}
@@ -68,18 +68,47 @@ class ManticoreClient {
    *  Structure with initialized config
    */
 	public function getConfig(): ManticoreConfig {
-		return $this->Config;
+		return $this->config;
 	}
 
   /**
    * Helper function that we will use for first init of client and config
    *
-   * @param string $config_path
+   * @param string $configPath
    * @return self
    */
-	public static function init(string $config_path): self {
-		$Config = new ManticoreConfig($config_path);
-		return new ManticoreClient($Config);
+	public static function init(string $configPath): self {
+		$config = new ManticoreConfig($configPath);
+		$client = new ManticoreClient($config);
+
+		$versions = $client->getVersions();
+		$verNum = strtok($versions['manticore'], ' ');
+
+		if ($verNum === false || version_compare($verNum, Searchd::MIN_VERSION) <= 0) {
+			$verSfx = strtok(' ');
+			if (false === $verSfx) {
+				throw new \RuntimeException('Failed to find the version of the manticore searchd');
+			}
+
+			$isOld = $verNum < Searchd::MIN_VERSION;
+			if (!$isOld) {
+				[, $verDate] = explode('@', $verSfx);
+				$isOld = $verDate < Searchd::MIN_DATE;
+			}
+
+			if ($isOld) {
+				throw new \RuntimeException(
+					'You are running old version of manticore searchd, minimum required: ' . Searchd::MIN_VERSION
+				);
+			}
+		}
+		echo PHP_EOL . 'Manticore versions:' . PHP_EOL
+			. '  manticore: ' . $versions['manticore'] . PHP_EOL
+			. '  columnar: ' . $versions['columnar'] . PHP_EOL
+			. '  secondary: ' . $versions['secondary'] . PHP_EOL
+		;
+
+		return $client;
 	}
 
   /**
@@ -95,10 +124,10 @@ class ManticoreClient {
 		if (is_string($tables)) {
 			$tables = [$tables];
 		}
-		$tables_string = implode(', ', $tables);
-		$result = $this->execute('FREEZE ' . $tables_string);
+		$allTables = implode(', ', $tables);
+		$result = $this->execute('FREEZE ' . $allTables);
 		if ($result[0]['error']) {
-			throw new SearchdException('Failed to get lock for tables - ' . $tables_string);
+			throw new SearchdException('Failed to get lock for tables - ' . $allTables);
 		}
 		return array_column($result[0]['data'], 'file');
 	}
@@ -130,9 +159,9 @@ class ManticoreClient {
 		return array_reduce(
 			array_keys($this->getTables()), function (bool $carry, string $index): bool {
 				println(LogLevel::Info, '  ' . $index . '...');
-				$is_ok = $this->unfreeze($index);
-				println(LogLevel::Info, '   ' . get_op_result($is_ok));
-				$carry = $carry && $is_ok;
+				$isOk = $this->unfreeze($index);
+				println(LogLevel::Info, '   ' . get_op_result($isOk));
+				$carry = $carry && $isOk;
 				return $carry;
 			}, true
 		);
@@ -161,11 +190,11 @@ class ManticoreClient {
 	public function getVersions(): array {
 		$result = $this->execute('SHOW STATUS LIKE \'version\'');
 		$version = $result[0]['data'][0]['Value'] ?? '';
-		$ver_pattern = '(\d+\.\d+\.\d+[^\(\)]+)';
-		$match_expr = "/^{$ver_pattern}(\(columnar\s{$ver_pattern}\))?"
-			. "([^\(]*\(secondary\s{$ver_pattern}\))?$/ius"
+		$verPattern = '(\d+\.\d+\.\d+[^\(\)]+)';
+		$matchExpr = "/^{$verPattern}(\(columnar\s{$verPattern}\))?"
+			. "([^\(]*\(secondary\s{$verPattern}\))?$/ius"
 		;
-		preg_match($match_expr, $version, $m);
+		preg_match($matchExpr, $version, $m);
 
 		return [
 			'manticore' => $m[1] ?? '0.0.0',
@@ -186,20 +215,19 @@ class ManticoreClient {
    */
 	public function getConfigPath(): string {
 		$result = $this->execute('SHOW SETTINGS');
-		$config_path = realpath($result[0]['data'][0]['Value']);
-
-		if (false === $config_path) {
+		$configPath = realpath($result[0]['data'][0]['Value']);
+		if (false === $configPath) {
 			throw new \RuntimeException(
 				'Unable to get config path from SHOW SETTINGS'
 			);
 		}
 
 	  // Fix issue with //manticore.conf path
-		if ($config_path[0] === '/') {
-			$config_path = '/' . ltrim($config_path, '/');
+		if ($configPath[0] === '/') {
+			$configPath = '/' . ltrim($configPath, '/');
 		}
 
-		return $config_path;
+		return $configPath;
 	}
 
   /**
@@ -223,7 +251,7 @@ class ManticoreClient {
 		$context = stream_context_create($opts);
 		try {
 			$result = file_get_contents(
-				'http://' . $this->Config->host . ':' . $this->Config->port . static::API_PATH,
+				'http://' . $this->config->host . ':' . $this->config->port . static::API_PATH,
 				false,
 				$context
 			);
@@ -244,10 +272,10 @@ class ManticoreClient {
    *
    * @return \Closure
    */
-	public function getSignalHandlerFn(FileStorage $Storage): \Closure {
-		return function (int $signal) use ($Storage): void {
+	public function getSignalHandlerFn(FileStorage $storage): \Closure {
+		return function (int $signal) use ($storage): void {
 			println(LogLevel::Warn, 'Caught signal ' . $signal);
-			$Storage->cleanUp();
+			$storage->cleanUp();
 			$this->unfreezeAll();
 		};
 	}

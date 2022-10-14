@@ -18,41 +18,41 @@ class FileStorage {
 	const DIR_PERMISSION = 0755;
 
   /** @var string */
-	protected string $backup_dir;
+	protected string $backupDir;
 
   /**
    * We store paths for current backup here
    *
    * @var non-empty-array<'config'|'data'|'root'|'state',non-falsy-string>
    */
-	protected array $backup_paths;
+	protected array $backupPaths;
 
   /**
-   * @param ?string $backup_dir
+   * @param ?string $backupDir
    *  The root destination of all files to be copied
-   * @param bool $use_compression
+   * @param bool $useCompression
    *  The flag that shows if we should to use compression with zstd or not
    */
-	public function __construct(?string $backup_dir, protected bool $use_compression = false) {
-		if (!isset($backup_dir)) {
+	public function __construct(?string $backupDir, protected bool $useCompression = false) {
+		if (!isset($backupDir)) {
 			return;
 		}
 
-		$this->setTargetDir($backup_dir);
+		$this->setTargetDir($backupDir);
 	}
 
   /**
-   * Getter for $this->backup_dir
+   * Getter for $this->backupDir
    *
    * @return string
    * @throws \RuntimeException
    */
 	public function getBackupDir(): ?string {
-		if (!isset($this->backup_dir)) {
+		if (!isset($this->backupDir)) {
 			throw new \RuntimeException('Backup dir is not initialized.');
 		}
 
-		return $this->backup_dir;
+		return $this->backupDir;
 	}
 
   /**
@@ -66,17 +66,17 @@ class FileStorage {
 		if (false === $realpath) {
 			throw new InvalidPathException('Failed to find the realpath of dir: '. $dir);
 		}
-		$this->backup_dir = $realpath;
+		$this->backupDir = $realpath;
 		return $this;
 	}
 
   /**
-   * Getter for $this->use_compression
+   * Getter for $this->useCompression
    *
    * @return bool
    */
 	public function getUseCompression(): bool {
-		return $this->use_compression;
+		return $this->useCompression;
 	}
 
   /**
@@ -123,18 +123,18 @@ class FileStorage {
 			return;
 		}
 
-		$file_uid = fileowner($from);
-		$file_gid = filegroup($from);
-		$file_perm = fileperms($from);
-		if (false === $file_uid || false === $file_gid || false === $file_perm) {
+		$fileUid = fileowner($from);
+		$fileGId = filegroup($from);
+		$filePerm = fileperms($from);
+		if (false === $fileUid || false === $fileGId || false === $filePerm) {
 			throw new \RuntimeException('Failed to find out file ownership info for source path: ' . $from);
 		}
 
 	  // Next functions works only on non windows systems
 		if (!OS::isWindows()) {
-			chown($to, $file_uid);
-			chgrp($to, $file_gid);
-			chmod($to, $file_perm);
+			chown($to, $fileUid);
+			chgrp($to, $fileGId);
+			chmod($to, $filePerm);
 		}
 
 	  // In case we need to transfer recursive we do self function call
@@ -143,15 +143,15 @@ class FileStorage {
 			return;
 		}
 
-		$from_pos = strrpos($from, DIRECTORY_SEPARATOR);
-		$to_pos = strrpos($to, DIRECTORY_SEPARATOR);
-		if (false === $from_pos || false === $to_pos) {
+		$fromPos = strrpos($from, DIRECTORY_SEPARATOR);
+		$toPos = strrpos($to, DIRECTORY_SEPARATOR);
+		if (false === $fromPos || false === $toPos) {
 			return;
 		}
 
 		static::transferOwnership(
-			substr($from, 0, $from_pos),
-			substr($to, 0, $to_pos)
+			substr($from, 0, $fromPos),
+			substr($to, 0, $toPos)
 		);
 	}
 
@@ -168,31 +168,31 @@ class FileStorage {
 			throw new InvalidPathException('Cannot read from source directory - "' . $from . '"');
 		}
 
-		$root_dir = dirname($to);
-		if (!is_dir($root_dir) || !is_writeable($root_dir)) {
-			throw new InvalidPathException('Cannot write to backup directory - "' . $root_dir . '"');
+		$rootDir = dirname($to);
+		if (!is_dir($rootDir) || !is_writeable($rootDir)) {
+			throw new InvalidPathException('Cannot write to backup directory - "' . $rootDir . '"');
 		}
 
 		$result = true;
 
-		$from_len = strlen($from) + 1;
-		$FileIterator = static::getFileIterator($from);
-	  /** @var \SplFileInfo $File */
-		foreach ($FileIterator as $File) {
-			$dest_dir = $to . DIRECTORY_SEPARATOR . substr($File->getPath(), $from_len);
+		$fromLen = strlen($from) + 1;
+		$fileIterator = static::getFileIterator($from);
+	  /** @var \SplFileInfo $file */
+		foreach ($fileIterator as $file) {
+			$destDir = $to . DIRECTORY_SEPARATOR . substr($file->getPath(), $fromLen);
 
 		  // Skip directories
-			if ($File->isDir()) {
+			if ($file->isDir()) {
 			  // Create dir if it does not exist
-				if (!is_dir($dest_dir)) {
-					$this->createDir($dest_dir, $File->getPath());
+				if (!is_dir($destDir)) {
+					$this->createDir($destDir, $file->getPath());
 				}
 				continue;
 			}
 
 			$result = $result && $this->copyFile(
-				$File->getPathname(),
-				$dest_dir . DIRECTORY_SEPARATOR . $File->getBasename()
+				$file->getPathname(),
+				$destDir . DIRECTORY_SEPARATOR . $file->getBasename()
 			);
 		}
 
@@ -224,19 +224,19 @@ class FileStorage {
 			throw new InvalidPathException(__FUNCTION__ . ': the destination to copy to is not writable');
 		}
 
-		$zstd_prefix = '';
-		if ($this->use_compression) {
+		$zstdPrefix = '';
+		if ($this->useCompression) {
 			$to .= '.zst';
 			if (!function_exists('zstd_compress')) {
 				throw new \RuntimeException(
 					'Failed to find zstd_compress please make sure that you have ZSTD extensions compiled in'
 				);
 			}
-			$zstd_prefix = 'compress.zstd://';
+			$zstdPrefix = 'compress.zstd://';
 		}
-		$result = copy($from, $zstd_prefix . $to);
+		$result = copy($from, $zstdPrefix . $to);
 
-		if (!$this->use_compression) {
+		if (!$this->useCompression) {
 		  // If checksum mismatch we fail immediately
 			if (md5_file($from, true) !== md5_file($to, true)) {
 				throw new ChecksumException(
@@ -256,35 +256,35 @@ class FileStorage {
    *  List of files and/or directroies to copy
    * @param string $to
    *  Destination directory where all files will go
-   * @param bool $preserve_path
+   * @param bool $preservePath
    *  Should we preserve source folder structure or just copy files to destination
    * @return bool
    *  Result of the operation
    */
-	public function copyPaths(array $paths, string $to, bool $preserve_path = false): bool {
+	public function copyPaths(array $paths, string $to, bool $preservePath = false): bool {
 		if (!is_dir($to) || !is_writeable($to)) {
 			throw new InvalidPathException('Cannot write to backup directory - "' . $to . '"');
 		}
 
 		return array_reduce(
-			$paths, function (bool $carry, string $path) use ($preserve_path, $to) {
+			$paths, function (bool $carry, string $path) use ($preservePath, $to) {
 				$dest = $to . (
-					$preserve_path
+					$preservePath
 						? $path
 						: (DIRECTORY_SEPARATOR . basename($path))
 				); // $path - absolute path
-				if ($preserve_path) {
+				if ($preservePath) {
 					$dir = is_file($path) ? dirname($dest) : $dest;
 					if (!is_dir($dir)) {
 						$this->createDir($dir, dirname($path), true);
 					}
 				}
 				if (is_file($path)) {
-					$is_ok = $this->copyFile($path, $dest);
+					$isOk = $this->copyFile($path, $dest);
 				} else {
-					$is_ok = $this->copyDir($path, $dest);
+					$isOk = $this->copyDir($path, $dest);
 				}
-				$carry = $carry && $is_ok;
+				$carry = $carry && $isOk;
 				return $carry;
 			}, true
 		);
@@ -327,13 +327,13 @@ class FileStorage {
 		}
 
 	  // In case if path is a directory, we do recursive check
-		$FileIterator = static::getFileIterator($path);
-	  /** @var \SplFileInfo $File */
-		foreach ($FileIterator as $File) {
-			if (!$File->isFile()) {
+		$fileIterator = static::getFileIterator($path);
+	  /** @var \SplFileInfo $file */
+		foreach ($fileIterator as $file) {
+			if (!$file->isFile()) {
 				continue;
 			}
-			$files[] = $File->getPathname();
+			$files[] = $file->getPathname();
 		}
 
 		$checksums = array_map(md5_file(...), $files);
@@ -346,21 +346,21 @@ class FileStorage {
    *
    * @param string $dir
    *  The directory we want to check and delete everything inside
-   * @param bool $remove_self
+   * @param bool $removeSelf
    *  If we should remove passed dir also
    * @return void
    */
-	public static function deleteDir(string $dir, bool $remove_self = true): void {
-		$FileIterator = static::getFileIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
+	public static function deleteDir(string $dir, bool $removeSelf = true): void {
+		$fileIterator = static::getFileIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
 
-	  /** @var \SplFileInfo $FileInfo */
-		foreach ($FileIterator as $FileInfo) {
-			$fn = ($FileInfo->isDir() ? 'rmdir' : 'unlink');
-			$fn($FileInfo->getRealPath());
+	  /** @var \SplFileInfo $fileInfo */
+		foreach ($fileIterator as $fileInfo) {
+			$fn = ($fileInfo->isDir() ? 'rmdir' : 'unlink');
+			$fn($fileInfo->getRealPath());
 		}
 
 	  // If we should remove also own directory, just do it
-		if (!$remove_self) {
+		if (!$removeSelf) {
 			return;
 		}
 
@@ -373,12 +373,12 @@ class FileStorage {
    *  The path to the temporary dir that contains only files created by us
    */
 	public static function getTmpDir(): string {
-		$tmp_dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'manticore-backup';
-		if (!is_dir($tmp_dir)) {
-			mkdir($tmp_dir, 0777);
+		$tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'manticore-backup';
+		if (!is_dir($tmpDir)) {
+			mkdir($tmpDir, 0777);
 		}
 
-		return $tmp_dir;
+		return $tmpDir;
 	}
 
   /**
@@ -388,7 +388,7 @@ class FileStorage {
    * @return static
    */
 	public function setBackupPathsUsingDir(string $dir): static {
-		$destination = $this->backup_dir . DIRECTORY_SEPARATOR . $dir;
+		$destination = $this->backupDir . DIRECTORY_SEPARATOR . $dir;
 	  // state – all global state files are stored here
 
 		$result = [];
@@ -404,7 +404,7 @@ class FileStorage {
 			}
 		}
 
-		$this->backup_paths = $result;
+		$this->backupPaths = $result;
 		return $this;
 	}
 
@@ -416,10 +416,10 @@ class FileStorage {
    * @throws InvalidPathException
    */
 	public function getBackupPaths(): array {
-		if (!isset($this->backup_paths)) {
-			$destination = $this->backup_dir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
+		if (!isset($this->backupPaths)) {
+			$destination = $this->backupDir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
 		  // Check that backup dir is writable
-			if (!is_writable($this->backup_dir)) {
+			if (!is_writable($this->backupDir)) {
 				throw new InvalidPathException('Backup directory is not writable');
 			}
 
@@ -430,8 +430,8 @@ class FileStorage {
 				);
 			}
 
-			$is_ok = mkdir($destination, 0755);
-			if (false === $is_ok) {
+			$isOk = mkdir($destination, 0755);
+			if (false === $isOk) {
 				throw new InvalidPathException('Failed to create directory – "' . $destination . '"');
 			}
 
@@ -447,35 +447,35 @@ class FileStorage {
 			foreach (['data', 'config', 'state'] as $dir) {
 				$path = $destination . DIRECTORY_SEPARATOR . $dir;
 				$result[$dir] = $path;
-				$is_ok = mkdir($path, 0755);
-				if (false === $is_ok) {
+				$isOk = mkdir($path, 0755);
+				if (false === $isOk) {
 					throw new InvalidPathException('Failed to create directory – "' . $path . '"');
 				}
 			}
 
-			$this->backup_paths = $result;
+			$this->backupPaths = $result;
 		}
 
-		return $this->backup_paths;
+		return $this->backupPaths;
 	}
 
   /**
    * This is helper func to extract full qualified original path from
    *  the backup path we have
-   * @param string $backup_path
+   * @param string $backupPath
    * @return string
    *  Extracted original preserved path
    */
-	public function getOriginRealPath(string $backup_path): string {
-		$backup_paths = $this->getBackupPaths();
-		$root_len = strlen($backup_paths['root']) + 1; // + 1 for dir separator
-		$real_path = substr($backup_path, $root_len);
-		$preserved_path = str_replace(['config', 'state'], '', $real_path, $count);
+	public function getOriginRealPath(string $backupPath): string {
+		$backupPaths = $this->getBackupPaths();
+		$rootLen = strlen($backupPaths['root']) + 1; // + 1 for dir separator
+		$realPath = substr($backupPath, $rootLen);
+		$preservedPath = str_replace(['config', 'state'], '', $realPath, $count);
 		if ($count > 0) {
-			return $preserved_path;
+			return $preservedPath;
 		}
 
-		return substr($real_path, 5); // strlen of "data/" = 5
+		return substr($realPath, 5); // strlen of "data/" = 5
 	}
 
   /**
@@ -486,16 +486,16 @@ class FileStorage {
    */
 	public function cleanUp(): void {
 	  // Do nothing if we have no backup paths at all
-		if (!isset($this->backup_paths)) {
+		if (!isset($this->backupPaths)) {
 			return;
 		}
 
 	  // Try to delete destination root path if it exists
-		if (!is_dir($this->backup_paths['root'])) {
+		if (!is_dir($this->backupPaths['root'])) {
 			return;
 		}
 
-		$this->deleteDir($this->backup_paths['root']);
+		$this->deleteDir($this->backupPaths['root']);
 	}
 
   /**

@@ -22,61 +22,61 @@ class ManticoreBackup {
   /**
    * Store the wanted tables in backup dir as backup
    *
-   * @param ManticoreClient $Client
+   * @param ManticoreClient $client
    *  Initialized client to interract with manticore search daemon
-   * @param FileStorage $Storage
+   * @param FileStorage $storage
    *  The instance of the storage with initialize directories to use
    * @param array<string> $tables
    *  List of tables to store. In case if its empty array we store all tables
    * @return void
    * @throws \RuntimeException
    */
-	public static function store(ManticoreClient $Client, FileStorage $Storage, array $tables = []): void {
+	public static function store(ManticoreClient $client, FileStorage $storage, array $tables = []): void {
 		println(LogLevel::Info, 'Starting the backup...');
 		$t = microtime(true);
-		$destination = $Storage->getBackupPaths();
+		$destination = $storage->getBackupPaths();
 
 	  // First store current versions in file
-		$versions = $Client->getVersions();
-		$is_ok = static::storeVersions($versions, $destination['root']);
-		if (false === $is_ok) {
+		$versions = $client->getVersions();
+		$isOk = static::storeVersions($versions, $destination['root']);
+		if (false === $isOk) {
 			throw new InvalidPathException('Failed to save the versions in "' . $destination['root'] . '"');
 		}
 
 	  // TODO: add progress bar / backup status reporting
 
 	  // If we have no tables passed we should to query the client and get all tables we have
-		[$is_all, $tables] = static::validateTables($tables, $Client);
+		[$isAll, $tables] = static::validateTables($tables, $client);
 
 	  // - backup config files
 		println(LogLevel::Info, 'Backing up config files...');
-		$is_ok = $Storage->copyPaths(
+		$isOk = $storage->copyPaths(
 			[
-				$Client->getConfig()->path,
-				$Client->getConfig()->schema_path,
+				$client->getConfig()->path,
+				$client->getConfig()->schemaPath,
 			], $destination['config'], true
 		);
-		println(LogLevel::Info, '  config files - ' . get_op_result($is_ok));
+		println(LogLevel::Info, '  config files - ' . get_op_result($isOk));
 
 		$result = true;
 
 	  // We back up state first because they are usually small enough
-		if ($is_all) {
+		if ($isAll) {
 		  // - Backup global state files
 			println(LogLevel::Info, 'Backing up global state files...');
-			$files = $Client->getConfig()->getStatePaths();
-			$is_ok = $Storage->copyPaths($files, $destination['state'], true);
-			println(LogLevel::Info, '  global state files – ' . get_op_result($is_ok));
+			$files = $client->getConfig()->getStatePaths();
+			$isOk = $storage->copyPaths($files, $destination['state'], true);
+			println(LogLevel::Info, '  global state files – ' . get_op_result($isOk));
 
 		  // @phpstan-ignore-next-line
-			$result = $result && $is_ok;
+			$result = $result && $isOk;
 		}
 
 	  // - Lock all tables to make sure that we will have no new data there
 	  // Make sure that in case any exception or whatever we will unlock all indexes
-		$is_done = false;
-		$unfreeze_fn = function (ManticoreClient $Client) use (&$is_done) {
-			if ($is_done) { // @phpstan-ignore-line
+		$isDone = false;
+		$unfreezeFn = function (ManticoreClient $client) use (&$isDone) {
+			if ($isDone) { // @phpstan-ignore-line
 				return;
 			}
 
@@ -84,25 +84,25 @@ class ManticoreBackup {
 				return;
 			}
 
-			$Client->unfreezeAll();
+			$client->unfreezeAll();
 		};
-		register_shutdown_function($unfreeze_fn, $Client);
+		register_shutdown_function($unfreezeFn, $client);
 
 	  // And run FLUSH ATTRIBUTES
 	  // We do lock twice just to keep logic for crawling one by one for each index
-		$Client->freeze(array_keys($tables));
-		$Client->flushAttributes();
+		$client->freeze(array_keys($tables));
+		$client->flushAttributes();
 
-		$Config = $Client->getConfig();
+		$config = $client->getConfig();
 
 	  // - First backup index data
 	  // Lets copy index one by one with freeze
 		println(LogLevel::Info, 'Backing up tables...');
 		foreach ($tables as $index => $type) {
-			$files = $Client->freeze($index);
+			$files = $client->freeze($index);
 			println(
 				LogLevel::Info,
-				'  ' . $index . ' ('  . $type . ') [' . format_bytes($Storage::calculateFilesSize($files)) . ']...'
+				'  ' . $index . ' ('  . $type . ') [' . format_bytes($storage::calculateFilesSize($files)) . ']...'
 			);
 
 		  // We will have no directory for distributed indexes and so should not back it up
@@ -111,16 +111,16 @@ class ManticoreBackup {
 				  continue;
 			}
 
-			$backup_path = $destination['data'] . DIRECTORY_SEPARATOR . $index;
-			$Storage->createDir(
-				$backup_path,
-				$Config->data_dir . DIRECTORY_SEPARATOR . $index
+			$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
+			$storage->createDir(
+				$backupPath,
+				$config->dataDir . DIRECTORY_SEPARATOR . $index
 			);
 
-			$is_ok = $Storage->copyPaths($files, $backup_path);
-			println(LogLevel::Info, '   ' . get_op_result($is_ok));
-			$result = $result && $is_ok;
-			$Client->unfreeze($index);
+			$isOk = $storage->copyPaths($files, $backupPath);
+			println(LogLevel::Info, '   ' . get_op_result($isOk));
+			$result = $result && $isOk;
+			$client->unfreeze($index);
 		}
 
 		if (false === $result) {
@@ -142,13 +142,13 @@ class ManticoreBackup {
   /**
    * This method executes restore flow and moving backed up files to original destination
    *
-   * @param FileStorage $Storage
+   * @param FileStorage $storage
    * @return void
    */
-	public static function restore(FileStorage $Storage): void {
+	public static function restore(FileStorage $storage): void {
 		println(LogLevel::Info, 'Starting to restore...');
 		$t = microtime(true);
-		$backup = $Storage->getBackupPaths();
+		$backup = $storage->getBackupPaths();
 
 	  // First, validate that searchd is not running, otherwise we cannot replace directories
 		if (Searchd::isRunning()) {
@@ -157,67 +157,67 @@ class ManticoreBackup {
 			);
 		}
 
-	  /** @var ?ManticoreConfig $Config */
-		$Config = null;
+	  /** @var ?ManticoreConfig $config */
+		$config = null;
 
 	  // Second, lets check that destination is available to move files and we have nothing there
 		static::validateRestore(
-			$Storage, $backup['config'], function (\SplFileInfo $File) use (&$Config): bool {
+			$storage, $backup['config'], function (\SplFileInfo $file) use (&$config): bool {
 			// TODO: remove this hardcode, we can store the path to config when doing backup
-				if ($File->getFilename() === 'manticore.conf') {
-					$Config = new ManticoreConfig($File->getRealPath());
+				if ($file->getFilename() === 'manticore.conf') {
+					$config = new ManticoreConfig($file->getRealPath());
 				}
 
 				return false;
 			}
 		);
 
-		if (!isset($Config)) {
+		if (!isset($config)) {
 			throw new \Exception('Failed to find config file in original backup');
 		}
 
-		static::validateRestore($Storage, $backup['state']);
+		static::validateRestore($storage, $backup['state']);
 
 	  // Valdiate indexes
-		if (!is_dir($Config->data_dir)) {
-			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $Config->data_dir);
+		if (!is_dir($config->dataDir)) {
+			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $config->dataDir);
 		}
 
-		$DataIterator = $Storage->getFileIterator($Config->data_dir);
-		$has_files = $DataIterator->valid() && iterator_count($DataIterator) > 2;
+		$dataIterator = $storage->getFileIterator($config->dataDir);
+		$hasFiles = $dataIterator->valid() && iterator_count($dataIterator) > 2;
 
-		if ($has_files) {
-			throw new \Exception('The data dir to restore is not empty: ' . $Config->data_dir);
+		if ($hasFiles) {
+			throw new \Exception('The data dir to restore is not empty: ' . $config->dataDir);
 		}
 
 	  // All checks are done here, so we can safely start to move all files
 	  // Restore configs first
 		println(LogLevel::Info, 'Restoring config files...');
-		$ConfigIterator = $Storage->getFileIterator($backup['config']);
-		$is_ok = true;
-	  /** @var \SplFileInfo $File */
-		foreach ($ConfigIterator as $File) {
-			if (!$File->isFile()) {
+		$configIterator = $storage->getFileIterator($backup['config']);
+		$isOk = true;
+	  /** @var \SplFileInfo $file */
+		foreach ($configIterator as $file) {
+			if (!$file->isFile()) {
 				continue;
 			}
 
-			$from = $File->getRealPath();
-			$to = dirname($Storage->getOriginRealPath($from));
+			$from = $file->getRealPath();
+			$to = dirname($storage->getOriginRealPath($from));
 			println(LogLevel::Debug, '  ' . $from . ' -> ' . $to);
 
-			$is_ok = $is_ok && $Storage->copyPaths([$from], $to);
+			$isOk = $isOk && $storage->copyPaths([$from], $to);
 		}
-		println(LogLevel::Info, '  config files - ' . get_op_result($is_ok));
+		println(LogLevel::Info, '  config files - ' . get_op_result($isOk));
 
 	  // Now restore states
 		println(LogLevel::Info, 'Restoring state files...');
-		$is_ok = static::restoreState($Storage, $backup['state']);
-		println(LogLevel::Info, '  state files - ' . get_op_result($is_ok));
+		$isOk = static::restoreState($storage, $backup['state']);
+		println(LogLevel::Info, '  state files - ' . get_op_result($isOk));
 
 	  // And the final piece – indexes (data dir)
 		println(LogLevel::Info, 'Restoring data files...');
-		$is_ok = static::restoreData($Storage, $Config, $backup['data']);
-		println(LogLevel::Info, '  tables\' files - ' . get_op_result($is_ok));
+		$isOk = static::restoreData($storage, $config, $backup['data']);
+		println(LogLevel::Info, '  tables\' files - ' . get_op_result($isOk));
 
 	  // Done
 		$t = round(microtime(true) - $t, 2);
@@ -227,72 +227,72 @@ class ManticoreBackup {
 	}
 
 	/**
-	 * @param FileStorage $Storage
+	 * @param FileStorage $storage
 	 * @param string $path
 	 * @return bool
 	 */
-	protected static function restoreState(FileStorage $Storage, string $path): bool {
-		$StateIterator = $Storage->getFileIterator($path);
-		$is_ok = true;
-	  /** @var \SplFileInfo $File */
-		foreach ($StateIterator as $File) {
-			if (!$File->isFile()) {
+	protected static function restoreState(FileStorage $storage, string $path): bool {
+		$stateIterator = $storage->getFileIterator($path);
+		$isOk = true;
+	  /** @var \SplFileInfo $file */
+		foreach ($stateIterator as $file) {
+			if (!$file->isFile()) {
 				continue;
 			}
 
-			$from = $File->getRealPath();
-			$to = dirname($Storage->getOriginRealPath($from));
+			$from = $file->getRealPath();
+			$to = dirname($storage->getOriginRealPath($from));
 			if (!is_dir($to)) {
 				FileStorage::createDir($to, $from);
 			}
 			println(LogLevel::Debug, '  ' . $from . ' -> ' . $to);
 
-			$is_ok = $is_ok && $Storage->copyPaths([$from], $to);
+			$isOk = $isOk && $storage->copyPaths([$from], $to);
 		}
 
-		return $is_ok;
+		return $isOk;
 	}
 
 	/**
-	 * @param FileStorage $Storage
-	 * @param ManticoreConfig $Config
+	 * @param FileStorage $storage
+	 * @param ManticoreConfig $config
 	 * @param string $path
 	 * @return bool
 	 */
-	protected static function restoreData(FileStorage $Storage, ManticoreConfig $Config, string $path): bool {
-		$DataIterator = $Storage->getFileIterator($path);
-		$is_ok = true;
-	  /** @var \SplFileInfo $File */
-		foreach ($DataIterator as $File) {
-			if (!$File->isFile()) {
+	protected static function restoreData(FileStorage $storage, ManticoreConfig $config, string $path): bool {
+		$dataIterator = $storage->getFileIterator($path);
+		$isOk = true;
+	  /** @var \SplFileInfo $file */
+		foreach ($dataIterator as $file) {
+			if (!$file->isFile()) {
 				continue;
 			}
 
-			$from = $File->getRealPath();
-			$to = $Config->data_dir . DIRECTORY_SEPARATOR . dirname($Storage->getOriginRealPath($File->getRealPath()));
+			$from = $file->getRealPath();
+			$to = $config->dataDir . DIRECTORY_SEPARATOR . dirname($storage->getOriginRealPath($file->getRealPath()));
 			if (!is_dir($to)) {
-				$Storage->createDir($to, $File->getPath(), true);
+				$storage->createDir($to, $file->getPath(), true);
 			}
 			println(LogLevel::Debug, '  ' . $from . ' -> ' . $to);
 
-			$is_ok = $is_ok && $Storage->copyPaths([$from], $to);
+			$isOk = $isOk && $storage->copyPaths([$from], $to);
 		}
 
-		return $is_ok;
+		return $isOk;
 	}
 
   /**
    * Store versions for current bakcup in file of root directory passed as argument
    *
    * @param array<string,string> $versions
-   * @param string $backup_dir
+   * @param string $backupDir
    *  Directory where we will put versions.json file with verions
    * @return bool
    *  Result of storing versions
    */
-	protected static function storeVersions(array $versions, string $backup_dir): bool {
-		$file_path = $backup_dir . DIRECTORY_SEPARATOR . 'versions.json';
-		return !!file_put_contents($file_path, json_encode($versions));
+	protected static function storeVersions(array $versions, string $backupDir): bool {
+		$filePath = $backupDir . DIRECTORY_SEPARATOR . 'versions.json';
+		return !!file_put_contents($filePath, json_encode($versions));
 	}
 
   /**
@@ -300,35 +300,35 @@ class ManticoreBackup {
    *
    * @param array<string> $tables
    *  list of tables to validate that they exist
-   * @param ManticoreClient $Client
+   * @param ManticoreClient $client
    *  initialized client to interact with
    * @return array{0: bool, 1: array<string,string>}
    *  flag that points if we are in all backup state and list of tables after validation
    */
-	public static function validateTables(array $tables, ManticoreClient $Client): array {
+	public static function validateTables(array $tables, ManticoreClient $client): array {
 		$result = [];
-		$all_tables = $Client->getTables();
-		$all_table_names = array_keys($all_tables);
+		$allTables = $client->getTables();
+		$allTableNames = array_keys($allTables);
 		if ($tables) {
-			$index_diff = array_diff($tables, $all_table_names);
-			if ($index_diff) {
-				throw new \InvalidArgumentException('Can\'t find some of the tables: ' . implode(', ', $index_diff));
+			$indexDiff = array_diff($tables, $allTableNames);
+			if ($indexDiff) {
+				throw new \InvalidArgumentException('Can\'t find some of the tables: ' . implode(', ', $indexDiff));
 			}
-			unset($index_diff);
+			unset($indexDiff);
 			$result = array_intersect_key(
-				$all_tables,
+				$allTables,
 				array_flip($tables)
 			);
 		} else {
-			$result = $all_tables;
+			$result = $allTables;
 		}
 
-		$is_all = !$tables || !array_diff($all_table_names, $tables);
+		$isAll = !$tables || !array_diff($allTableNames, $tables);
 	  // If we have no tables in our database – we should stop
 		if (!$result) {
 			throw new \RuntimeException('You have no tables to backup.');
 		}
-		return [$is_all, $result];
+		return [$isAll, $result];
 	}
 
   /**
@@ -345,33 +345,33 @@ class ManticoreBackup {
    * This method helps us to reduce copy paste and validate
    *  required path of original backup: config, state - etc
    *
-   * @param FileStorage $Storage
-   * @param string $backup_path
+   * @param FileStorage $storage
+   * @param string $backupPath
    * @param ?\Closure $fn
    *  It receives SplFileInfo as argument
    *  It returns true for skip next logic in cycle or false otherwise
    * @return void
    * @throws \Exception
    */
-	protected static function validateRestore(FileStorage $Storage, string $backup_path, ?\Closure $fn = null): void {
-		$FileIterator = $Storage->getFileIterator($backup_path);
-	  /** @var \SplFileInfo $File */
-		foreach ($FileIterator as $File) {
-			if (!$File->isFile()) {
+	protected static function validateRestore(FileStorage $storage, string $backupPath, ?\Closure $fn = null): void {
+		$fileIterator = $storage->getFileIterator($backupPath);
+	  /** @var \SplFileInfo $file */
+		foreach ($fileIterator as $file) {
+			if (!$file->isFile()) {
 				continue;
 			}
 
 			if (isset($fn)) {
-				$result = $fn($File);
+				$result = $fn($file);
 			  // If we returned true, we continue
 				if (true === $result) {
 					continue;
 				}
 			}
 
-			$preserved_path = $Storage->getOriginRealPath($File->getRealPath());
-			if (is_file($preserved_path)) {
-				throw new \Exception('Destination file already exists: ' . $preserved_path);
+			$preservedPath = $storage->getOriginRealPath($file->getRealPath());
+			if (is_file($preservedPath)) {
+				throw new \Exception('Destination file already exists: ' . $preservedPath);
 			}
 		}
 	}
