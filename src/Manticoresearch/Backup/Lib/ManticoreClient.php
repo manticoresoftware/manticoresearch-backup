@@ -24,6 +24,33 @@ class ManticoreClient {
 	public function __construct(ManticoreConfig $Config) {
 		$this->Config = $Config;
 
+		$versions = $this->getVersions();
+		$ver_num = strtok($versions['manticore'], ' ');
+
+		if ($ver_num === false || version_compare($ver_num, Searchd::MIN_VERSION) <= 0) {
+			$ver_sfx = strtok(' ');
+			if (false === $ver_sfx) {
+				throw new \RuntimeException('Failed to find the version of the manticore searchd');
+			}
+
+			$is_old = $ver_num < Searchd::MIN_VERSION;
+			if (!$is_old) {
+				[, $ver_date] = explode('@', $ver_sfx);
+				$is_old = $ver_date < Searchd::MIN_DATE;
+			}
+
+			if ($is_old) {
+				throw new \RuntimeException(
+					'You are running old version of manticore searchd, minimum required: ' . Searchd::MIN_VERSION
+				);
+			}
+		}
+		echo PHP_EOL . 'Manticore versions:' . PHP_EOL
+			. '  manticore: ' . $versions['manticore'] . PHP_EOL
+			. '  columnar: ' . $versions['columnar'] . PHP_EOL
+			. '  secondary: ' . $versions['secondary'] . PHP_EOL
+		;
+
 	  // Validate config path or fail
 		$config_path = $this->getConfigPath();
 		if ($config_path !== $this->Config->path) {
@@ -53,34 +80,6 @@ class ManticoreClient {
 	public static function init(string $config_path): self {
 		$Config = new ManticoreConfig($config_path);
 		$Client = new ManticoreClient($Config);
-
-		$versions = $Client->getVersions();
-		$ver_num = strtok($versions['manticore'], ' ');
-
-		if ($ver_num === false || version_compare($ver_num, Searchd::MIN_VERSION) <= 0) {
-			$ver_sfx = strtok(' ');
-			if (false === $ver_sfx) {
-				throw new \RuntimeException('Failed to find the version of the manticore searchd');
-			}
-
-			$is_old = $ver_num < Searchd::MIN_VERSION;
-			if (!$is_old) {
-				[, $ver_date] = explode('@', $ver_sfx);
-				$is_old = $ver_date < Searchd::MIN_DATE;
-			}
-
-			if ($is_old) {
-				throw new \RuntimeException(
-					'You are running old version of manticore searchd, minimum required: ' . Searchd::MIN_VERSION
-				);
-			}
-		}
-		echo PHP_EOL . 'Manticore versions:' . PHP_EOL
-			. '  manticore: ' . $versions['manticore'] . PHP_EOL
-			. '  columnar: ' . $versions['columnar'] . PHP_EOL
-			. '  secondary: ' . $versions['secondary'] . PHP_EOL
-		;
-
 		return $Client;
 	}
 
