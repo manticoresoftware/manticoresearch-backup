@@ -117,13 +117,19 @@ switch (true) {
 			pcntl_signal(SIGINT, $signal_handler);
 			pcntl_signal(SIGTERM, $signal_handler);
 			pcntl_signal(SIGSEGV, $signal_handler);
+		} else {
+			echo PHP_EOL . 'WARNING: you should install pcntl extension'
+				. ' for proper interruption signal handling'
+				. PHP_EOL
+			;
 		}
+
 	  // Check if we run as root otherwise show warning
 	  // ! getmyuid returns different uid in docker image
-		if (!OS::isWindows() && posix_getuid() !== 0) {
+		if (OS::isWindows() || !function_exists('posix_getuid') || posix_getuid() !== 0) {
 			echo PHP_EOL . 'WARNING: we couldn\'t fully preserve permissions of the files'
-			. ' you\'ve backed up. Be careful when you restore from the backup or'
-			. ' re-run the backup as root' . PHP_EOL
+				. ' you\'ve backed up. Be careful when you restore from the backup or'
+				. ' re-run the backup as root' . PHP_EOL
 			;
 		}
 
