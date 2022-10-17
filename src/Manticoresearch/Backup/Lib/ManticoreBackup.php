@@ -18,7 +18,6 @@ use Manticoresearch\Backup\Exception\InvalidPathException;
  */
 class ManticoreBackup {
 	const VERSION = '0.2.23';
-	const MIN_PHP_VERSION = '8.1';
 
   /**
    * Store the wanted tables in backup dir as backup
