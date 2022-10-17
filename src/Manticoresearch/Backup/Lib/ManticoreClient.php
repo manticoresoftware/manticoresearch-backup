@@ -25,21 +25,21 @@ class ManticoreClient {
 		$this->config = $config;
 
 		$versions = $this->getVersions();
-		$ver_num = strtok($versions['manticore'], ' ');
+		$verNum = strtok($versions['manticore'], ' ');
 
-		if ($ver_num === false || version_compare($ver_num, Searchd::MIN_VERSION) <= 0) {
-			$ver_sfx = strtok(' ');
-			if (false === $ver_sfx) {
+		if ($verNum === false || version_compare($verNum, Searchd::MIN_VERSION) <= 0) {
+			$verSfx = strtok(' ');
+			if (false === $verSfx) {
 				throw new \RuntimeException('Failed to find the version of the manticore searchd');
 			}
 
-			$is_old = $ver_num < Searchd::MIN_VERSION;
-			if (!$is_old) {
-				[, $ver_date] = explode('@', $ver_sfx);
-				$is_old = $ver_date < Searchd::MIN_DATE;
+			$isOld = $verNum < Searchd::MIN_VERSION;
+			if (!$isOld) {
+				[, $verDate] = explode('@', $verSfx);
+				$isOld = $verDate < Searchd::MIN_DATE;
 			}
 
-			if ($is_old) {
+			if ($isOld) {
 				throw new \RuntimeException(
 					'You are running old version of manticore searchd, minimum required: ' . Searchd::MIN_VERSION
 				);

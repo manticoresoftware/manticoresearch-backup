@@ -31,7 +31,7 @@
 	<rule ref="SlevomatCodingStandard.Classes.ModernClassNameReference"/>
 	<rule ref="SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator"/>
 	<rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses"/>
-	<rule ref="SlevomatCodingStandard.TypeHints.DisallowMixedTypeHint"/>
+	<!-- <rule ref="SlevomatCodingStandard.TypeHints.DisallowMixedTypeHint"/> -->
 	<rule ref="SlevomatCodingStandard.PHP.TypeCast"/>
 	<rule ref="Squiz.Strings.DoubleQuoteUsage.NotRequired"/>
 		<rule ref="SlevomatCodingStandard.Complexity.Cognitive">
@@ -157,5 +157,7 @@
 			<property name="requiredSpacesBeforeColon" value="0" />
 		</properties>
 	</rule>
-	<rule ref="Squiz.NamingConventions.ValidVariableName"/>
+	<rule ref="Squiz.NamingConventions.ValidVariableName.NotCamelCaps"/>
+	<rule ref="Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps"/>
+	<rule ref="Squiz.NamingConventions.ValidVariableName.StringNotCamelCaps"/>
 </ruleset>
