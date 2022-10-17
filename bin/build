@@ -21,14 +21,14 @@ $Phar->startBuffering();
 $default_stub = $Phar->createDefaultStub('src/main.php');
 $Phar->buildFromDirectory('.', '/src\/.+$/');
 $Phar->setStub($default_stub);
-$php_version_content = file_get_contents(BUILD_DIR . '/../PHP_VERSION');
-$Phar['PHP_VERSION'] = $php_version_content;
+$phpVersionContent = file_get_contents(BUILD_DIR . '/../PHP_VERSION');
+$Phar['PHP_VERSION'] = $phpVersionContent;
 $Phar['PHP_VERSION']->setMetadata(['mime-type' => 'text/plain']);
 $Phar->stopBuffering();
 // TODO: we should add gz to manticore-executor or do not use it
 // $Phar->compressFiles(Phar::GZ);
 
-$min_php_version = trim($php_version_content);
+$minPhpVersion = trim($phpVersionContent);
 // Rewrite the resulting file to support dynamic executor
 $bash = implode(PHP_EOL, [
   '#!/usr/bin/env bash',
@@ -38,7 +38,7 @@ $bash = implode(PHP_EOL, [
   'exit 1',
   'fi',
   // Validate minimum php version
-  "min_version=$min_php_version",
+  "min_version=$minPhpVersion",
   'executor_version=$($executor -v | head -n 1 | cut -d" " -f2)',
   'if [[ executor_version < min_version ]]; then',
   'echo >&2 Manticore Backup requires php 8.1+',
