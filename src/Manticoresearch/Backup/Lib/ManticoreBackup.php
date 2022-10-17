@@ -17,7 +17,7 @@ use Manticoresearch\Backup\Exception\InvalidPathException;
  * This class is used to initialize config, parse it and launch the backup process
  */
 class ManticoreBackup {
-	const VERSION = '0.0.1';
+	const VERSION = '0.2.23';
 	const MIN_PHP_VERSION = '8.1';
 
   /**
