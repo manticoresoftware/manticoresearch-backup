@@ -9,7 +9,6 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-use Manticoresearch\Backup\Lib\ManticoreBackup;
 
 // Initialize autoloading
 $dir = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src';
@@ -30,11 +29,6 @@ unset($dir);
 
 set_exception_handler(exception_handler(...));
 set_error_handler(error_handler(...)); // @phpstan-ignore-line
-
-// Validate minimum php version
-if (version_compare(PHP_VERSION, ManticoreBackup::MIN_PHP_VERSION) < 0) {
-	throw new Exception('Minimum require PHP version is: ' . ManticoreBackup::MIN_PHP_VERSION);
-}
 
 echo 'Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)'
   . PHP_EOL . PHP_EOL
