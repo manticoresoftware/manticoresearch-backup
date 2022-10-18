@@ -16,7 +16,8 @@
 	"autoload": {
 		"psr-4": {
 			"Manticoresearch\\Backup\\" : "src/"
-		}
+		},
+		"files": ["src/func.php"]
 	},
 	"config": {
 		"allow-plugins": {

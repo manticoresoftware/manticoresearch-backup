@@ -12,6 +12,7 @@
 namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\InvalidPathException;
+use function println;
 
 /**
  * This class is used to initialize config, parse it and launch the backup process

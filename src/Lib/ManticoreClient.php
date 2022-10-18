@@ -12,6 +12,7 @@
 namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\SearchdException;
+use function println;
 
 /**
  * This class is used for communication with manticore searchd HTTP protocol by using SQL endpoint
