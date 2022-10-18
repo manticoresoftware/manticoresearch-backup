@@ -9,12 +9,18 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-
 // Initialize autoloading
 $dir = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src';
-include_once $dir . DIRECTORY_SEPARATOR . 'func.php';
+include_once $dir . DIRECTORY_SEPARATOR . 'const.php';
+
 spl_autoload_register(
 	function ($className) use ($dir) {
+		if (!str_starts_with($className, APP_NS_PREFIX)) {
+			return;
+		}
+		// @phpstan-ignore-next-line
+		$className = substr($className, APP_NS_PREFIX_LEN);
+
 		$filePath = $dir . DIRECTORY_SEPARATOR
 			. str_replace('\\', DIRECTORY_SEPARATOR, $className)
 			. '.php'
@@ -25,6 +31,7 @@ spl_autoload_register(
 		include_once $filePath;
 	}
 );
+include_once $dir . DIRECTORY_SEPARATOR . 'func.php';
 unset($dir);
 
 set_exception_handler(exception_handler(...));
