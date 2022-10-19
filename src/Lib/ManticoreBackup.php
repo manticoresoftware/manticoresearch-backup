@@ -18,7 +18,7 @@ use function println;
  * This class is used to initialize config, parse it and launch the backup process
  */
 class ManticoreBackup {
-	const VERSION = '0.2.23';
+	const VERSION = '0.2.25';
 
   /**
    * Store the wanted tables in backup dir as backup
