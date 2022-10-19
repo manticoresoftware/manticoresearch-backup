@@ -51,4 +51,11 @@ class OS {
 
 		return $result;
 	}
+
+	/**
+	 * @return bool
+	 */
+	public static function isRoot(): bool {
+		return !OS::isWindows() && function_exists('posix_getuid') && posix_getuid() === 0;
+	}
 }

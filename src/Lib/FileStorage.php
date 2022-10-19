@@ -119,6 +119,11 @@ class FileStorage {
    * @throws \RuntimeException
    */
 	public static function transferOwnership(string $from, string $to, bool $recursive = false): void {
+		// if we are not root nothing can we can do
+		if (!OS::isRoot()) {
+			return;
+		}
+
 		if (basename($from) !== basename($to)) {
 			return;
 		}
