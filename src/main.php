@@ -1,38 +1,18 @@
 <?php declare(strict_types=1);
 
-/*
-  Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)
+use Manticoresearch\Backup\Telemetry\Metric;
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License version 2 or any later
-  version. You should have received a copy of the GPL license along with this
-  program; if you did not, you can find it at http://www.gnu.org/
-*/
+// include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
+include_once __DIR__ . '/../vendor/autoload.php';
 
-use Manticoresearch\Backup\Lib\FileStorage;
-use Manticoresearch\Backup\Lib\LogLevel;
-use Manticoresearch\Backup\Lib\ManticoreBackup;
-use Manticoresearch\Backup\Lib\ManticoreClient;
-use Manticoresearch\Backup\Lib\OS;
-use Manticoresearch\Backup\Lib\Searchd;
-use Manticoresearch\Backup\Lib\TextColor;
-
-/**
- * 0. Check dependencies (? still no deps and thats good) and minimal PHP versions
- * 1. Parse the arguments
- * 2. Validate required and passed arguments
- * 3. Initialize backup
- */
-
-include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
-
-// First fetch all supported args and their short versions
-$args = get_input_args();
-
-// Show help in case we passed help arg
-if (isset($args['h']) || isset($args['help'])) {
-	show_help();
-	exit(0);
+$metric = new Metric('127.0.0.1', labels: ['version' => '1.0', 'columnar' => '5.2.3']);
+$metric->add('metric1', 1);
+$metric->add('metric1', 13);
+$metric->add('metric1', 156);
+$metric->add('metric2', 1000);
+$metric->add('metric2', 1000);
+if ($metric->send()) {
+	echo 'OK';
 }
 
 // Show version in case we passed version arg
