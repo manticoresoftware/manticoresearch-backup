@@ -10,8 +10,10 @@
 */
 
 use Manticoresearch\Backup\Lib\LogLevel;
+use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\Searchd;
 use Manticoresearch\Backup\Lib\TextColor;
+use Manticoresearch\Backup\Telemetry\Metric;
 
 /**
  * Validate args and return parsed options to use
@@ -86,7 +88,12 @@ function format_bytes(int $bytes, int $precision = 3): string {
  */
 // @codingStandardsIgnoreEnd
 function get_input_args(): array {
-	$args = getopt('', ['help', 'config:', 'tables:', 'backup-dir:', 'compress', 'restore::', 'unlock', 'version']);
+	$args = getopt(
+		'', [
+			'help', 'config:', 'tables:', 'backup-dir:',
+			'compress', 'restore::', 'unlock', 'version', 'disable-telemetry',
+		]
+	);
 	if (false === $args) {
 		throw new InvalidArgumentException('Error while parsing the arguments');
 	}
@@ -210,6 +217,35 @@ function show_help(): void {
 	. colored('--help', TextColor::LightGreen) . $nl
 	. "  Show this help.$nl"
 	;
+}
+
+/**
+ * Emit the metric action and handle it in the way when we need it
+ *
+ * @param string $name
+ * @param int|float $value
+ * @return void
+ */
+function metric(string $name, int|float $value): void {
+	// No telemetry enabled?
+	if (getenv('TELEMETRY', true) !== '1') {
+		return;
+	}
+
+	static $metric;
+	if (!isset($metric)) {
+		// Initialize the metric component with base labels
+		$metric = new Metric(
+			[
+				'version' => ManticoreBackup::VERSION,
+			]
+		);
+
+		// Register function to run when script will stop
+		register_shutdown_function($metric->send(...));
+	}
+
+	$metric->add($name, $value);
 }
 
 function exception_handler(Throwable $e): void {

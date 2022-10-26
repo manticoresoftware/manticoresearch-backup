@@ -29,6 +29,13 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
 // First fetch all supported args and their short versions
 $args = get_input_args();
 
+putenv('TELEMETRY=' . sprintf('%d', !isset($args['disable-telemetry'])));
+
+// Send arguments usage first
+foreach (array_keys($args) as $arg) {
+	metric("arg_$arg", 1);
+}
+
 // Show help in case we passed help arg
 if (isset($args['h']) || isset($args['help'])) {
 	show_help();
@@ -58,7 +65,6 @@ if (!isset($args['config'])) {
 
 // OK, now gather all options in an array with default values
 $options = validate_args($args); // @phpstan-ignore-line
-
 echo 'Manticore config file: ' . $options['config'] . PHP_EOL
   . (
 	  isset($args['restore'])
