@@ -28,6 +28,7 @@ class ScriptTest extends SearchdTestCase {
 		$this->assertStringContainsString('--unlock', $output);
 		$this->assertStringContainsString('--restore', $output);
 		$this->assertStringContainsString('--version', $output);
+		$this->assertStringContainsString('--disable-telemetry', $output);
 	}
 
 	public function testNoTargetDirArgProducesError(): void {

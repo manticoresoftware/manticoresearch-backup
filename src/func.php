@@ -18,7 +18,7 @@ use Manticoresearch\Backup\Lib\TextColor;
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false}
+ * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool}
  *  Options that we can use for access with predefined keys: config, backup-dir, all, tables
  */
 function validate_args(array $args): array {
@@ -28,6 +28,7 @@ function validate_args(array $args): array {
 		'compress' => isset($args['compress']),
 		'tables' => array_filter(array_map('trim', explode(',', $args['tables'] ?? ''))),
 		'restore' => $args['restore'] ?? false,
+		'disable-telemetry' => isset($args['disable-telemetry']),
 	];
 
   // Validate arguments
@@ -91,7 +92,9 @@ function get_input_args(): array {
 	}
 
   // Do not let user to pass non supported options to script
-	$supportedArgs = '!--help!--config!--tables!--backup-dir!--compress!--restore!--unlock!--version!';
+	$supportedArgs = '!--help!--config!--tables!--backup-dir!--compress!--restore!'
+		. '--unlock!--version!--disable-telemetry!'
+	;
 	$argv = $_SERVER['argv'];
 	array_shift($argv);
 
@@ -197,6 +200,8 @@ function show_help(): void {
 	. colored('--restore[=backup]', TextColor::LightGreen) . $nl
 	. "  Restore from --backup-dir. Just --restore lists available backups.$nl"
 	. "  --restore=backup will restore from <--backup-dir>/backup.$nl$nl"
+	. colored('--disable-telemetry', TextColor::LightGreen) . $nl
+	. "  Pass this flag in case you want to disable sending metrics to our servers.$nl$nl"
 	. colored('--unlock', TextColor::LightGreen) . $nl
 	. "  In rare cases when something goes wrong the tables can be left in$nl"
 	. "  locked state. Using this argument you can unlock them.$nl$nl"
