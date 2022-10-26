@@ -36,6 +36,9 @@ use OpenMetricsPhp\Exposition\Text\Types\MetricName;
  * </code>
  */
 final class Metric {
+	const HOST = 'telemetry.manticoresearch.com';
+	const PORT = 8428;
+
 	// The writing path for prometheus metrics
 	const API_PATH = '/api/v1/import/prometheus';
 
@@ -51,14 +54,11 @@ final class Metric {
 	/**
 	 * Initialize Metric with host and port to Prometheus
 	 *
-	 * @param string $host
-	 * @param int $port
-	 * 	Default is 8428
 	 * @param array<string,string> $labels
 	 * 	Optional labels if we need to attach it to every metric we register
 	 * @return void
 	 */
-	public function __construct(protected string $host, protected int $port = 8428, array $labels = []) {
+	public function __construct(array $labels = []) {
 		if (!$labels) {
 			return;
 		}
@@ -142,7 +142,7 @@ final class Metric {
 		$context = stream_context_create($opts);
 		try {
 			$result = file_get_contents(
-				'http://' . $this->host . ':' . $this->port . static::API_PATH,
+				'http://' . static::HOST . ':' . static::PORT . static::API_PATH,
 				false,
 				$context
 			);
