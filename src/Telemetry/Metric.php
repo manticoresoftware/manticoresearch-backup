@@ -20,7 +20,7 @@ use OpenMetrics\Exposition\Text\Types\MetricName;
 
 /**
  * For more information of the exporter check the url
- * https://github.com/openmetrics-php/exposition-text
+ * https://github.com/manticoresoftware/openmetrics
  *
  * Usage:
  * <code>
@@ -63,9 +63,32 @@ final class Metric {
 			return;
 		}
 
+		$this->addLabelList($labels);
+	}
+
+	/**
+	 * Add single label to the current instance that will be used for all metrics
+	 *
+	 * @param string $name
+	 * @param string $value
+	 * @return $this
+	 */
+	public function addLabel(string $name, string $value): static {
+		$this->labels[] = Label::fromNameAndValue($name, $value);
+		return $this;
+	}
+
+	/**
+	 * Add list of labels for single call
+	 *
+	 * @param array<string,string> $labels
+	 * @return $this
+	 */
+	public function addLabelList(array $labels): static {
 		foreach ($labels as $name => $value) {
-			$this->labels[] = Label::fromNameAndValue($name, $value);
+			$this->addLabel($name, $value);
 		}
+		return $this;
 	}
 
 	/**
