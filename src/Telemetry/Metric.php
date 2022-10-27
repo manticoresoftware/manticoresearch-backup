@@ -13,10 +13,10 @@ namespace Manticoresearch\Backup\Telemetry;
 
 use ErrorException;
 use Exception;
-use OpenMetricsPhp\Exposition\Text\Collections\CounterCollection;
-use OpenMetricsPhp\Exposition\Text\Metrics\Counter;
-use OpenMetricsPhp\Exposition\Text\Types\Label;
-use OpenMetricsPhp\Exposition\Text\Types\MetricName;
+use OpenMetrics\Exposition\Text\Collections\CounterCollection;
+use OpenMetrics\Exposition\Text\Metrics\Counter;
+use OpenMetrics\Exposition\Text\Types\Label;
+use OpenMetrics\Exposition\Text\Types\MetricName;
 
 /**
  * For more information of the exporter check the url

@@ -4,47 +4,43 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "21094a7db98b18b724d8a8ab3f85adf7",
+    "content-hash": "8190b94b65d409967af3c965b61acba6",
     "packages": [
         {
-            "name": "openmetrics-php/exposition-text",
-            "version": "v0.3.1",
+            "name": "manticoresoftware/openmetrics",
+            "version": "v0.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/openmetrics-php/exposition-text.git",
-                "reference": "125dce0ce283cb78ef6f7bcf7fb8b2425c703c88"
+                "url": "https://github.com/manticoresoftware/exposition-text.git",
+                "reference": "4054ad5b63da8874974801df5977189bafa0374b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/openmetrics-php/exposition-text/zipball/125dce0ce283cb78ef6f7bcf7fb8b2425c703c88",
-                "reference": "125dce0ce283cb78ef6f7bcf7fb8b2425c703c88",
+                "url": "https://api.github.com/repos/manticoresoftware/exposition-text/zipball/4054ad5b63da8874974801df5977189bafa0374b",
+                "reference": "4054ad5b63da8874974801df5977189bafa0374b",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.1",
-                "psr/http-message": "^1.0"
+                "php": ">=8.1"
             },
             "require-dev": {
                 "ext-xdebug": "*",
                 "hollodotme/phpunit-testdox-markdown": "~1.0.0",
-                "tm/tooly-composer-script": "~1.0"
+                "tm/tooly-composer-script": "~1.4"
             },
             "type": "library",
             "extra": {
                 "tools": {
-                    "phpunit": {
-                        "url": "https://phar.phpunit.de/phpunit-7.phar",
-                        "only-dev": true
-                    },
-                    "phpstan": {
-                        "url": "https://github.com/phpstan/phpstan/releases/download/0.11.2/phpstan.phar",
-                        "only-dev": true
+                    "phpunit8": {
+                        "url": "https://phar.phpunit.de/phpunit-8.phar",
+                        "only-dev": true,
+                        "replace": true
                     }
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "OpenMetricsPhp\\Exposition\\Text\\": "src/"
+                    "OpenMetrics\\Exposition\\Text\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -55,67 +51,17 @@
                 {
                     "name": "Holger Woltersdorf",
                     "email": "hw@hollo.me"
+                },
+                {
+                    "name": "Manticore Software",
+                    "email": "contact@manticoresearch.com"
                 }
             ],
             "description": "Implementation of the text exposition format of OpenMetrics",
             "support": {
-                "issues": "https://github.com/openmetrics-php/exposition-text/issues",
-                "source": "https://github.com/openmetrics-php/exposition-text/tree/development"
+                "source": "https://github.com/manticoresoftware/exposition-text/tree/v0.1.0"
             },
-            "time": "2019-02-19T21:13:07+00:00"
-        },
-        {
-            "name": "psr/http-message",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/http-message.git",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Http\\Message\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interface for HTTP messages",
-            "homepage": "https://github.com/php-fig/http-message",
-            "keywords": [
-                "http",
-                "http-message",
-                "psr",
-                "psr-7",
-                "request",
-                "response"
-            ],
-            "support": {
-                "source": "https://github.com/php-fig/http-message/tree/master"
-            },
-            "time": "2016-08-06T14:39:51+00:00"
+            "time": "2022-10-27T05:48:35+00:00"
         }
     ],
     "packages-dev": [
