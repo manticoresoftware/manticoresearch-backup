@@ -33,7 +33,8 @@ class ManticoreBackup {
 			)
 		);
 	}
-  /**
+
+	/**
    * Store the wanted tables in backup dir as backup
    *
    * @param ManticoreClient $client
