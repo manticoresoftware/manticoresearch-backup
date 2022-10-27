@@ -16,7 +16,7 @@ class ScriptTest extends SearchdTestCase {
 
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
-		system('./bin/build');
+		system('./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"');
 	}
 
 	public function testHelpArg(): void {

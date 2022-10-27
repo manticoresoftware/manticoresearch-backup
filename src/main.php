@@ -23,8 +23,16 @@ use Manticoresearch\Backup\Lib\TextColor;
  * 2. Validate required and passed arguments
  * 3. Initialize backup
  */
+include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
+	. 'vendor' .  DIRECTORY_SEPARATOR . 'autoload.php'
+;
 
-include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
+set_exception_handler(exception_handler(...));
+set_error_handler(error_handler(...)); // @phpstan-ignore-line
+
+echo 'Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)'
+  . PHP_EOL . PHP_EOL
+;
 
 // First fetch all supported args and their short versions
 $args = get_input_args();
