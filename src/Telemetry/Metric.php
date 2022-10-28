@@ -36,8 +36,9 @@ use OpenMetrics\Exposition\Text\Types\MetricName;
  * </code>
  */
 final class Metric {
+	const PROTO = 'https';
 	const HOST = 'telemetry.manticoresearch.com';
-	const PORT = 8428;
+	const PORT = 443;
 
 	// The writing path for prometheus metrics
 	const API_PATH = '/api/v1/import/prometheus';
@@ -165,7 +166,7 @@ final class Metric {
 		$context = stream_context_create($opts);
 		try {
 			$result = file_get_contents(
-				'http://' . static::HOST . ':' . static::PORT . static::API_PATH,
+				static::PROTO . '://' . static::HOST . ':' . static::PORT . static::API_PATH,
 				false,
 				$context
 			);
