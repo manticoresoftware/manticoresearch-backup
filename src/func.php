@@ -222,11 +222,12 @@ function show_help(): void {
 /**
  * Emit the metric action and handle it in the way when we need it
  *
- * @param string $name
- * @param int|float $value
+ * @param ?string $name
+ * @param null|int|float $value
+ * @param array<string,string> $labels
  * @return void
  */
-function metric(string $name, int|float $value): void {
+function metric(?string $name = null, null|int|float $value = null, array $labels = []): void {
 	// No telemetry enabled?
 	if (getenv('TELEMETRY', true) !== '1') {
 		return;
@@ -243,6 +244,14 @@ function metric(string $name, int|float $value): void {
 
 		// Register function to run when script will stop
 		register_shutdown_function($metric->send(...));
+	}
+
+	if ($labels) {
+		$metric->addLabelList($labels);
+	}
+
+	if (!$name || !$value) {
+		return;
 	}
 
 	$metric->add($name, $value);

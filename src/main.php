@@ -39,6 +39,7 @@ $args = get_input_args();
 
 putenv('TELEMETRY=' . sprintf('%d', !isset($args['disable-telemetry'])));
 
+metric(strtolower(PHP_OS_FAMILY), 1);
 // Send arguments usage first
 foreach (array_keys($args) as $arg) {
 	metric("arg_$arg", 1);
