@@ -13,7 +13,7 @@ use Manticoresearch\Backup\Lib\LogLevel;
 use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\Searchd;
 use Manticoresearch\Backup\Lib\TextColor;
-use Manticoresearch\Backup\Telemetry\Metric;
+use Manticoresoftware\Telemetry\Metric;
 
 /**
  * Validate args and return parsed options to use
