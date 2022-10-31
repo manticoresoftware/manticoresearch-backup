@@ -336,7 +336,9 @@ class ManticoreBackupTest extends SearchdTestCase {
    * @param string $opt
    */
 	protected function mount(string $source, string $target, string $opt): void {
-		mkdir($target, 0444, true);
+		if (!is_dir($target)) {
+			mkdir($target, 0444, true);
+		}
 		shell_exec("mount '$source' '$target' -o 'bind,noload,$opt'");
 		register_shutdown_function(
 			function () use ($target): void {
