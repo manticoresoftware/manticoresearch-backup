@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# from outside: $DISTRO = 7,8
+# from outside: $DISTRO = 7,8,9
 # That file here is for reference; actually used the one stored on the host to avoid checkout of the whole code
 set -e
 echo "Uploading $DISTRO"
