@@ -12,25 +12,7 @@ env:
   DESC: 'Manticore Backup'
 
 jobs:
-  create-tag:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Create new release tag
-        id: create-tag
-        shell: bash
-        run: |
-          tag=${{ env.APP_VERSION }}-${GITHUB_SHA:0:7}
-          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "$tag" "$GITHUB_SHA" -m "Release $tag"
-          git remote set-url origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push origin "$tag"
-
   build-artifact:
-    needs:
-      - create-tag
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -49,8 +31,6 @@ jobs:
             ./*.tar.gz
 
   build-linux-packages:
-    needs:
-      - create-tag
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -111,8 +91,6 @@ jobs:
             !./*-debuginfo-*.rpm
 
   build-linux-packages-arm64:
-    needs:
-      - create-tag
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -225,8 +203,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.APP_VERSION }}
-          release_name: v${{ env.APP_VERSION }}
+          tag_name: v${{ env.APP_VERSION }}-${GITHUB_SHA:0:7}
+          release_name: v${{ env.APP_VERSION }}-${GITHUB_SHA:0:7}
           body_path: ./CHANGELOG.md
           draft: false
           prerelease: false
