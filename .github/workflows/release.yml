@@ -24,7 +24,7 @@ jobs:
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "$tag" "$GITHUB_SHA"
+          git tag -a "$tag" "$GITHUB_SHA" -m "Release $tag"
           git remote set-url origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin "${TAG}"
 
