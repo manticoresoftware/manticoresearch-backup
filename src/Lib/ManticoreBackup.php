@@ -262,9 +262,11 @@ class ManticoreBackup {
 		if (!isset($version)) {
 			$version = trim(
 				(string)file_get_contents(
-					__DIR__. DIRECTORY_SEPARATOR
+					__DIR__ . DIRECTORY_SEPARATOR
 					. '..' . DIRECTORY_SEPARATOR
 					. '..' . DIRECTORY_SEPARATOR
+					. 'github' . DIRECTORY_SEPARATOR
+					. 'workflows' . DIRECTORY_SEPARATOR
 					. 'release.yml'
 				)
 			);
