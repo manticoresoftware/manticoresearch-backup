@@ -1,4 +1,4 @@
-FROM php:8.1.11-cli-buster
+FROM php:8.1.12-cli-buster
 
 ARG TARGET_ARCH=amd64
 ENV EXECUTOR_VERSION=0.2.15

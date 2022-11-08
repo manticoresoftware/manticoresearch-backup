@@ -7,7 +7,7 @@ on:
 
 env:
   APP_NAME: 'manticore-backup'
-  PHP_VERSION: '8.1.11'
+  PHP_VERSION: '8.1.12'
   MAINTAINER: 'Manticore'
   DESC: 'Manticore Backup'
 

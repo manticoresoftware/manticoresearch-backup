@@ -43,7 +43,7 @@ To build the final executable you need to to run `bin/build`. The executable can
 
 We recommend using [manticore-executor](https://github.com/manticoresoftware/executor). In this case, the script will use the custom-built PHP binary with all required extensions to run the tool. If you are adding a new functionality which requires a specific PHP module make sure you update [manticore-executor](https://github.com/manticoresoftware/executor) as well.
 
-The final script is a PHP Phar archive that can be run with [PHP](https://php.net) version of `8.1.11` that contains the next extensions:
+The final script is a PHP Phar archive that can be run with [PHP](https://php.net) version of `8.1.12` that contains the next extensions:
 
 - zstd
 - Phar
