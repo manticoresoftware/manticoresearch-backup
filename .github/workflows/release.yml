@@ -197,14 +197,18 @@ jobs:
           chmod +x git-chglog
           ./git-chglog --output ./CHANGELOG.md $(git describe --tags $(git rev-list --tags --max-count=1))
 
+      - id: vars
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Create Release
         id: create-release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.APP_VERSION }}-${GITHUB_SHA:0:7}
-          release_name: v${{ env.APP_VERSION }}-${GITHUB_SHA:0:7}
+          tag_name: v${{ env.APP_VERSION }}-${{ steps.vars.outputs.sha_short }}
+          release_name: v${{ env.APP_VERSION }}-${{ steps.vars.outputs.sha_short }}
           body_path: ./CHANGELOG.md
           draft: false
           prerelease: false
