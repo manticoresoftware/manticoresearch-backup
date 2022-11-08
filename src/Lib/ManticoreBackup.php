@@ -14,11 +14,13 @@ namespace Manticoresearch\Backup\Lib;
 use Manticoresearch\Backup\Exception\InvalidPathException;
 use function println;
 
+define('BACKUP_VERSION', trim(file_get_contents('APP_VERSION') ?: '0.0.0'));
+
 /**
  * This class is used to initialize config, parse it and launch the backup process
  */
 class ManticoreBackup {
-	const VERSION = '0.2.25';
+	const VERSION = BACKUP_VERSION;
 
   /**
    * Store the wanted tables in backup dir as backup
