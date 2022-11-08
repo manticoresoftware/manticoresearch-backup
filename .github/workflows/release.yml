@@ -15,6 +15,7 @@ jobs:
   import-env:
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v3
       - name: Import environment variables from a file
         id: import-env
         shell: bash
@@ -27,6 +28,7 @@ jobs:
       - import-env
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v3
       - name: Create new release tag
         id: create-tag
         shell: bash
