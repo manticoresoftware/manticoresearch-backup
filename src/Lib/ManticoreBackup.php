@@ -14,14 +14,10 @@ namespace Manticoresearch\Backup\Lib;
 use Manticoresearch\Backup\Exception\InvalidPathException;
 use function println;
 
-define('BACKUP_VERSION', trim(file_get_contents('APP_VERSION') ?: '0.0.0'));
-
 /**
  * This class is used to initialize config, parse it and launch the backup process
  */
 class ManticoreBackup {
-	const VERSION = BACKUP_VERSION;
-
   /**
    * Store the wanted tables in backup dir as backup
    *
@@ -254,6 +250,27 @@ class ManticoreBackup {
 		}
 
 		return $isOk;
+	}
+
+	/**
+	 * Get and memoize the current backup version from release.yml file
+	 *
+	 * @return string
+	 */
+	public static function getVersion(): string {
+		static $version;
+		if (!isset($version)) {
+			$version = trim(
+				(string)file_get_contents(
+					__DIR__. DIRECTORY_SEPARATOR
+					. '..' . DIRECTORY_SEPARATOR
+					. '..' . DIRECTORY_SEPARATOR
+					. 'release.yml'
+				)
+			);
+		}
+
+		return $version;
 	}
 
 	/**

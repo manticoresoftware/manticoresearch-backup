@@ -6,26 +6,13 @@ on:
 
 env:
   APP_NAME: 'manticore-backup'
-  APP_VERSION_FILE: 'APP_VERSION'
+  APP_VERSION: '0.3.1'
   PHP_VERSION: '8.1.12'
   MAINTAINER: 'Manticore'
   DESC: 'Manticore Backup'
 
 jobs:
-  import-env:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Import environment variables from a file
-        id: import-env
-        shell: bash
-        run: |
-          APP_VERSION=$(<APP_VERSION_FILE | xargs)
-          export APP_VERSION
-
   create-tag:
-    needs:
-      - import-env
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
