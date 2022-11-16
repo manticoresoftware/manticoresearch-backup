@@ -208,7 +208,7 @@ function show_help(): void {
 	. "  Restore from --backup-dir. Just --restore lists available backups.$nl"
 	. "  --restore=backup will restore from <--backup-dir>/backup.$nl$nl"
 	. colored('--disable-telemetry', TextColor::LightGreen) . $nl
-	. "  Pass this flag in case you want to disable sending metrics to our servers.$nl$nl"
+	. "  Pass this flag in case you want to disable sending anonymized metrics to Manticore. You can also use environment variable TELEMETRY=0.$nl$nl"
 	. colored('--unlock', TextColor::LightGreen) . $nl
 	. "  In rare cases when something goes wrong the tables can be left in$nl"
 	. "  locked state. Using this argument you can unlock them.$nl$nl"
