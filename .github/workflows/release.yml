@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+    branches:
+      - main
 
 env:
   APP_NAME: 'manticore-backup'
@@ -18,9 +20,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build binary
         run: ./bin/build
+      - id: vars
+        run: |
+          echo "::set-output name=app_version::$(<APP_VERSION)"
       - name: Create artifact
         run: |
-          name="${{ env.APP_NAME }}_${{ github.ref_name }}-$( date +%y%m%d )-${GITHUB_SHA:0:7}"
+          name="${{ env.APP_NAME }}_${{ steps.vars.outputs.app_version }}-$( date +%y%m%d )-${GITHUB_SHA:0:7}"
           echo "$name"
           tar czf "$name.tar.gz" build/manticore-backup
         shell: bash
@@ -38,7 +43,7 @@ jobs:
         run: ./bin/build
       - id: vars
         run: |
-          echo "::set-output name=app_version::$(echo ${{ github.ref }} | cut -d_ -f1)"
+          echo "::set-output name=app_version::$(<APP_VERSION)"
       - name: Prepare packages structure
         run: |
           mkdir -p .debpkg/usr/bin
@@ -60,14 +65,14 @@ jobs:
           package: ${{ env.APP_NAME }}
           package_root: .rpmpkg
           maintainer: ${{ env.MAINTAINER }}
-          version: ${{ github.ref }}
+          version: v${{ steps.vars.outputs.app_version }}
           arch: 'x86_64'
           desc: '${{ env.DESC }}'
 
       - name: Rename packages to proper name
         run: |
           ls -la ./*.rpm
-          version=$( echo ${{ github.ref_name }} | cut -c2- )
+          version=${{ steps.vars.outputs.app_version }}
           rpm_path="./${{ env.APP_NAME }}-${version}-1.el7.x86_64.rpm"
           rpm_suffix=$( date +%y%m%d ).${GITHUB_SHA:0:7}
           cp $rpm_path "./${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el7.x86_64.rpm"
@@ -98,6 +103,10 @@ jobs:
       - name: Build binary
         run: ./bin/build
 
+      - id: vars
+        run: |
+          echo "::set-output name=app_version::$(<APP_VERSION)"
+
       - name: Prepare package
         run: |
           mkdir -p .debpkg/usr/bin
@@ -110,14 +119,14 @@ jobs:
           package: ${{ env.APP_NAME }}
           package_root: .debpkg
           maintainer: ${{ env.MAINTAINER }}
-          version: ${{ github.ref }}
+          version: v${{ steps.vars.outputs.app_version }}
           arch: 'arm64'
           desc: '${{ env.DESC }}'
 
       - name: Rename package to proper name
         run: |
           ls -la ./*.deb
-          version=$( echo ${{ github.ref_name }} | cut -c2- )
+          version=${{ steps.vars.outputs.app_version }}
           deb_path="./${{ env.APP_NAME }}_${version}_arm64.deb"
           mv "$deb_path" ./${{ env.APP_NAME }}_${version}-$( date +%y%m%d )-${GITHUB_SHA:0:7}_arm64.deb
 
@@ -154,7 +163,7 @@ jobs:
 
             # Prepare spec file for RPM
             sed -i 's/{{ NAME }}/${{ env.APP_NAME }}/g' rpm.spec
-            sed -i 's/{{ VERSION }}/${{ github.ref_name }}/g' rpm.spec
+            sed -i 's/{{ VERSION }}/${{ steps.vars.outputs.app_version }}/g' rpm.spec
             sed -i 's/{{ MAINTAINER }}/${{ env.MAINTAINER }}/g' rpm.spec
             sed -i 's/{{ DESC }}/${{ env.DESC }}/g' rpm.spec
             sed -i 's/{{ ARCH }}/aarch64/g' rpm.spec
@@ -170,8 +179,8 @@ jobs:
       - name: Rename package to proper name
         run: |
           ls -la ./artifacts/*.rpm
-          version=$( echo ${{ github.ref_name }} | cut -c2- )
-          rpm_path="./artifacts/${{ env.APP_NAME }}-v${version}-1.el7.aarch64.rpm"
+          version=${{ steps.vars.outputs.app_version }}
+          rpm_path="./artifacts/${{ env.APP_NAME }}-${version}-1.el7.aarch64.rpm"
           rpm_suffix=$( date +%y%m%d ).${GITHUB_SHA:0:7}
           cp $rpm_path "./artifacts/${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el7.aarch64.rpm"
           cp $rpm_path "./artifacts/${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el8.aarch64.rpm"
@@ -190,6 +199,7 @@ jobs:
       - build-artifact
       - build-linux-packages
       - build-linux-packages-arm64
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v3
         with:
@@ -198,7 +208,7 @@ jobs:
         run: |
           curl -sSL https://github.com/git-chglog/git-chglog/releases/download/v0.15.1/git-chglog_0.15.1_linux_amd64.tar.gz | tar -xzf -
           chmod +x git-chglog
-          ./git-chglog --output ./CHANGELOG.md $(git describe --tags $(git rev-list --tags --max-count=1))
+          ./git-chglog --output ./CHANGELOG.md ${{ github.ref_name }}..$(git describe --tags $(git rev-list --tags --max-count=1))
 
       - name: Create Release
         id: create-release
@@ -212,96 +222,11 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Write upload_url to file
-        run: echo '${{ steps.create-release.outputs.upload_url }}' > upload_url.txt
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: create-release
-          path: upload_url.txt
-
-  upload-release:
-    runs-on: ubuntu-22.04
-    needs: create-release
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-22.04
-            asset_name_suffix: .tar.gz
-            asset_content_type: application/gzip
-
-    steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: artifact
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: create-release
-
-      - id: vars
-        run: |
-          echo "::set-output name=upload_url::$(cat upload_url.txt)"
-          echo "::set-output name=asset_path::$(ls *${{ matrix.asset_name_suffix }} | head -n 1)"
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.vars.outputs.upload_url }}
-          asset_path: ${{ steps.vars.outputs.asset_path }}
-          asset_name: ${{ steps.vars.outputs.asset_path }}
-          asset_content_type: ${{ matrix.asset_content_type }}
-
-  upload-linux-packages:
-    runs-on: ubuntu-22.04
-    needs: create-release
-    strategy:
-      matrix:
-        include:
-          - pkg: deb
-            arch: amd64
-            asset_content_type: application/vnd.debian.binary-package
-          - pkg: deb
-            arch: arm64
-            asset_content_type: application/vnd.debian.binary-package
-          - pkg: rpm
-            arch: amd64
-            asset_content_type: application/x-rpm
-          - pkg: rpm
-            arch: arm64
-            asset_content_type: application/x-rpm
-    steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: artifact-${{ matrix.pkg }}-${{ matrix.arch }}
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: create-release
-
-      - id: vars
-        run: |
-          echo "::set-output name=upload_url::$(cat upload_url.txt)"
-          echo "::set-output name=asset_name::$(ls *.${{ matrix.pkg }} | head -n 1)"
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.vars.outputs.upload_url }}
-          asset_path: ${{ steps.vars.outputs.asset_name }}
-          asset_name: ${{ steps.vars.outputs.asset_name }}
-          asset_content_type: ${{ matrix.asset_content_type }}
-
   deploy:
     needs:
-      - upload-release
-      - upload-linux-packages
+      - build-artifact
+      - build-linux-packages
+      - build-linux-packages-arm64
     runs-on: self-hosted
     strategy:
       matrix:
