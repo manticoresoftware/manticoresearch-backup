@@ -265,7 +265,7 @@ class ManticoreBackup {
 					__DIR__ . DIRECTORY_SEPARATOR
 					. '..' . DIRECTORY_SEPARATOR
 					. '..' . DIRECTORY_SEPARATOR
-					. 'github' . DIRECTORY_SEPARATOR
+					. '.github' . DIRECTORY_SEPARATOR
 					. 'workflows' . DIRECTORY_SEPARATOR
 					. 'release.yml'
 				)
