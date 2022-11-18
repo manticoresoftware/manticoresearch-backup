@@ -239,7 +239,7 @@ function metric(?string $name = null, null|int|float $value = null, array $label
 		// Initialize the metric component with base labels
 		$metric = new Metric(
 			[
-				'version' => ManticoreBackup::getVersion(),
+				'backup_version' => ManticoreBackup::getVersion(),
 			]
 		);
 
