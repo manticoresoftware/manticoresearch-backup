@@ -51,7 +51,7 @@ The final script is a PHP Phar archive that can be run with [PHP](https://php.ne
 
 ## Developing
 
-To develop and run the system without building process you should use `bin/run` script that do all the magic.
+To develop and run the system without building process you should use `bin/run` script that does all the magic.
 
 ## Tests
 
@@ -59,4 +59,34 @@ All tests are located in the `test` directory.
 
 We use PHPUnit for testing.
 
-There are two types of tests: unit tests of used components and integrated tests of the whole script behavior.
+There are two tests: unit tests of used components and integrated tests of the whole script behavior.
+
+## Metrics
+
+We are collecting metrics by default. If you want to disable it, you should run the tool with the flag `--disable-metric`.
+
+We respect privacy. That's why all metrics are anonymous.
+
+Here are all metrics that we collect.
+
+| Metric | Description |
+|-|-|
+| os_name | Name of the operating system |
+| machine_id | The identified of the machine (the content of /etc/machine-id in Linux)
+| arg_* | Usage of arguments that you pass to the script on backing up your data |
+| backup_store_versions_fails | Indicates that we failed to store current versions of manticore when backing up |
+| backup_table_size | Single table size |
+| backup_no_permissions | Failed to backup due to no permissions to destination dir |
+| backup_total_size | The total size of full backup |
+| backup_time | How long did it take to backup |
+| restore_searchd_running | Failed to run restoring process due to searchd being running already |
+| restore_no_config_file | No config file in original backup when we try to restore |
+| restore_time | How long did it take to restore |
+| fscync_time | Timings for sync command |
+| restore_target_exists | It occurs when we have a folder or index in the destination folder to restore to |
+| terminations | In case of the process was terminated |
+| signal_* | What signal was used to terminate the process |
+| tables | How many tables manticore holds |
+| config_unreachable | Passed config does not exist |
+| config_data_dir_missing | Failed to parse data_dir from a passed config file |
+| config_data_dir_is_relative | data_dir parameter in the config of the manticore is relative |
