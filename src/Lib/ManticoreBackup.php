@@ -18,8 +18,21 @@ use function println;
  * This class is used to initialize config, parse it and launch the backup process
  */
 class ManticoreBackup {
-	const VERSION = '0.2.25';
-
+	/**
+	 * Get current version of the backup tool
+	 *
+	 * @return string
+	 */
+	public static function getVersion(): string {
+		return trim(
+			(string)file_get_contents(
+				__DIR__ . DIRECTORY_SEPARATOR
+				. '..' . DIRECTORY_SEPARATOR
+				. '..' . DIRECTORY_SEPARATOR
+				. 'APP_VERSION'
+			)
+		);
+	}
   /**
    * Store the wanted tables in backup dir as backup
    *
