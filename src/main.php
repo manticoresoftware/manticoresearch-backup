@@ -43,7 +43,7 @@ if (isset($args['version'])) {
 		throw new RuntimeException('Failed to read min PHP version from the file');
 	}
 	$minPhpVersion = trim($versionContent);
-	echo 'Manticore Backup version: ' . ManticoreBackup::VERSION . PHP_EOL;
+	echo 'Manticore Backup version: ' . ManticoreBackup::getVersion() . PHP_EOL;
 	echo 'Minimum PHP version required: ' . $minPhpVersion . PHP_EOL;
 	exit(0);
 }

@@ -24,6 +24,9 @@ $Phar->setStub($default_stub);
 $phpVersionContent = file_get_contents(BUILD_DIR . '/../PHP_VERSION');
 $Phar['PHP_VERSION'] = $phpVersionContent;
 $Phar['PHP_VERSION']->setMetadata(['mime-type' => 'text/plain']);
+$appVersionContent = file_get_contents(BUILD_DIR . '/../APP_VERSION');
+$Phar['APP_VERSION'] = $appVersionContent;
+$Phar['APP_VERSION']->setMetadata(['mime-type' => 'text/plain']);
 $Phar->stopBuffering();
 // TODO: we should add gz to manticore-executor or do not use it
 // $Phar->compressFiles(Phar::GZ);
