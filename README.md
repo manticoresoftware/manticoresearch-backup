@@ -51,7 +51,7 @@ The final script is a PHP Phar archive that can be run with [PHP](https://php.ne
 
 ## Developing
 
-To develop and run the system without building process you should use `bin/run` script that do all the magic.
+To develop and run the system without building process you should use `bin/run` script that does all the magic.
 
 ## Tests
 
@@ -59,4 +59,32 @@ All tests are located in the `test` directory.
 
 We use PHPUnit for testing.
 
-There are two types of tests: unit tests of used components and integrated tests of the whole script behavior.
+There are two tests: unit tests of used components and integrated tests of the whole script behavior.
+
+## Metrics
+
+The backup tool by default sends your anonymized metrics to Manticore metrics server. It helps maintainers a lot with improving the product. We respect your privacy and you can be sure that the metrics are anonymous and no sensitive info is sent out, but if you still want to disable the telemetry, please make sure you run the tool with the flag `--disable-metric` or use the environment variable `TELEMETRY=0`.
+
+Here are all metrics that we collect:
+
+| Metric | Description |
+|-|-|
+| os_name | Name of the operating system |
+| machine_id | Server identifier (the content of /etc/machine-id in Linux)
+| arg_* | What arguments you used to run the tool (skipping all your index names etc.) |
+| backup_store_versions_fails | Indicates that it failed to save your Manticore version in the backup |
+| backup_table_count | Total count of backed up tables |
+| backup_no_permissions | Failed to backup due to no permissions to destination dir |
+| backup_total_size | Total size of the full backup |
+| backup_time | How long it took to backup |
+| restore_searchd_running | Failed to run restoring process due to searchd being running already |
+| restore_no_config_file | No config file in the backup on restore |
+| restore_time | How long it took to restore |
+| fscync_time | Timings for sync command |
+| restore_target_exists | It occurs when there's a folder or index in the destination folder to restore to |
+| terminations | In case the process was terminated |
+| signal_* | What signal was used to terminate the process |
+| tables | How many tables Manticore holds |
+| config_unreachable | Passed configuration file does not exist |
+| config_data_dir_missing | Failed to parse data_dir from the passed configuration file |
+| config_data_dir_is_relative | data_dir path in the configuration file of the Manticore instance is relative |

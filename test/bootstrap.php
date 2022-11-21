@@ -14,11 +14,9 @@ use Manticoresearch\Backup\Lib\ManticoreClient;
 use Manticoresearch\Backup\Lib\ManticoreConfig;
 use Manticoresearch\Backup\Lib\Searchd;
 
-include_once __DIR__ . DIRECTORY_SEPARATOR . '..'
-  . DIRECTORY_SEPARATOR . 'src'
-  . DIRECTORY_SEPARATOR . 'init.php'
+include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
+	. 'vendor' .  DIRECTORY_SEPARATOR . 'autoload.php'
 ;
-
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'SearchdTestCase.php';
 
 system('id -u test 2>/dev/null || useradd test');

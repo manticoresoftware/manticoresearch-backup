@@ -16,7 +16,7 @@ class ScriptTest extends SearchdTestCase {
 
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
-		system('./bin/build');
+		system('./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"');
 	}
 
 	public function testHelpArg(): void {
@@ -28,6 +28,7 @@ class ScriptTest extends SearchdTestCase {
 		$this->assertStringContainsString('--unlock', $output);
 		$this->assertStringContainsString('--restore', $output);
 		$this->assertStringContainsString('--version', $output);
+		$this->assertStringContainsString('--disable-telemetry', $output);
 	}
 
 	public function testNoTargetDirArgProducesError(): void {
