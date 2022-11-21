@@ -37,6 +37,7 @@ class ManticoreConfig {
 	public function __construct(string $configPath) {
 		$config = file_get_contents($configPath);
 		if (false === $config) {
+			metric('config_unreachable', 1);
 			throw new \InvalidArgumentException('Failed to read config file: ' . $configPath);
 		}
 
@@ -77,10 +78,12 @@ class ManticoreConfig {
 		}
 
 		if (!isset($this->dataDir)) {
+			metric('config_data_dir_missing', 1);
 			throw new InvalidPathException('Failed to detect data_dir from config file');
 		}
 
 		if (!static::isDataDirValid($this->dataDir)) {
+			metric('config_data_dir_is_relative', 1);
 			throw new InvalidPathException('The data_dir parameter in searchd config should contain absolute path');
 		}
 
@@ -144,8 +147,8 @@ class ManticoreConfig {
    */
 	public static function isDataDirValid(string $dataDir): bool {
 		return OS::isWindows()
-		? !!preg_match('/^[a-z]\:\\/ius', $dataDir) // @phpstan-ignore-line
-		: $dataDir[0] === '/'
+			? !!preg_match('/^[a-z]\:\\/ius', $dataDir) // @phpstan-ignore-line
+			: $dataDir[0] === '/'
 		;
 	}
 }

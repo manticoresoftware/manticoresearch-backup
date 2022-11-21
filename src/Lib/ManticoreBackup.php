@@ -33,7 +33,8 @@ class ManticoreBackup {
 			)
 		);
 	}
-  /**
+
+	/**
    * Store the wanted tables in backup dir as backup
    *
    * @param ManticoreClient $client
@@ -54,6 +55,7 @@ class ManticoreBackup {
 		$versions = $client->getVersions();
 		$isOk = static::storeVersions($versions, $destination['root']);
 		if (false === $isOk) {
+			metric('backup_store_versions_fails', 1);
 			throw new InvalidPathException('Failed to save the versions in "' . $destination['root'] . '"');
 		}
 
@@ -111,19 +113,25 @@ class ManticoreBackup {
 
 	  // - First backup index data
 	  // Lets copy index one by one with freeze
+		$totalTableSize = 0;
+		$totalTableCount = 0;
 		println(LogLevel::Info, 'Backing up tables...');
 		foreach ($tables as $index => $type) {
-			$files = $client->freeze($index);
-			println(
-				LogLevel::Info,
-				'  ' . $index . ' ('  . $type . ') [' . format_bytes($storage::calculateFilesSize($files)) . ']...'
-			);
-
 		  // We will have no directory for distributed indexes and so should not back it up
 			if ($type === 'distributed') {
 				  println(LogLevel::Info, '  ' . colored('SKIP', TextColor::LightYellow));
 				  continue;
 			}
+
+			$files = $client->freeze($index);
+			$tableSize = $storage::calculateFilesSize($files);
+			$totalTableSize += $tableSize;
+			++$totalTableCount;
+			metric('backup_table_size', $tableSize);
+			println(
+				LogLevel::Info,
+				'  ' . $index . ' ('  . $type . ') [' . format_bytes($tableSize) . ']...'
+			);
 
 			$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
 			$storage->createDir(
@@ -138,17 +146,20 @@ class ManticoreBackup {
 		}
 
 		if (false === $result) {
+			metric('backup_no_permissions', 1);
 			throw new \Exception(
 				'Failed to make backup of tables. '
 				. 'Please check that you have rights to access the source and destinations directories'
 			);
 		}
+		metric('backup_total_count', $totalTableCount);
+		metric('backup_total_size', $totalTableSize);
 
 		static::fsync();
 
 	  // 3. Done
 		$t = round(microtime(true) - $t, 2);
-
+		metric('backup_time', $t);
 		println(LogLevel::Info, 'You can find backup here: ' . $destination['root']);
 		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
 	}
@@ -166,6 +177,7 @@ class ManticoreBackup {
 
 	  // First, validate that searchd is not running, otherwise we cannot replace directories
 		if (Searchd::isRunning()) {
+			metric('restore_searchd_running', 1);
 			throw new \Exception(
 				'Cannot initiate the restore process due to searchd daemon is running.'
 			);
@@ -187,6 +199,7 @@ class ManticoreBackup {
 		);
 
 		if (!isset($config)) {
+			metric('restore_no_config_file', 1);
 			throw new \Exception('Failed to find config file in original backup');
 		}
 
@@ -194,6 +207,7 @@ class ManticoreBackup {
 
 	  // Valdiate indexes
 		if (!is_dir($config->dataDir)) {
+			metric('restore_config_dir_missing', 1);
 			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $config->dataDir);
 		}
 
@@ -235,6 +249,7 @@ class ManticoreBackup {
 
 	  // Done
 		$t = round(microtime(true) - $t, 2);
+		metric('restore_time', $t);
 
 		println(LogLevel::Info, "The backup '{$backup['root']}' was successfully restored.");
 		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
@@ -351,7 +366,10 @@ class ManticoreBackup {
    */
 	protected static function fsync(): void {
 		println(LogLevel::Info, 'Running sync');
+		$t = microtime(true);
 		system('sync');
+		$t = round(microtime(true) - $t, 2);
+		metric('fsync_time', $t);
 		println(LogLevel::Info, ' ' . get_op_result(true));
 	}
 
@@ -385,6 +403,7 @@ class ManticoreBackup {
 
 			$preservedPath = $storage->getOriginRealPath($file->getRealPath());
 			if (is_file($preservedPath)) {
+				metric('restore_target_exists', 1);
 				throw new \Exception('Destination file already exists: ' . $preservedPath);
 			}
 		}

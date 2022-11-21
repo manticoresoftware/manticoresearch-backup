@@ -19,10 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build binary
-        run: ./bin/build
+        run: ./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
+
       - id: vars
         run: |
           echo "::set-output name=app_version::$(<APP_VERSION)"
+
       - name: Create artifact
         run: |
           name="${{ env.APP_NAME }}_${{ steps.vars.outputs.app_version }}-$( date +%y%m%d )-${GITHUB_SHA:0:7}"
@@ -40,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build binary
-        run: ./bin/build
+        run: ./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
       - id: vars
         run: |
           echo "::set-output name=app_version::$(<APP_VERSION)"
@@ -101,7 +103,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build binary
-        run: ./bin/build
+        run: ./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
 
       - id: vars
         run: |

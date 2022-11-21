@@ -10,15 +10,17 @@
 */
 
 use Manticoresearch\Backup\Lib\LogLevel;
+use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\Searchd;
 use Manticoresearch\Backup\Lib\TextColor;
+use Manticoresoftware\Telemetry\Metric;
 
 /**
  * Validate args and return parsed options to use
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false}
+ * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool}
  *  Options that we can use for access with predefined keys: config, backup-dir, all, tables
  */
 function validate_args(array $args): array {
@@ -28,6 +30,7 @@ function validate_args(array $args): array {
 		'compress' => isset($args['compress']),
 		'tables' => array_filter(array_map('trim', explode(',', $args['tables'] ?? ''))),
 		'restore' => $args['restore'] ?? false,
+		'disable-telemetry' => isset($args['disable-telemetry']),
 	];
 
   // Validate arguments
@@ -85,13 +88,20 @@ function format_bytes(int $bytes, int $precision = 3): string {
  */
 // @codingStandardsIgnoreEnd
 function get_input_args(): array {
-	$args = getopt('', ['help', 'config:', 'tables:', 'backup-dir:', 'compress', 'restore::', 'unlock', 'version']);
+	$args = getopt(
+		'', [
+			'help', 'config:', 'tables:', 'backup-dir:',
+			'compress', 'restore::', 'unlock', 'version', 'disable-telemetry',
+		]
+	);
 	if (false === $args) {
 		throw new InvalidArgumentException('Error while parsing the arguments');
 	}
 
   // Do not let user to pass non supported options to script
-	$supportedArgs = '!--help!--config!--tables!--backup-dir!--compress!--restore!--unlock!--version!';
+	$supportedArgs = '!--help!--config!--tables!--backup-dir!--compress!--restore!'
+		. '--unlock!--version!--disable-telemetry!'
+	;
 	$argv = $_SERVER['argv'];
 	array_shift($argv);
 
@@ -197,6 +207,9 @@ function show_help(): void {
 	. colored('--restore[=backup]', TextColor::LightGreen) . $nl
 	. "  Restore from --backup-dir. Just --restore lists available backups.$nl"
 	. "  --restore=backup will restore from <--backup-dir>/backup.$nl$nl"
+	. colored('--disable-telemetry', TextColor::LightGreen) . $nl
+	. '  Pass this flag in case you want to disable sending anonymized metrics '
+		. " to Manticore. You can also use environment variable TELEMETRY=0.$nl$nl"
 	. colored('--unlock', TextColor::LightGreen) . $nl
 	. "  In rare cases when something goes wrong the tables can be left in$nl"
 	. "  locked state. Using this argument you can unlock them.$nl$nl"
@@ -205,6 +218,44 @@ function show_help(): void {
 	. colored('--help', TextColor::LightGreen) . $nl
 	. "  Show this help.$nl"
 	;
+}
+
+/**
+ * Emit the metric action and handle it in the way when we need it
+ *
+ * @param ?string $name
+ * @param null|int|float $value
+ * @param array<string,string> $labels
+ * @return void
+ */
+function metric(?string $name = null, null|int|float $value = null, array $labels = []): void {
+	// No telemetry enabled?
+	if (getenv('TELEMETRY', true) !== '1') {
+		return;
+	}
+
+	static $metric;
+	if (!isset($metric)) {
+		// Initialize the metric component with base labels
+		$metric = new Metric(
+			[
+				'backup_version' => ManticoreBackup::getVersion(),
+			]
+		);
+
+		// Register function to run when script will stop
+		register_shutdown_function($metric->send(...));
+	}
+
+	if ($labels) {
+		$metric->addLabelList($labels);
+	}
+
+	if (!$name || !$value) {
+		return;
+	}
+
+	$metric->add($name, $value);
 }
 
 function exception_handler(Throwable $e): void {

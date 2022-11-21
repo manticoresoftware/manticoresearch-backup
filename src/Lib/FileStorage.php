@@ -13,6 +13,7 @@ namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\ChecksumException;
 use Manticoresearch\Backup\Exception\InvalidPathException;
+use Throwable;
 
 class FileStorage {
 	const DIR_PERMISSION = 0755;
@@ -94,8 +95,10 @@ class FileStorage {
 			throw new InvalidPathException("Failed to create directory because it exists already: $dir");
 		}
 
-		$result = mkdir($dir, static::DIR_PERMISSION, $recursive);
-		if (false === $result) {
+
+		try {
+			mkdir($dir, static::DIR_PERMISSION, $recursive);
+		} catch (Throwable) {
 			throw new InvalidPathException('Failed to create directory – "' . $dir . '"');
 		}
 

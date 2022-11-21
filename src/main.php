@@ -23,11 +23,27 @@ use Manticoresearch\Backup\Lib\TextColor;
  * 2. Validate required and passed arguments
  * 3. Initialize backup
  */
+include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
+	. 'vendor' .  DIRECTORY_SEPARATOR . 'autoload.php'
+;
 
-include_once __DIR__ . DIRECTORY_SEPARATOR . 'init.php';
+set_exception_handler(exception_handler(...));
+set_error_handler(error_handler(...)); // @phpstan-ignore-line
+
+echo 'Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)'
+  . PHP_EOL . PHP_EOL
+;
 
 // First fetch all supported args and their short versions
 $args = get_input_args();
+
+putenv('TELEMETRY=' . sprintf('%d', !isset($args['disable-telemetry'])));
+
+metric(strtolower(PHP_OS_FAMILY), 1);
+// Send arguments usage first
+foreach (array_keys($args) as $arg) {
+	metric('arg_' . str_replace('-', '_', $arg), 1);
+}
 
 // Show help in case we passed help arg
 if (isset($args['h']) || isset($args['help'])) {
@@ -43,6 +59,7 @@ if (isset($args['version'])) {
 		throw new RuntimeException('Failed to read min PHP version from the file');
 	}
 	$minPhpVersion = trim($versionContent);
+
 	echo 'Manticore Backup version: ' . ManticoreBackup::getVersion() . PHP_EOL;
 	echo 'Minimum PHP version required: ' . $minPhpVersion . PHP_EOL;
 	exit(0);
@@ -57,7 +74,6 @@ if (!isset($args['config'])) {
 
 // OK, now gather all options in an array with default values
 $options = validate_args($args); // @phpstan-ignore-line
-
 echo 'Manticore config file: ' . $options['config'] . PHP_EOL
   . (
 	  isset($args['restore'])

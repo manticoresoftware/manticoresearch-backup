@@ -83,6 +83,7 @@ class ManticoreClient {
 		$client = new ManticoreClient($config);
 
 		$versions = $client->getVersions();
+		metric(labels: $versions);
 		$verNum = strtok($versions['manticore'], ' ');
 
 		if ($verNum === false || version_compare($verNum, Searchd::MIN_VERSION) <= 0) {
@@ -176,10 +177,13 @@ class ManticoreClient {
    */
 	public function getTables(): array {
 		$result = $this->execute('SHOW TABLES');
-		return array_combine(
+		$tables = array_combine(
 			array_column($result[0]['data'], 'Index'),
 			array_column($result[0]['data'], 'Type')
 		);
+
+		metric('tables', sizeof($tables));
+		return $tables;
 	}
 
   /**
@@ -276,6 +280,8 @@ class ManticoreClient {
 	public function getSignalHandlerFn(FileStorage $storage): \Closure {
 		return function (int $signal) use ($storage): void {
 			println(LogLevel::Warn, 'Caught signal ' . $signal);
+			metric('terminations', 1);
+			metric("signal_$signal", 1);
 			$storage->cleanUp();
 			$this->unfreezeAll();
 		};
