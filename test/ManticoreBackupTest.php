@@ -219,7 +219,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 	protected function assertBackupIsOK(ManticoreClient $client, string $backupDir, array $tables) {
 		$dirs = glob($backupDir . DIRECTORY_SEPARATOR . '*');
 		$this->assertIsArray($dirs);
-	  // @phpstan-ignore-next-line
+
 		$basedir = $dirs[0];
 
 		$config = $client->getConfig();

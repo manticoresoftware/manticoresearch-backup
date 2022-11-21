@@ -75,7 +75,7 @@ Here are all metrics that we collect.
 | machine_id | The identified of the machine (the content of /etc/machine-id in Linux)
 | arg_* | Usage of arguments that you pass to the script on backing up your data |
 | backup_store_versions_fails | Indicates that we failed to store current versions of manticore when backing up |
-| backup_table_size | Single table size |
+| backup_table_count | Total count of backed up tables |
 | backup_no_permissions | Failed to backup due to no permissions to destination dir |
 | backup_total_size | The total size of full backup |
 | backup_time | How long did it take to backup |
