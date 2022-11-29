@@ -147,7 +147,7 @@ class ManticoreConfig {
    */
 	public static function isDataDirValid(string $dataDir): bool {
 		return OS::isWindows()
-			? !!preg_match('/^[a-z]\:\\/ius', $dataDir) // @phpstan-ignore-line
+			? !!preg_match('|^[a-z]\:\\\\|ius', $dataDir)
 			: $dataDir[0] === '/'
 		;
 	}

@@ -17,7 +17,7 @@ class ManticoreClientTest extends SearchdTestCase {
 	protected ManticoreClient $client;
 
 	public function setUp(): void {
-		Searchd::init();
+
 		$config = new ManticoreConfig(Searchd::getConfigPath());
 		$this->client = new ManticoreClient($config);
 	}

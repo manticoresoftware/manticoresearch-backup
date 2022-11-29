@@ -12,16 +12,8 @@ use Manticoresearch\Backup\Lib\Searchd;
 */
 
 class SearchdTest extends SearchdTestCase {
-	public function testGetConfigPathWithoutInitFails(): void {
-		if (isset(Searchd::$cmd)) {
-			Searchd::$cmd = null;
-		}
-		$this->expectException(InvalidArgumentException::class);
-		Searchd::getConfigPath();
-	}
-
 	public function testGetConfigPath(): void {
-		Searchd::init();
+
 		$configPath = Searchd::getConfigPath();
 		$this->assertFileExists($configPath);
 	}

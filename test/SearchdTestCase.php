@@ -16,12 +16,12 @@ class SearchdTestCase extends TestCase {
 	const SEARCHD_PID_FILE = '/var/run/manticore/searchd.pid';
 
 	public static function setUpBeforeClass(): void {
-		Searchd::init();
+
 		if (Searchd::isRunning()) {
 			return;
 		}
 
-		shell_exec(Searchd::$cmd); // @phpstan-ignore-line
+		Searchd::run();
 	}
 
 	public static function tearDownAfterClass(): void {

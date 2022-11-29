@@ -365,6 +365,10 @@ class ManticoreBackup {
    * that we are safe after backup is done
    */
 	protected static function fsync(): void {
+		// Do nothing in windows
+		if (OS::isWindows()) {
+			return;
+		}
 		println(LogLevel::Info, 'Running sync');
 		$t = microtime(true);
 		system('sync');

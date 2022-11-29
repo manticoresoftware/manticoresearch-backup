@@ -278,7 +278,7 @@ class FileStorage {
 			$paths, function (bool $carry, string $path) use ($preservePath, $to) {
 				$dest = $to . (
 					$preservePath
-						? $path
+						? static::normalizeAbsolutePath($path)
 						: (DIRECTORY_SEPARATOR . basename($path))
 				); // $path - absolute path
 				if ($preservePath) {
@@ -296,6 +296,18 @@ class FileStorage {
 				return $carry;
 			}, true
 		);
+	}
+
+	/**
+	 * @param string $path
+	 * @Return string
+	 */
+	protected static function normalizeAbsolutePath(string $path): string {
+		if ($path[0] !== '/') {
+			return DIRECTORY_SEPARATOR . substr($path, 2);
+		}
+
+		return $path;
 	}
 
   /**

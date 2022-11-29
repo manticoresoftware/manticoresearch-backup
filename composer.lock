@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7ef656f084c8acac63329bc24e7c2a5f",
+    "content-hash": "f6da19098d3716c94bcc97d296f54937",
     "packages": [
         {
             "name": "manticoresoftware/openmetrics",
@@ -69,7 +69,13 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/manticoresoftware/telemetry-lib.git",
-                "reference": "cbf9a4fc2615b4678c080fa827fbd4c53485b60b"
+                "reference": "7fbab7b103ebb08889e31551d7d07266b5d3a3f0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/manticoresoftware/telemetry-lib/zipball/7fbab7b103ebb08889e31551d7d07266b5d3a3f0",
+                "reference": "7fbab7b103ebb08889e31551d7d07266b5d3a3f0",
+                "shasum": ""
             },
             "require": {
                 "manticoresoftware/openmetrics": "^v0.1.0",
@@ -87,8 +93,9 @@
                     "Manticoresoftware\\Telemetry\\": "src/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "GPLv2-or-later"
+                "GPL-2.0-or-later"
             ],
             "authors": [
                 {
@@ -102,7 +109,11 @@
                 "metric",
                 "telemetry"
             ],
-            "time": "2022-10-31T09:14:52+00:00"
+            "support": {
+                "issues": "https://github.com/manticoresoftware/telemetry-lib/issues",
+                "source": "https://github.com/manticoresoftware/telemetry-lib/tree/0.1.1"
+            },
+            "time": "2022-11-29T06:19:47+00:00"
         }
     ],
     "packages-dev": [
