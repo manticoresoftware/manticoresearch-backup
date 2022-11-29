@@ -19,16 +19,17 @@ class Searchd {
 
 	public static ?string $cmd;
 
-	public static function init(): void {
-		static::$cmd = OS::which('searchd');
-	}
-
+	/**
+	 * @return string
+	 */
 	public static function getConfigPath(): string {
-		if (!isset(static::$cmd)) {
-			throw new \InvalidArgumentException('You should run Searchd::init before trying to access static methods');
+		// First check env and if we have there, return config file from there
+		$envConfig = getenv('MANTICORE_CONFIG');
+		if ($envConfig) {
+			return $envConfig;
 		}
 
-		$output = shell_exec(static::$cmd . ' --status');
+		$output = shell_exec(static::getCmd() . ' --status');
 		if (!is_string($output)) {
 			throw new \RuntimeException('Unable to get config path');
 		}
@@ -51,8 +52,31 @@ class Searchd {
    */
 	public static function isRunning(): bool {
 		$resultCode = 0;
-		exec(static::$cmd . ' --status', result_code: $resultCode);
+		exec(static::getCmd() . ' --status', result_code: $resultCode);
 
 		return $resultCode === 0;
+	}
+
+	/**
+	 * Launch daemon in case if it's not running
+	 */
+	public static function run(): void {
+		if (static::isRunning()) {
+			return;
+		}
+		shell_exec(static::getCmd());
+	}
+
+	/**
+	 * Helper method to get cmd for searchd to execute in command line
+	 *
+	 * @return string
+	 */
+	protected static function getCmd(): string {
+		if (!isset(static::$cmd)) {
+			static::$cmd = OS::which('searchd');
+		}
+
+		return static::$cmd;
 	}
 }

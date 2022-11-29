@@ -13,8 +13,6 @@ use Manticoresearch\Backup\Lib\FileStorage;
 use Manticoresearch\Backup\Lib\LogLevel;
 use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\ManticoreClient;
-use Manticoresearch\Backup\Lib\OS;
-use Manticoresearch\Backup\Lib\Searchd;
 use Manticoresearch\Backup\Lib\TextColor;
 
 /**
@@ -67,10 +65,6 @@ if (isset($args['version'])) {
 
 // Here the point when we start to check dependecies
 // We do not check in the beginning of file just to let user read --help command
-// TODO: hide the complexity and do internal static method for initialize inside Searchd
-if (!isset($args['config'])) {
-	Searchd::init();
-}
 
 // OK, now gather all options in an array with default values
 $options = validate_args($args); // @phpstan-ignore-line
@@ -142,7 +136,7 @@ switch (true) {
 
 	  // Check if we run as root otherwise show warning
 	  // ! getmyuid returns different uid in docker image
-		if (OS::isWindows() || !function_exists('posix_getuid') || posix_getuid() !== 0) {
+		if (function_exists('posix_getuid') && posix_getuid() !== 0) {
 			echo PHP_EOL . 'WARNING: we couldn\'t fully preserve permissions of the files'
 				. ' you\'ve backed up. Be careful when you restore from the backup or'
 				. ' re-run the backup as root' . PHP_EOL

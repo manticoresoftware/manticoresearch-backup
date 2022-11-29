@@ -5,7 +5,6 @@ use Manticoresearch\Backup\Lib\FileStorage;
 use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\ManticoreClient;
 use Manticoresearch\Backup\Lib\ManticoreConfig;
-use Manticoresearch\Backup\Lib\Searchd;
 
 /*
   Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)
@@ -189,7 +188,7 @@ class ManticoreBackupTest extends SearchdTestCase {
    */
 	public function initTestEnv(): array {
 	  // Initialize all
-		Searchd::init();
+
 
 		$tmpDir = FileStorage::getTmpDir();
 		$backupDir = $tmpDir . DIRECTORY_SEPARATOR . 'backup-test-' . uniqid();

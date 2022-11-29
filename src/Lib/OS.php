@@ -40,7 +40,8 @@ class OS {
    * @throws \Exception
    */
 	public static function which(string $program): string {
-		$result = match (static::isWindows()) {
+		$searchd = getenv('MANTICORE_SEARCHD') ?: null;
+		$result = $searchd ?? match (static::isWindows()) {
 			true => exec('where ' . $program),
 			false => exec('which ' . $program . ' 2> /dev/null'),
 		};

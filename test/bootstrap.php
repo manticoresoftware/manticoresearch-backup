@@ -12,6 +12,7 @@
 use Manticoresearch\Backup\Lib\FileStorage;
 use Manticoresearch\Backup\Lib\ManticoreClient;
 use Manticoresearch\Backup\Lib\ManticoreConfig;
+use Manticoresearch\Backup\Lib\OS;
 use Manticoresearch\Backup\Lib\Searchd;
 
 include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
@@ -19,15 +20,16 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
 ;
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'SearchdTestCase.php';
 
-system('id -u test 2>/dev/null || useradd test');
+if (!OS::isWindows()) {
+	system('id -u test 2>/dev/null || useradd test');
+}
 
 FileStorage::deleteDir(FileStorage::getTmpDir(), false);
 
 SearchdTestCase::setUpBeforeClass();
 // Initialization of base tables to check and some data in it
-Searchd::init();
+
 $configPath = Searchd::getConfigPath();
-Searchd::$cmd = null; // Reset static prop for further testing
 
 $config = new ManticoreConfig($configPath);
 $client = new ManticoreClient($config);

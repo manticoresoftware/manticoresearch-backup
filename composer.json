@@ -14,12 +14,6 @@
 		"slevomat/coding-standard": "^8.5",
 		"phpstan/phpstan": "^1.8"
 	},
-	"repositories": [
-		{
-			"url": "https://github.com/manticoresoftware/telemetry-lib.git",
-			"type": "git"
-		}
-	],
 	"autoload": {
 		"psr-4": {
 			"Manticoresearch\\Backup\\" : "src/"
