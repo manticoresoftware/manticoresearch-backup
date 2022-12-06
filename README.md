@@ -80,7 +80,7 @@ Here are all metrics that we collect:
 | restore_searchd_running | Failed to run restoring process due to searchd being running already |
 | restore_no_config_file | No config file in the backup on restore |
 | restore_time | How long it took to restore |
-| fscync_time | Timings for sync command |
+| fsync_time | How long it took to fsync |
 | restore_target_exists | It occurs when there's a folder or index in the destination folder to restore to |
 | terminations | In case the process was terminated |
 | signal_* | What signal was used to terminate the process |
