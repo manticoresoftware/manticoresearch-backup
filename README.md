@@ -69,12 +69,12 @@ Here are all metrics that we collect:
 
 | Metric | Description |
 |-|-|
-| collector | 🏷 backup |
+| collector | 🏷 backup. Means this metric comes from the backup tool |
 | os_name | 🏷️ Name of the operating system |
-| machine_id | 🏷 Server identifier (the content of /etc/machine-id in Linux)
-| started | This metrics represents all runs of backup |
-| failed | In case backup failed with error we send this metric |
-| done | This metric reports when backup or restore flow succeeded |
+| machine_id | 🏷 Server identifier (the content of `/etc/machine-id` in Linux)
+| invocation | Sent when backup was invoked. Boolean |
+| failed | Sent in case the backup was failed. Boolean |
+| done | Sent when the backup/restore was successful. Boolean |
 | arg_* | What arguments you used to run the tool (skipping all your index names etc.) |
 | backup_store_versions_fails | Indicates that it failed to save your Manticore version in the backup |
 | backup_table_count | Total count of backed up tables |
