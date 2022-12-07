@@ -35,9 +35,13 @@ echo 'Copyright (c) 2022, Manticore Software LTD (https://manticoresearch.com)'
 // First fetch all supported args and their short versions
 $args = get_input_args();
 
+putenv('BACKUP_AS_TOOL=1');
 putenv('TELEMETRY=' . sprintf('%d', !isset($args['disable-telemetry'])));
-
-metric(strtolower(PHP_OS_FAMILY), 1);
+metric(
+	'started', 1, [
+		'mode' => 'tool',
+	]
+);
 // Send arguments usage first
 foreach (array_keys($args) as $arg) {
 	metric('arg_' . str_replace('-', '_', $arg), 1);
@@ -111,7 +115,7 @@ switch (true) {
 		$storage->setBackupPathsUsingDir($options['restore']);
 
 	  // Here is when real restore is starting
-		ManticoreBackup::restore($storage);
+		ManticoreBackup::run('restore', [$storage]);
 	break;
 
 	default: // backup
@@ -143,7 +147,8 @@ switch (true) {
 			;
 		}
 
-		ManticoreBackup::store($client, $storage, $options['tables']);
+		ManticoreBackup::run('store', [$client, $storage, $options['tables']]);
 }
 
+metric('done', 1);
 println(LogLevel::Info, 'Done');

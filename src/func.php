@@ -226,12 +226,12 @@ function show_help(): void {
  * @param ?string $name
  * @param null|int|float $value
  * @param array<string,string> $labels
- * @return void
+ * @return ?Metric
  */
-function metric(?string $name = null, null|int|float $value = null, array $labels = []): void {
+function metric(?string $name = null, null|int|float $value = null, array $labels = []): ?Metric {
 	// No telemetry enabled?
 	if (getenv('TELEMETRY', true) !== '1') {
-		return;
+		return null;
 	}
 
 	static $metric;
@@ -240,30 +240,54 @@ function metric(?string $name = null, null|int|float $value = null, array $label
 		$metric = new Metric(
 			[
 				'backup_version' => ManticoreBackup::getVersion(),
+				'collector' => 'backup',
 			]
 		);
 
 		// Register function to run when script will stop
-		register_shutdown_function($metric->send(...));
+		// Only in case we use it as tool
+		if (is_used_as_tool()) {
+			register_shutdown_function($metric->send(...));
+		}
 	}
 
 	if ($labels) {
 		$metric->addLabelList($labels);
 	}
 
-	if (!$name || !$value) {
-		return;
+	if ($name && $value) {
+		$metric->add($name, $value);
 	}
 
-	$metric->add($name, $value);
+	return $metric;
 }
 
+/**
+ * @return bool
+ */
+function is_used_as_tool(): bool {
+	return getenv('BACKUP_AS_TOOL', true) !== '1';
+}
+
+/**
+ * @param Throwable $e
+ * @return void
+ */
 function exception_handler(Throwable $e): void {
+	metric('failed', 1);
 	println(LogLevel::Error, $e->getMessage());
 	exit(1); // ? we can add method and fetch custom exit code on any exception
 }
 
+/**
+ * @param int $errno
+ * @param string $errstr
+ * @param string $errfile
+ * @param int $errline
+ * @return void
+ */
 function error_handler(int $errno, string $errstr, string $errfile, int $errline): void {
+	metric('failed', 1);
 	if (!(error_reporting() & $errno)) {
 	  // This error code is not included in error_reporting
 		return;

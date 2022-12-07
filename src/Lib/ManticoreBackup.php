@@ -35,6 +35,35 @@ class ManticoreBackup {
 	}
 
 	/**
+	 * Main entry point to make it easier to collect metrics when in package mode
+	 *
+	 * Available commands:
+	 * store: ManticoreClient $client, FileStorage $storage, array $tables = []
+	 * restore: FileStorage $storage
+	 *
+	 * @param string $command
+	 * @param array{}|array{0:ManticoreClient,1:FileStorage,2?:array<string>}|array{0:FileStorage} $args
+	 * @return void
+	 */
+	public static function run(string $command, array $args = []): void {
+		$isPackage = !is_used_as_tool();
+		if ($isPackage) {
+			metric(
+				'started', 1, [
+					'mode' => 'lib',
+				]
+			);
+		}
+		static::$command(...$args);
+		if (!$isPackage) {
+			metric('done', 1);
+		}
+
+		// Return metric and send it
+		metric()?->send();
+	}
+
+	/**
    * Store the wanted tables in backup dir as backup
    *
    * @param ManticoreClient $client
@@ -46,7 +75,7 @@ class ManticoreBackup {
    * @return void
    * @throws \RuntimeException
    */
-	public static function store(ManticoreClient $client, FileStorage $storage, array $tables = []): void {
+	protected static function store(ManticoreClient $client, FileStorage $storage, array $tables = []): void {
 		println(LogLevel::Info, 'Starting the backup...');
 		$t = microtime(true);
 		$destination = $storage->getBackupPaths();
@@ -170,7 +199,7 @@ class ManticoreBackup {
    * @param FileStorage $storage
    * @return void
    */
-	public static function restore(FileStorage $storage): void {
+	protected static function restore(FileStorage $storage): void {
 		println(LogLevel::Info, 'Starting to restore...');
 		$t = microtime(true);
 		$backup = $storage->getBackupPaths();

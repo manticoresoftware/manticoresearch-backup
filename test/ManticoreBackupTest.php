@@ -22,7 +22,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$client = new ManticoreClient($config);
 
 	  // Backup of all tables
-		ManticoreBackup::store($client, $storage, []);
+		ManticoreBackup::run('store', [$client, $storage, []]);
 		$this->assertBackupIsOK(
 			$client,
 			$backupDir,
@@ -49,7 +49,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$client = new ManticoreClient($config);
 
 	  // Backup of all tables
-		ManticoreBackup::store($client, $storage, []);
+		ManticoreBackup::run('store', [$client, $storage, []]);
 		$this->assertBackupIsOK(
 			$client,
 			$backupDir,
@@ -69,7 +69,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		[$config, $storage, $backupDir] = $this->initTestEnv();
 		$client = new ManticoreClient($config);
 
-		ManticoreBackup::store($client, $storage, ['movie', 'people']);
+		ManticoreBackup::run('store', [$client, $storage, ['movie', 'people']]);
 		$this->assertBackupIsOK($client, $backupDir, ['movie' => 'rt', 'people' => 'rt']);
 	}
 
@@ -78,7 +78,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$client = new ManticoreClient($config);
 
 	  // Backup only one
-		ManticoreBackup::store($client, $storage, ['people']);
+		ManticoreBackup::run('store', [$client, $storage, ['people']]);
 		$this->assertBackupIsOK($client, $backupDir, ['people' => 'rt']);
 	}
 
@@ -87,7 +87,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$client = new ManticoreClient($config);
 
 		$this->expectException(InvalidArgumentException::class);
-		ManticoreBackup::store($client, $storage, ['unknown']);
+		ManticoreBackup::run('store', [$client, $storage, ['unknown']]);
 	}
 
 	public function testStoreExistingAndUnexistingTablesTogether(): void {
@@ -95,7 +95,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$client = new ManticoreClient($config);
 
 		$this->expectException(InvalidArgumentException::class);
-		ManticoreBackup::store($client, $storage, ['people', 'unknown']);
+		ManticoreBackup::run('store', [$client, $storage, ['people', 'unknown']]);
 	}
 
 	public function testStoreFailsInCaseNoPermissionsToWriteTargetDir(): void {
@@ -109,7 +109,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	  // Run test
 		$this->expectException(InvalidPathException::class);
-		ManticoreBackup::store($client, $storage, ['people']);
+		ManticoreBackup::run('store', [$client, $storage, ['people']]);
 	}
 
 	public function testStoreAbortedOnSignalCaught(): void {
@@ -133,7 +133,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	  // Run test
 		$this->expectException(Exception::class);
-		ManticoreBackup::store($client, $storage, ['people', 'movie']);
+		ManticoreBackup::run('store', [$client, $storage, ['people', 'movie']]);
 		$this->expectOutputRegex('/Caught signal 15/');
 		$this->expectOutputRegex('/Unfreezing all tables/');
 		$this->expectOutputRegex('/movie...' . PHP_EOL . '[^\r\n]+✓ OK/');
@@ -176,7 +176,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		);
 
 		$this->expectException(Throwable::class);
-		ManticoreBackup::store($client, $storage, ['people', 'movie']);
+		ManticoreBackup::run('store', [$client, $storage, ['people', 'movie']]);
 
 		$backupPaths = $storage->getBackupPaths();
 		$this->assertDirectoryDoesNotExist($backupPaths['root']);
