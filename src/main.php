@@ -38,7 +38,7 @@ $args = get_input_args();
 putenv('BACKUP_AS_TOOL=1');
 putenv('TELEMETRY=' . sprintf('%d', !isset($args['disable-telemetry'])));
 metric(
-	'started', 1, [
+	'invocation', 1, [
 		'mode' => 'tool',
 	]
 );

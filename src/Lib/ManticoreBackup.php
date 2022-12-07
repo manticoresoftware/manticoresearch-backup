@@ -49,7 +49,7 @@ class ManticoreBackup {
 		$isPackage = !is_used_as_tool();
 		if ($isPackage) {
 			metric(
-				'started', 1, [
+				'invocation', 1, [
 					'mode' => 'lib',
 				]
 			);
