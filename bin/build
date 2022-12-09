@@ -8,15 +8,15 @@ if (!$opts) {
 }
 
 if (!isset($opts['name'])) {
-  die('Error: you should pass --name with a name of the project to build' . PHP_EOL);
+  die('Error: you should pass --name with name of project to build' . PHP_EOL);
 }
 
 if (!isset($opts['package'])) {
-  die('Error: you should pass --package with a binary name to build' . PHP_EOL);
+  die('Error: you should pass --package with binary name to build' . PHP_EOL);
 }
 
 if (!isset($opts['index']) || !is_file($opts['index'])) {
-  die('Error: you should pass --index and set a correct path to the entrypoint PHP file' . PHP_EOL);
+  die('Error: you should pass --index and set correct path to the entrypoint PHP file' . PHP_EOL);
 }
 
 $binFile = BUILD_DIR . '/' . $opts['package'];
@@ -40,6 +40,7 @@ $phar->buildFromDirectory('.', '/src\/.+$/');
 $phar->setStub($default_stub);
 $phar->addFile(BUILD_DIR . '/../PHP_VERSION', 'PHP_VERSION');
 $phar->addFile(BUILD_DIR . '/../APP_VERSION', 'APP_VERSION');
+// $phar['PHP_VERSION']->setMetadata(['mime-type' => 'text/plain']);
 
 // Now add all deps required by composer
 // We create new fake vendor and install only no dev packages
@@ -52,7 +53,6 @@ add_directory_to_phar($buildVendorDir, $phar, 'vendor');
 // Done with composer
 
 $phar->stopBuffering();
-
 // TODO: we should add gz to manticore-executor or do not use it
 // $phar->compressFiles(Phar::GZ);
 
@@ -65,10 +65,13 @@ $bash = implode(PHP_EOL, [
   "echo >&2 {$opts['name']} requires php or manticore-executor. Please install package 'manticore-extra'.",
   'exit 1',
   'fi',
+  'function ver {',
+  "printf '%03d%03d%03d' $(echo \"$1\" | tr '.' ' ')",
+  '}',
   // Validate minimum php version
   "min_version=$minPhpVersion",
   'executor_version=$($executor -v | head -n 1 | cut -d" " -f2)',
-  'if [[ executor_version < min_version ]]; then',
+  'if [[ $(ver $executor_version) < $(ver $min_version) ]]; then',
   "echo >&2 {$opts['name']} requires php \$min_version+",
   'fi',
   'tmp=$($executor -r \'echo sys_get_temp_dir();\')',
