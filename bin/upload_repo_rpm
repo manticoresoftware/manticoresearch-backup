@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# from outside: $DISTRO = 7,8,9
+# from outside: $DISTRO = 7,8
 # That file here is for reference; actually used the one stored on the host to avoid checkout of the whole code
 set -e
 echo "Uploading $DISTRO"
@@ -15,7 +15,7 @@ copy_to() {
 # bundleaarch=0
 # bundleintel=0
 
-for f in build/*."el$DISTRO".{x86_64,aarch64}.rpm; do
+for f in build/*."el$DISTRO".{x86_64,aarch64,noarch}.rpm; do
 
   echo "file $f"
   tail=$(echo "$f" | sed 's_build/__g;s/[a-z]*-//g;')
@@ -24,7 +24,10 @@ for f in build/*."el$DISTRO".{x86_64,aarch64}.rpm; do
     ARCH=x86_64
   elif [[ $tail == *".aarch64."* ]]; then
     ARCH=aarch64
-  fi;
+  elif [[ $tail == *".noarch."* ]]; then
+    ARCH=noarch
+  fi
+  echo "Arch: $ARCH"
   if [ -f "$f" ]; then
     if [ -z "${IS_RELEASE_DIGIT}" ]; then
       IS_RELEASE_DIGIT=$(echo "$f" | cut -d. -f3 | cut -d_ -f1)
@@ -34,6 +37,7 @@ for f in build/*."el$DISTRO".{x86_64,aarch64}.rpm; do
         DESTINATION="dev"
       fi
     fi
+
 
     FILENAME=$(basename "$f")
     cp $f /work/repomanager/docker/rpm_signer/data/$DISTRO/$ARCH/$FILENAME
@@ -48,6 +52,11 @@ for f in build/*."el$DISTRO".{x86_64,aarch64}.rpm; do
     if [[ $ARCH == "aarch64" ]]; then
       copy_to "$f" aarch64/
       # bundleaarch=1
+    fi
+
+    if [[ $ARCH == "noarch" ]]; then
+      copy_to "$f" x86_64/
+      copy_to "$f" aarch64/
     fi
 
   fi
