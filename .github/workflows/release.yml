@@ -50,12 +50,11 @@ jobs:
         run: |
           mkdir -p .debpkg/usr/bin
           mkdir -p .rpmpkg/usr/bin
-          cp -p ./build/manticore-backup .debpkg/usr/bin/${{ env.APP_NAME }}
-          cp -p README.md .debpkg/README.md
-          cp -p LICENSE .debpkg/LICENSE
-          cp -p ./build/manticore-backup .rpmpkg/usr/bin/${{ env.APP_NAME }}
-          cp -p README.md .rpmpkg/README.md
-          cp -p LICENSE .rpmpkg/LICENSE
+          mkdir -p .rpmpkg/usr/share
+          cp -p ./build/${{ env.APP_NAME }} .debpkg/usr/bin/${{ env.APP_NAME }}
+          cp -p ./build/${{ env.APP_NAME }} .rpmpkg/usr/bin/${{ env.APP_NAME }}
+          cp -p LICENSE .rpmpkg/usr/share/${{ env.APP_NAME }}-LICENSE
+          cp -p README.md .rpmpkg/usr/share/${{ env.APP_NAME }}-README.md
         shell: bash
       - uses: manticoresoftware/actions-build-deb-action@master
         with:
@@ -65,22 +64,44 @@ jobs:
           version: ${{ steps.vars.outputs.app_version }}
           arch: 'all'
           desc: '${{ env.DESC }}'
+          license: 'GPL-2.0-or-later'
 
-      - uses: manticoresoftware/actions-build-rpm-action@master
-        with:
-          summary: '${{ env.DESC }}'
-          package: ${{ env.APP_NAME }}
-          package_root: .rpmpkg
-          maintainer: ${{ env.MAINTAINER }}
-          version: v${{ steps.vars.outputs.app_version }}
-          arch: 'noarch'
-          desc: '${{ env.DESC }}'
+      - name: Build RPM packages
+        run: |
+          sudo apt-get update -y -q
+          sudo apt-get install -y rpm
+
+          RPMBUILD_DIR="$HOME/rpmbuild"
+          RPMBUILD_SOURCE_DIR="$RPMBUILD_DIR/SOURCES"
+          RPMBUILD_SPEC_DIR="$RPMBUILD_DIR/SPECS"
+
+          WORKDIR="/tmp/work"
+          mkdir "$WORKDIR"
+          spec_file=main.spec
+          cp "packages/$spec_file" "$WORKDIR"
+          cp -rp ".rpmpkg" "$WORKDIR/${{ env.APP_NAME }}"
+          cd "$WORKDIR"
+
+          # Prepare spec file for RPM
+          sed -i 's/{{ NAME }}/${{ env.APP_NAME }}/g' $spec_file
+          sed -i 's/{{ VERSION }}/${{ github.ref_name }}/g' $spec_file
+          sed -i 's/{{ MAINTAINER }}/${{ env.MAINTAINER }}/g' $spec_file
+          sed -i 's/{{ DESC }}/${{ env.DESC }}/g' $spec_file
+
+          tar czf tmp.tar.gz "${{ env.APP_NAME }}/"
+          mkdir -p "$RPMBUILD_SOURCE_DIR"
+          mkdir -p "$RPMBUILD_SPEC_DIR"
+          mv tmp.tar.gz "$RPMBUILD_SOURCE_DIR"
+          cp -p $spec_file "$RPMBUILD_SPEC_DIR"
+          rpmbuild -bb "$RPMBUILD_SPEC_DIR/$spec_file"
+          ls -lah "$RPMBUILD_DIR/RPMS/noarch"/*.rpm
+          cp -p "$RPMBUILD_DIR/RPMS/noarch"/*.rpm $GITHUB_WORKSPACE
 
       - name: Rename packages to proper name
         run: |
           ls -la ./*.rpm
           version=${{ steps.vars.outputs.app_version }}
-          rpm_path="./${{ env.APP_NAME }}-${version}-1.el7.noarch.rpm"
+          rpm_path="./${{ env.APP_NAME }}-v${version}-1.noarch.rpm"
           rpm_suffix=$( date +%y%m%d ).${GITHUB_SHA:0:7}
           cp $rpm_path "./${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el7.noarch.rpm"
           cp $rpm_path "./${{ env.APP_NAME }}-${version}_${rpm_suffix}-1.el8.noarch.rpm"
