@@ -62,7 +62,7 @@ class ManticoreConfig {
 		if ($m) {
 			foreach ($m[1] as $n => $key) {
 				$value = $m[2][$n];
-				if ($n === 'listen') { // in case of we need to parse
+				if ($key === 'listen') { // in case of we need to parse
 					$this->parseHostPort($value);
 				} else { // In this case we have path/file directive
 					$property = match ($key) {
