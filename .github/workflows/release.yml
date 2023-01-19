@@ -215,7 +215,7 @@ jobs:
           - artifact: artifact
             ext: "{tar.gz,zip}"
             script: upload_repo_arc
-            delimiter: "_"
+            delimiter: "-"
             distro: ""
     steps:
       - uses: actions/checkout@v3
