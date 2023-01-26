@@ -25,6 +25,10 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
 	. 'vendor' .  DIRECTORY_SEPARATOR . 'autoload.php'
 ;
 
+// This fix issue when we get "sh: 1: cd: can't cd to" error
+// while running buddy inside directory that are not allowed for us
+chdir(sys_get_temp_dir());
+
 set_exception_handler(exception_handler(...));
 set_error_handler(error_handler(...)); // @phpstan-ignore-line
 
