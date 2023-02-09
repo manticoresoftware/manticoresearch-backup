@@ -59,15 +59,7 @@ if (isset($args['h']) || isset($args['help'])) {
 
 // Show version in case we passed version arg
 if (isset($args['version'])) {
-	$versionFile = __DIR__ . DIRECTORY_SEPARATOR  . '..'. DIRECTORY_SEPARATOR  . 'PHP_VERSION';
-	$versionContent = file_get_contents($versionFile);
-	if (false === $versionContent) {
-		throw new RuntimeException('Failed to read min PHP version from the file');
-	}
-	$minPhpVersion = trim($versionContent);
-
 	echo 'Manticore Backup version: ' . ManticoreBackup::getVersion() . PHP_EOL;
-	echo 'Minimum PHP version required: ' . $minPhpVersion . PHP_EOL;
 	exit(0);
 }
 

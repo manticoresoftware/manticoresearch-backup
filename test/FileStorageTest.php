@@ -67,8 +67,9 @@ class FileStorageTest extends TestCase {
 		$storage = new FileStorage($tmpDir, false);
 
 		file_put_contents($paths[1], random_bytes(128));
-		chown($paths[0], 'test');
-		chown($paths[1], 'test');
+		$userUid = (int)system('id -u test');
+		chown($paths[0], $userUid);
+		chown($paths[1], $userUid);
 
 		$storage->copyPaths($paths, $target, false);
 		$this->assertDirectoryExists($target . DIRECTORY_SEPARATOR . basename($paths[0]));

@@ -50,10 +50,10 @@ class ManticoreBackupRestoreTest extends TestCase {
 			}
 
 			if (file_exists($path)) {
-				if (is_dir($pathBak)) {
-					FileStorage::deleteDir($pathBak);
-				} else {
+				if (is_file($pathBak) || is_link($pathBak)) {
 					unlink($pathBak);
+				} else {
+					FileStorage::deleteDir($pathBak);
 				}
 			} else {
 				shell_exec("mv '$pathBak' '$path'");

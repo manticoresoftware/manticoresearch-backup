@@ -9,7 +9,6 @@ on:
 
 env:
   APP_NAME: 'manticore-backup'
-  PHP_VERSION: '8.1.11'
   MAINTAINER: 'Manticore'
   DESC: 'Manticore Backup'
 
@@ -19,7 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build binary
-        run: ./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
+        run: |
+          git clone https://github.com/manticoresoftware/phar_builder.git
+          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
 
       - id: vars
         run: |
@@ -43,7 +44,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build binary
-        run: ./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
+        run: |
+          git clone https://github.com/manticoresoftware/phar_builder.git
+          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
       - id: vars
         run: |
           echo "::set-output name=app_version::$(<APP_VERSION)"

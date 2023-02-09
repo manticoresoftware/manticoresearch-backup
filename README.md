@@ -12,7 +12,6 @@ Read the [official documentation](https://manual.manticoresearch.com/dev/Securin
 |-|-|
 | bin | This directory contains various binaries to execute and also build script |
 | bin/run | This script is used for run the backup script in development and use it for debug purpose |
-| bin/build | It buildes and prepare single binary in PHP Phar format to be ready to ship |
 | build | This directory is ignored by git but built binary goes there |
 | src | All sources code goes here |
 | src/lib | Library independed components |
