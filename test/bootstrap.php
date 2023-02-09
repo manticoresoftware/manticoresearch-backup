@@ -21,7 +21,7 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'SearchdTestCase.php';
 
 if (!OS::isWindows()) {
-	system('id -u test 2>/dev/null || useradd test');
+	system('id -u test 2>/dev/null || adduser -D test');
 }
 
 FileStorage::deleteDir(FileStorage::getTmpDir(), false);
