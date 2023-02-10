@@ -44,7 +44,7 @@ function validate_args(array $args): array {
 	if (!isset($args['unlock'])) {
 		if (!isset($options['backup-dir'])
 		|| !is_dir($options['backup-dir'])
-		|| !is_writeable($options['backup-dir'])) {
+		|| !is_writable($options['backup-dir'])) {
 			throw new InvalidArgumentException(
 				'Failed to find backup dir to store backup: ' . ($options['backup-dir'] ?? 'none')
 			);
@@ -61,7 +61,7 @@ function validate_args(array $args): array {
 }
 
 /**
- * Little helper to conver bytes to human readable size
+ * Little helper to convert bytes to human readable size
  *
  * @param int $bytes
  * @param int $precision
@@ -107,7 +107,7 @@ function get_input_args(): array {
 
 	foreach ($argv as $arg) {
 		$arg = strtok($arg, '=');
-		if (false === strpos($supportedArgs, '!' . $arg . '!')) {
+		if (!str_contains($supportedArgs, '!'.$arg.'!')) {
 			throw new InvalidArgumentException('Unknown option: ' . $arg);
 		}
 	}

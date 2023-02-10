@@ -21,7 +21,7 @@ class FileStorageTest extends TestCase {
 		$storage = new FileStorage($tmpDir, false);
 
 		$this->assertDirectoryDoesNotExist($dir);
-		$storage->createDir($dir);
+		$storage::createDir($dir);
 		$this->assertDirectoryExists($dir);
 	}
 
@@ -33,12 +33,12 @@ class FileStorageTest extends TestCase {
 		];
 		$target = $tmpDir . DIRECTORY_SEPARATOR . 'target-path-' . uniqid();
 		$storage = new FileStorage($tmpDir, false);
-		$storage->createDir($target);
+		$storage::createDir($target);
 
 		$this->expectException(InvalidPathException::class);
 		$storage->copyPaths($paths, $target);
 
-		$storage->createDir($paths[0]);
+		$storage::createDir($paths[0]);
 		$this->expectException(InvalidPathException::class);
 		$storage->copyPaths($paths, $target);
 

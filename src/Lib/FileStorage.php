@@ -48,7 +48,7 @@ class FileStorage {
    * @return string
    * @throws \RuntimeException
    */
-	public function getBackupDir(): ?string {
+	public function getBackupDir(): string {
 		if (!isset($this->backupDir)) {
 			throw new \RuntimeException('Backup dir is not initialized.');
 		}
@@ -177,7 +177,7 @@ class FileStorage {
 		}
 
 		$rootDir = dirname($to);
-		if (!is_dir($rootDir) || !is_writeable($rootDir)) {
+		if (!is_dir($rootDir) || !is_writable($rootDir)) {
 			throw new InvalidPathException('Cannot write to backup directory - "' . $rootDir . '"');
 		}
 
@@ -193,7 +193,7 @@ class FileStorage {
 			if ($file->isDir()) {
 			  // Create dir if it does not exist
 				if (!is_dir($destDir)) {
-					$this->createDir($destDir, $file->getPath());
+					$this::createDir($destDir, $file->getPath());
 				}
 				continue;
 			}
@@ -270,7 +270,7 @@ class FileStorage {
    *  Result of the operation
    */
 	public function copyPaths(array $paths, string $to, bool $preservePath = false): bool {
-		if (!is_dir($to) || !is_writeable($to)) {
+		if (!is_dir($to) || !is_writable($to)) {
 			throw new InvalidPathException('Cannot write to backup directory - "' . $to . '"');
 		}
 
@@ -284,7 +284,7 @@ class FileStorage {
 				if ($preservePath) {
 					$dir = is_file($path) ? dirname($dest) : $dest;
 					if (!is_dir($dir)) {
-						$this->createDir($dir, dirname($path), true);
+						$this::createDir($dir, dirname($path), true);
 					}
 				}
 				if (is_file($path)) {
@@ -388,7 +388,7 @@ class FileStorage {
 	}
 
   /**
-   * Get tmp directory for project related usage primarely in tests
+   * Get tmp directory for project related usage primarily in tests
    * @return string
    *  The path to the temporary dir that contains only files created by us
    */
@@ -414,7 +414,7 @@ class FileStorage {
 		$result = [];
 		$result['root'] = $destination;
 
-	  // Now lets create additional directories
+	  // Now let's create additional directories
 		foreach (['data', 'config', 'state'] as $dir) {
 			$path = $destination . DIRECTORY_SEPARATOR . $dir;
 			$result[$dir] = $path;
@@ -463,7 +463,7 @@ class FileStorage {
 			$result = [];
 			$result['root'] = $destination;
 
-		  // Now lets create additional directories
+		  // Now let's create additional directories
 			foreach (['data', 'config', 'state'] as $dir) {
 				$path = $destination . DIRECTORY_SEPARATOR . $dir;
 				$result[$dir] = $path;
@@ -515,7 +515,7 @@ class FileStorage {
 			return;
 		}
 
-		$this->deleteDir($this->backupPaths['root']);
+		$this::deleteDir($this->backupPaths['root']);
 	}
 
   /**
