@@ -20,7 +20,7 @@ class OS {
    *  True in case if we use windows as running OS
    */
 	public static function isWindows(): bool {
-		return strncasecmp(PHP_OS, 'WIN', 3) === 0;
+		return PHP_OS_FAMILY === 'Windows';
 	}
 
   /**
@@ -28,7 +28,7 @@ class OS {
    *  True in case if we use Linux as running OS
    */
 	public static function isLinux(): bool {
-		return PHP_OS === 'Linux';
+		return PHP_OS_FAMILY === 'Linux';
 	}
 
   /**
