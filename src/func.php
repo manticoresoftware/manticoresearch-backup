@@ -107,7 +107,7 @@ function get_input_args(): array {
 
 	foreach ($argv as $arg) {
 		$arg = strtok($arg, '=');
-		if (!str_contains($supportedArgs, '!'.$arg.'!')) {
+		if (!str_contains($supportedArgs, '!' . $arg . '!')) {
 			throw new InvalidArgumentException('Unknown option: ' . $arg);
 		}
 	}
