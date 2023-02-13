@@ -83,8 +83,8 @@ class ManticoreConfig {
 		}
 
 		if (!static::isDataDirValid($this->dataDir)) {
+			$this->dataDir = realpath($this->dataDir) ?: $this->dataDir;
 			metric('config_data_dir_is_relative', 1);
-			throw new InvalidPathException('The data_dir parameter in searchd config should contain absolute path');
 		}
 
 		$this->schemaPath = $this->dataDir . '/manticore.json';
