@@ -57,6 +57,20 @@ class OS {
 	 * @return bool
 	 */
 	public static function isRoot(): bool {
-		return !OS::isWindows() && function_exists('posix_getuid') && posix_getuid() === 0;
+		return !static::isWindows() && function_exists('posix_getuid') && posix_getuid() === 0;
+	}
+
+	/**
+	 * OS depended path comparision if two strings point to the same path
+	 *
+	 * @param string $path1
+	 * @param string $path2
+	 * @return bool
+	 */
+	public static function isSamePath(string $path1, string $path2): bool {
+		return match (static::isWindows()) {
+			true => strcasecmp($path1, $path2) === 0,
+			false => $path1 === $path2,
+		};
 	}
 }
