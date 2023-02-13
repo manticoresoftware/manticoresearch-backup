@@ -12,6 +12,7 @@
 namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\SearchdException;
+use Manticoresearch\Backup\Lib\OS;
 use function println;
 
 /**
@@ -54,7 +55,7 @@ class ManticoreClient {
 
 	  // Validate config path or fail
 		$configPath = $this->getConfigPath();
-		if ($configPath !== $this->config->path) {
+		if (!OS::isSamePath($configPath, $this->config->path)) {
 			throw new \RuntimeException(
 				"Configs mismatched: '{$this->config->path} <> {$configPath}"
 				. ', make sure the instance you are backing up is using the provided config'
