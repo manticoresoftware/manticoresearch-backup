@@ -40,7 +40,7 @@ class Searchd {
 
 		$configPath = realpath($m[1]);
 		if (false === $configPath) {
-			throw new \RuntimeException('Unable to get config path');
+			throw new \RuntimeException('Unable to get realpath of the config file');
 		}
 		return $configPath;
 	}
