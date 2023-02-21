@@ -183,18 +183,19 @@ class FileStorage {
 
 		$result = true;
 
-		$fromLen = strlen($from) + 1;
+		$fromLen = strlen($from);
 		$fileIterator = static::getFileIterator($from);
 	  /** @var \SplFileInfo $file */
 		foreach ($fileIterator as $file) {
-			$destDir = $to . DIRECTORY_SEPARATOR . substr($file->getPath(), $fromLen);
+			$destDir = rtrim($to, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . substr($file->getPath(), $fromLen);
 
-		  // Skip directories
+			// Create dir if it does not exist
+			if (!is_dir($destDir)) {
+				$this->createDir($destDir, $file->getPath(), true);
+			}
+
+			// Skip directories
 			if ($file->isDir()) {
-			  // Create dir if it does not exist
-				if (!is_dir($destDir)) {
-					$this->createDir($destDir, $file->getPath());
-				}
 				continue;
 			}
 
