@@ -24,8 +24,8 @@ class ManticoreClientTest extends SearchdTestCase {
 
 	public function testGetVersions(): void {
 		$versions = $this->client->getVersions();
-		$this->assertEquals('0.0.0', $versions['columnar']);
-		$this->assertEquals('0.0.0', $versions['secondary']);
+		$this->assertNotEquals('0.0.0', $versions['columnar']);
+		$this->assertNotEquals('0.0.0', $versions['secondary']);
 		$this->assertNotEquals('0.0.0', $versions['manticore']);
 	}
 

@@ -9,7 +9,6 @@ on:
 
 env:
   APP_NAME: 'manticore-backup'
-  PHP_VERSION: '8.1.11'
   MAINTAINER: 'Manticore'
   DESC: 'Manticore Backup'
 
@@ -19,36 +18,92 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build binary
-        run: ./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
+        run: |
+          git clone https://github.com/manticoresoftware/phar_builder.git
+          ./phar_builder/bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
 
       - id: vars
         run: |
-          echo "::set-output name=app_version::$(<APP_VERSION)"
-          echo "::set-output name=rpm_suffix::_$( date +%y%m%d%H ).${GITHUB_SHA:0:7}"
-          echo "::set-output name=deb_suffix::-$( date +%y%m%d%H )-${GITHUB_SHA:0:7}"
+          echo "app_version=$(<APP_VERSION)" >> $GITHUB_OUTPUT
+          echo "rpm_suffix=_$( date +%y%m%d%H ).${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "deb_suffix=-$( date +%y%m%d%H )-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
       - name: Create artifact
         run: |
           name="${{ env.APP_NAME }}_${{ steps.vars.outputs.app_version }}${{ steps.vars.outputs.deb_suffix }}"
           echo "$name"
           tar czf "$name.tar.gz" build/manticore-backup
+          zip "$name.zip" build/manticore-backup.ps1
         shell: bash
       - uses: actions/upload-artifact@v3
         with:
           name: artifact
           path: |
             ./*.tar.gz
+            ./*.zip
+
+  sign-windows-artifact:
+    needs:
+      - build-artifact
+    runs-on: windows-2019
+    steps:
+      - name: Import code signing certificate
+        shell: powershell
+        run: |
+          $pfxCertFilePath = Join-Path -Path $PSScriptRoot -ChildPath "CodeSigningCertificate.pfx"
+          Set-Content -Value $([System.Convert]::FromBase64String($env:BASE64_PFX)) -Path $pfxCertFilePath -Encoding Byte
+          $codeSigningCert = Import-PfxCertificate -FilePath $pfxCertFilePath -Password $($env:PFX_PASSWORD | ConvertTo-SecureString -AsPlainText -Force) -CertStoreLocation Cert:\CurrentUser\My
+        env:
+          BASE64_PFX: ${{ secrets.CODESIGN_PFX_BASE64 }}
+          PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+      - name: Sign PowerShell scripts
+        shell: powershell
+        run: |
+          Expand-Archive -Path "*.zip" -DestinationPath .
+          $scripts = Get-ChildItem -Path . -Filter ".\build\*.ps1" -ErrorAction Stop
+          # load cert
+          $codeSigningCert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Select-Object -First 1
+          foreach ($script in $scripts) {
+            try {
+              $scriptContent = Get-Content -Path $script.FullName
+              Write-Output "Signing script `"$($script.Name)`" with certificate `"$($codeSigningCert.Thumbprint)`""
+              # sign script
+              $null = Set-AuthenticodeSignature -Certificate $codeSigningCert -FilePath $script.FullName -TimestampServer "http://timestamp.comodoca.com/rfc3161"
+            }
+            catch {
+              Write-Error $_
+            }
+          }
+
+          # Now recompress signed script
+          $zipFile = Get-ChildItem -Path . -Filter "*.zip" | Select-Object -First 1
+          Remove-Item -Path $zipFile
+          [system.io.directory]::CreateDirectory(".\bin")
+          Move-Item ".\build\*.ps1" ".\bin\"
+          Compress-Archive -Path ".\bin" -DestinationPath $zipFile
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: |
+            ./*.tar.gz
+            ./*.zip
 
   build-linux-packages:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - name: Build binary
-        run: ./bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
+        run: |
+          git clone https://github.com/manticoresoftware/phar_builder.git
+          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
       - id: vars
         run: |
-          echo "::set-output name=app_version::$(<APP_VERSION)"
-          echo "::set-output name=rpm_suffix::_$( date +%y%m%d%H ).${GITHUB_SHA:0:7}"
-          echo "::set-output name=deb_suffix::-$( date +%y%m%d%H )-${GITHUB_SHA:0:7}"
+          echo "app_version=$(<APP_VERSION)" >> $GITHUB_OUTPUT
+          echo "rpm_suffix=_$( date +%y%m%d%H ).${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "deb_suffix=-$( date +%y%m%d%H )-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
       - name: Prepare packages structure
         run: |
           mkdir -p .debpkg/usr/bin
@@ -153,6 +208,7 @@ jobs:
   deploy:
     needs:
       - build-artifact
+      - sign-windows-artifact
       - build-linux-packages
     runs-on: self-hosted
     strategy:
@@ -226,7 +282,7 @@ jobs:
           path: ./build
       - id: vars
         run: |
-          echo "::set-output name=asset_name::$(ls ./build/*.${{ matrix.ext }} | head -n 1)"
+          echo "asset_name=$(ls ./build/*.${{ matrix.ext }} | head -n 1)" >> $GITHUB_OUTPUT
 
       - name: Deploy package
         run: |

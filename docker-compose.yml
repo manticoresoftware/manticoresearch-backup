@@ -3,7 +3,7 @@ services:
  manticore-executor:
   cap_add:
     - SYS_ADMIN
-  image: manticoresearch/manticoresearch-backup-test-kit:5.0.3
+  image: manticoresearch/manticore-executor-kit:0.6.4
   working_dir: /var/www
   volumes:
      - .:/var/www

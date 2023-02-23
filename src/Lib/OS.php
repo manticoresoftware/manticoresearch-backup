@@ -20,7 +20,7 @@ class OS {
    *  True in case if we use windows as running OS
    */
 	public static function isWindows(): bool {
-		return strncasecmp(PHP_OS, 'WIN', 3) === 0;
+		return PHP_OS_FAMILY === 'Windows';
 	}
 
   /**
@@ -28,15 +28,15 @@ class OS {
    *  True in case if we use Linux as running OS
    */
 	public static function isLinux(): bool {
-		return PHP_OS === 'Linux';
+		return PHP_OS_FAMILY === 'Linux';
 	}
 
   /**
-   * Little helper to find the real path to executable depending on running os
+   * Little helper to find the real path to executoable depending on running os
    *
    * @param string $program
    * @return string
-   *  The path to found executable
+   *  The path to found executoable
    * @throws \Exception
    */
 	public static function which(string $program): string {
@@ -58,5 +58,19 @@ class OS {
 	 */
 	public static function isRoot(): bool {
 		return !static::isWindows() && function_exists('posix_getuid') && posix_getuid() === 0;
+	}
+
+	/**
+	 * OS depended path comparision if two strings point to the same path
+	 *
+	 * @param string $path1
+	 * @param string $path2
+	 * @return bool
+	 */
+	public static function isSamePath(string $path1, string $path2): bool {
+		return match (static::isWindows()) {
+			true => strcasecmp($path1, $path2) === 0,
+			false => $path1 === $path2,
+		};
 	}
 }
