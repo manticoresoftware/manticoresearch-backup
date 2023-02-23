@@ -193,7 +193,7 @@ class FileStorage {
 			if ($file->isDir()) {
 			  // Create dir if it does not exist
 				if (!is_dir($destDir)) {
-					$this::createDir($destDir, $file->getPath());
+					static::createDir($destDir, $file->getPath());
 				}
 				continue;
 			}
@@ -284,7 +284,7 @@ class FileStorage {
 				if ($preservePath) {
 					$dir = is_file($path) ? dirname($dest) : $dest;
 					if (!is_dir($dir)) {
-						$this::createDir($dir, dirname($path), true);
+						static::createDir($dir, dirname($path), true);
 					}
 				}
 				if (is_file($path)) {
@@ -515,7 +515,7 @@ class FileStorage {
 			return;
 		}
 
-		$this::deleteDir($this->backupPaths['root']);
+		static::deleteDir($this->backupPaths['root']);
 	}
 
   /**

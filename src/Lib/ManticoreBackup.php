@@ -163,7 +163,7 @@ class ManticoreBackup {
 			);
 
 			$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
-			$storage::createDir(
+			FileStorage::createDir(
 				$backupPath,
 				$config->dataDir . DIRECTORY_SEPARATOR . $index
 			);
@@ -301,7 +301,7 @@ class ManticoreBackup {
 			$from = $file->getRealPath();
 			$to = dirname($storage->getOriginRealPath($from));
 			if (!is_dir($to)) {
-				$storage::createDir($to, $from);
+				FileStorage::createDir($to, $from);
 			}
 			println(LogLevel::Debug, '  ' . $from . ' -> ' . $to);
 
@@ -329,7 +329,7 @@ class ManticoreBackup {
 			$from = $file->getRealPath();
 			$to = $config->dataDir . DIRECTORY_SEPARATOR . dirname($storage->getOriginRealPath($file->getRealPath()));
 			if (!is_dir($to)) {
-				$storage::createDir($to, $file->getPath(), true);
+				FileStorage::createDir($to, $file->getPath(), true);
 			}
 			println(LogLevel::Debug, '  ' . $from . ' -> ' . $to);
 
