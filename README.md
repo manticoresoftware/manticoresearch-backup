@@ -2,7 +2,7 @@
 
 ## How to use
 
-Read the [official documentation](https://manual.manticoresearch.com/dev/Securing_and_compacting_an_index/Backup_and_restore) for all the information about using the tool.
+Read the [official documentation](https://manual.manticoresearch.com/Securing_and_compacting_a_table/Backup_and_restore) for all the information about using the tool.
 
 ## Developer documentation
 
