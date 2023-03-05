@@ -32,11 +32,11 @@ class OS {
 	}
 
   /**
-   * Little helper to find the real path to executoable depending on running os
+   * Little helper to find the real path to executable depending on running os
    *
    * @param string $program
    * @return string
-   *  The path to found executoable
+   *  The path to found executable
    * @throws \Exception
    */
 	public static function which(string $program): string {

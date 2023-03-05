@@ -163,7 +163,7 @@ class ManticoreBackup {
 			);
 
 			$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
-			$storage->createDir(
+			FileStorage::createDir(
 				$backupPath,
 				$config->dataDir . DIRECTORY_SEPARATOR . $index
 			);
@@ -234,7 +234,7 @@ class ManticoreBackup {
 
 		static::validateRestore($storage, $backup['state']);
 
-	  // Valdiate indexes
+	  // Validate indexes
 		if (!is_dir($config->dataDir)) {
 			metric('restore_config_dir_missing', 1);
 			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $config->dataDir);
@@ -329,7 +329,7 @@ class ManticoreBackup {
 			$from = $file->getRealPath();
 			$to = $config->dataDir . DIRECTORY_SEPARATOR . dirname($storage->getOriginRealPath($file->getRealPath()));
 			if (!is_dir($to)) {
-				$storage->createDir($to, $file->getPath(), true);
+				FileStorage::createDir($to, $file->getPath(), true);
 			}
 			println(LogLevel::Debug, '  ' . $from . ' -> ' . $to);
 
@@ -350,7 +350,7 @@ class ManticoreBackup {
    */
 	protected static function storeVersions(array $versions, string $backupDir): bool {
 		$filePath = $backupDir . DIRECTORY_SEPARATOR . 'versions.json';
-		return !!file_put_contents($filePath, json_encode($versions));
+		return (bool)file_put_contents($filePath, json_encode($versions));
 	}
 
   /**

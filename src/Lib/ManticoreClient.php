@@ -136,7 +136,7 @@ class ManticoreClient {
 	}
 
   /**
-   * This method unfreezes the index we fronzen before
+   * This method unfreezes the index we frozen before
    *
    * @param array<string>|string $tables
    *  Name of index to unfreeze or list of tables

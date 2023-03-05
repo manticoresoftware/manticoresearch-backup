@@ -106,7 +106,7 @@ class ScriptTest extends SearchdTestCase {
 	}
 
   /**
-   * Helper function to validate that shell comand executed and return output
+   * Helper function to validate that shell command executed and return output
    *
    * @param string $arg
    * @return string

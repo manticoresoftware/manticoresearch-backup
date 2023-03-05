@@ -14,7 +14,7 @@ Read the [official documentation](https://manual.manticoresearch.com/Securing_an
 | bin/run | This script is used for run the backup script in development and use it for debug purpose |
 | build | This directory is ignored by git but built binary goes there |
 | src | All sources code goes here |
-| src/lib | Library independed components |
+| src/lib | Library independent components |
 | src/lib/func.php | All helper functions that required to use the script are here |
 | src/main.php | This is the main entrypoint for starting the logic |
 | test | All tests are here |
@@ -38,7 +38,7 @@ The directory with name `backup-%date%` is created in the  *--backup-dir* folder
 
 ## Building
 
-To build the final executable you need to to run `bin/build`. The executable can be found then in the `./build` directory under `build/manticore-backup`.
+To build the final executable you need to run `bin/build`. The executable can be found then in the `./build` directory under `build/manticore-backup`.
 
 We recommend using [manticore-executor](https://github.com/manticoresoftware/executor). In this case, the script will use the custom-built PHP binary with all required extensions to run the tool. If you are adding a new functionality which requires a specific PHP module make sure you update [manticore-executor](https://github.com/manticoresoftware/executor) as well.
 

@@ -38,7 +38,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 	public function testStoreAllTablesToSymlinkPath(): void {
 		[$config, $storage, $backupDir] = $this->initTestEnv();
 		$uniq = uniqid();
-		$tmpDir = $storage->getTmpDir();
+		$tmpDir = $storage::getTmpDir();
 		$baseDir = basename($backupDir);
 		$realPath = "$tmpDir-$uniq/first/second/$baseDir";
 		mkdir($realPath, 0755, true);
@@ -216,7 +216,7 @@ class ManticoreBackupTest extends SearchdTestCase {
    * @param array<string,string> $tables
    * @return void
    */
-	protected function assertBackupIsOK(ManticoreClient $client, string $backupDir, array $tables) {
+	protected function assertBackupIsOK(ManticoreClient $client, string $backupDir, array $tables): void {
 		$dirs = glob($backupDir . DIRECTORY_SEPARATOR . '*');
 		$this->assertIsArray($dirs);
 

@@ -106,7 +106,7 @@ class ManticoreConfig {
 			return;
 		}
 		$listen = substr($value, 0, $httpPos);
-		if (false === strpos($listen, ':')) {
+		if (!str_contains($listen, ':')) {
 			$this->port = (int)$listen;
 		} else {
 			$this->host = strtok($listen, ':');
@@ -147,7 +147,7 @@ class ManticoreConfig {
    */
 	public static function isDataDirValid(string $dataDir): bool {
 		return OS::isWindows()
-			? !!preg_match('|^[a-z]\:\\\\|ius', $dataDir)
+			? (bool)preg_match('|^[a-z]\:\\\\|ius', $dataDir)
 			: $dataDir[0] === '/'
 		;
 	}
