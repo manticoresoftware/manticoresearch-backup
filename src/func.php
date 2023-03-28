@@ -41,12 +41,13 @@ function validate_args(array $args): array {
 	}
 
   // Run checks only if we really need it
+	$backupDir = isset($options['backup-dir']) ? backup_realpath($options['backup-dir']) : null;
 	if (!isset($args['unlock'])) {
-		if (!isset($options['backup-dir'])
-		|| !is_dir($options['backup-dir'])
-		|| !is_writeable($options['backup-dir'])) {
+		if (!isset($backupDir)
+		|| !is_dir($backupDir)
+		|| !is_writeable($backupDir)) {
 			throw new InvalidArgumentException(
-				'Failed to find backup dir to store backup: ' . ($options['backup-dir'] ?? 'none')
+				'Failed to find backup dir to store backup: ' . ($backupDir ?? 'none')
 			);
 		}
 	}
