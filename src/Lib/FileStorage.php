@@ -63,11 +63,7 @@ class FileStorage {
    * @return static
    */
 	public function setTargetDir(string $dir): static {
-		$realpath = realpath(rtrim($dir, DIRECTORY_SEPARATOR));
-		if (false === $realpath) {
-			throw new InvalidPathException('Failed to find the realpath of dir: '. $dir);
-		}
-		$this->backupDir = $realpath;
+		$this->backupDir = backup_realpath(rtrim($dir, DIRECTORY_SEPARATOR));
 		return $this;
 	}
 

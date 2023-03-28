@@ -38,11 +38,7 @@ class Searchd {
 			throw new InvalidPathException('Failed to find searchd config from command line');
 		}
 
-		$configPath = realpath($m[1]);
-		if (false === $configPath) {
-			throw new \RuntimeException('Unable to get realpath of the config file');
-		}
-		return $configPath;
+		return backup_realpath($m[1]);
 	}
 
   /**

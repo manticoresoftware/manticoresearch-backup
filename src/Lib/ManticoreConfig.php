@@ -18,6 +18,7 @@ use Manticoresearch\Backup\Exception\InvalidPathException;
  */
 class ManticoreConfig {
 	public string $path;
+	public string $proto = 'http';
 	public string $host;
 	public int $port;
 
@@ -60,10 +61,14 @@ class ManticoreConfig {
 	  // Try to parse and replace defaults
 		preg_match_all('/^\s*(listen|data_dir|lemmatizer_base|sphinxql_state|plugin_dir)\s*=\s*(.*)$/ium', $config, $m);
 		if ($m) {
+			$endpoints = [];
 			foreach ($m[1] as $n => $key) {
 				$value = $m[2][$n];
 				if ($key === 'listen') { // in case of we need to parse
-					$this->parseHostPort($value);
+					$endpoint = $this->parseHostPort($value);
+					if ($endpoint) {
+						$endpoints[] = $endpoint;
+					}
 				} else { // In this case we have path/file directive
 					$property = match ($key) {
 						'data_dir' => 'dataDir',
@@ -75,6 +80,8 @@ class ManticoreConfig {
 					$this->$property = $value;
 				}
 			}
+
+			$this->setupEndpoints($endpoints);
 		}
 
 		if (!isset($this->dataDir)) {
@@ -83,35 +90,68 @@ class ManticoreConfig {
 		}
 
 		if (!static::isDataDirValid($this->dataDir)) {
-			$this->dataDir = realpath($this->dataDir) ?: $this->dataDir;
+			$this->dataDir = backup_realpath($this->dataDir);
 			metric('config_data_dir_is_relative', 1);
 		}
 
 		$this->schemaPath = $this->dataDir . '/manticore.json';
 
 		echo PHP_EOL . 'Manticore config' . PHP_EOL
-		. '  endpoint =  ' . $this->host . ':' . $this->port . PHP_EOL
+			. '  endpoint =  ' . $this->proto . '://' . $this->host . ':' . $this->port . PHP_EOL
 		;
+	}
+
+	/**
+	 * This is just helper to find out endpoints from list of it and do priority logic
+	 * @param array<array{host:string,port:int,proto:string}> $endpoints
+	 * @return void
+	 */
+	protected function setupEndpoints(array $endpoints): void {
+		$httpOnly = array_filter($endpoints, fn ($v) => $v['proto'] === 'http');
+		if ($httpOnly) {
+			$endpoint = $httpOnly[array_key_first($httpOnly)];
+		} else {
+			$endpoint = $endpoints[0] ?? null;
+		}
+
+		if (!$endpoint) {
+			return;
+		}
+
+		['proto' => $this->proto, 'host' => $this->host, 'port' => $this->port] = $endpoint;
 	}
 
 	/**
 	 * This is helper function that parses host and port from config directive
 	 *
 	 * @param string $value
-	 * @return void
+	 * @return ?array{proto:string,host:string,port:int}
 	 */
-	protected function parseHostPort(string $value): void {
-		$httpPos = strpos($value, ':http');
-		if (false === $httpPos) {
-			return;
-		}
-		$listen = substr($value, 0, $httpPos);
-		if (false === strpos($listen, ':')) {
-			$this->port = (int)$listen;
+	protected function parseHostPort(string $value): ?array {
+		$parts = explode(':', $value);
+		$type = $parts[array_key_last($parts)];
+		// If it's a port really, so we set default type
+		if (is_numeric($type)) {
+			$type = 'http';
 		} else {
-			$this->host = strtok($listen, ':');
-			$this->port = (int)strtok(':');
+			unset($parts[array_key_last($parts)]);
 		}
+
+		if (!str_starts_with($type, 'http')) {
+			return null;
+		}
+		$host = '127.0.0.1';
+		$proto = $type;
+
+		$listen = implode(':', $parts);
+		if (false === strpos($listen, ':')) {
+			$port = (int)$listen;
+		} else {
+			$host = strtok($listen, ':');
+			$port = (int)strtok(':');
+		}
+
+		return compact('proto', 'host', 'port');
 	}
 
   /**

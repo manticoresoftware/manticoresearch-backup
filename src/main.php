@@ -27,6 +27,7 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
 
 // This fix issue when we get "sh: 1: cd: can't cd to" error
 // while running buddy inside directory that are not allowed for us
+putenv('CWD=' . getcwd());
 chdir(sys_get_temp_dir());
 
 set_exception_handler(exception_handler(...));
