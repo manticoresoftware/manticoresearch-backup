@@ -132,7 +132,7 @@ class ManticoreClient {
 		if ($result[0]['error']) {
 			throw new SearchdException('Failed to get lock for tables - ' . $allTables);
 		}
-		return array_column($result[0]['data'], 'file');
+		return array_map(backup_realpath(...), array_column($result[0]['data'], 'file'));
 	}
 
   /**
@@ -221,12 +221,7 @@ class ManticoreClient {
    */
 	public function getConfigPath(): string {
 		$result = $this->execute('SHOW SETTINGS');
-		$configPath = realpath($result[0]['data'][0]['Value']);
-		if (false === $configPath) {
-			throw new \RuntimeException(
-				'Unable to get config path from SHOW SETTINGS'
-			);
-		}
+		$configPath = backup_realpath($result[0]['data'][0]['Value']);
 
 	  // Fix issue with //manticore.conf path
 		if ($configPath[0] === '/') {
@@ -253,11 +248,15 @@ class ManticoreClient {
 				'ignore_errors' => false,
 				'timeout' => 3,
 			],
+			'ssl' => [
+				'verify_peer' => false,
+				'verify_peer_name' => false,
+			],
 		];
 		$context = stream_context_create($opts);
 		try {
 			$result = file_get_contents(
-				'http://' . $this->config->host . ':' . $this->config->port . static::API_PATH,
+				$this->config->proto . '://' . $this->config->host . ':' . $this->config->port . static::API_PATH,
 				false,
 				$context
 			);

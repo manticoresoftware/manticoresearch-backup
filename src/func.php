@@ -295,3 +295,23 @@ function error_handler(int $errno, string $errstr, string $errfile, int $errline
 
 	throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
+
+/**
+ * Wrapper to bypass changing chdir to solve running not in allowed directory issue
+ * @param string $path
+ * @return string
+ */
+function backup_realpath(string $path): string {
+	// We do change trick to original dir we launched from to get realpath
+	$originalCwd = getcwd();
+	$realCwd = getenv('CWD', true);
+	if ($realCwd) {
+		chdir($realCwd);
+	}
+	$realpath = realpath($path) ?: $path;
+	if ($originalCwd) {
+		chdir($originalCwd);
+	}
+
+	return $realpath;
+}
