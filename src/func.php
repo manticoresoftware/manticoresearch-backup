@@ -35,6 +35,7 @@ function validate_args(array $args): array {
 
   // Validate arguments
 	if (!isset($args['restore'])) {
+		$options['config'] = backup_realpath($options['config']);
 		if (!is_file($options['config']) || !is_readable($options['config'])) {
 			throw new InvalidArgumentException('Failed to find passed config: ' . $options['config']);
 		}
