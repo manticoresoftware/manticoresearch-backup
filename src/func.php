@@ -304,9 +304,15 @@ function error_handler(int $errno, string $errstr, string $errfile, int $errline
  * @return string
  */
 function backup_realpath(string $path): string {
+	// This is phar hack
+	$realCwd = getenv('REALCWD');
+
 	// We do change trick to original dir we launched from to get realpath
 	$originalCwd = getcwd();
-	$realCwd = getenv('CWD', true);
+	if (!$realCwd) {
+		$realCwd = getenv('CWD', true);
+	}
+
 	if ($realCwd) {
 		chdir($realCwd);
 	}

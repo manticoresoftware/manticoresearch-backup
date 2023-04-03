@@ -248,10 +248,6 @@ class ManticoreClient {
 				'ignore_errors' => false,
 				'timeout' => 3,
 			],
-			'ssl' => [
-				'verify_peer' => false,
-				'verify_peer_name' => false,
-			],
 		];
 		$context = stream_context_create($opts);
 		try {
