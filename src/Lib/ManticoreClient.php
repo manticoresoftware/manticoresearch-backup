@@ -257,7 +257,7 @@ class ManticoreClient {
 				$context
 			);
 		} catch (\ErrorException) {
-			throw new SearchdException('Failed to connect to the manticoresearch daemon. Is it running?');
+			throw new SearchdException('Failed to send query to the manticoresearch daemon.');
 		}
 
 		if (!$result) { // can be null or false in failed cases so we check non strict here
