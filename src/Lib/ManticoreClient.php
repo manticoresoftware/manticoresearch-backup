@@ -257,7 +257,7 @@ class ManticoreClient {
 				$context
 			);
 		} catch (\ErrorException) {
-			throw new SearchdException('Failed to send query to the manticoresearch daemon. Make sure it's listening for HTTP or HTTPS connections (with proper certificates).');
+			throw new SearchdException('Failed to send query to the manticoresearch daemon. Make sure it\'s listening for HTTP or HTTPS connections (with proper certificates).');
 		}
 
 		if (!$result) { // can be null or false in failed cases so we check non strict here
