@@ -63,7 +63,7 @@ class ManticoreConfig {
 		if ($m) {
 			$endpoints = [];
 			foreach ($m[1] as $n => $key) {
-				$value = $m[2][$n];
+				$value = trim($m[2][$n]);
 				if ($key === 'listen') { // in case of we need to parse
 					$endpoint = $this->parseHostPort($value);
 					if ($endpoint) {
