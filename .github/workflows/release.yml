@@ -20,7 +20,7 @@ jobs:
       - name: Build binary
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
-          ./phar_builder/bin/build --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
+          ./phar_builder/bin/build --name="Manticore Backup" --package="manticore-backup"
 
       - id: vars
         run: |
@@ -98,7 +98,7 @@ jobs:
       - name: Build binary
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
-          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="manticore-backup" --index="src/main.php"
+          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="manticore-backup"
       - id: vars
         run: |
           echo "app_version=$(<APP_VERSION)" >> $GITHUB_OUTPUT
@@ -107,12 +107,15 @@ jobs:
       - name: Prepare packages structure
         run: |
           mkdir -p .debpkg/usr/bin
+          mkdir -p .debpkg/usr/share/manticore/modules/${{ env.APP_NAME }}
           mkdir -p .rpmpkg/usr/bin
-          mkdir -p .rpmpkg/usr/share
-          cp -p ./build/${{ env.APP_NAME }} .debpkg/usr/bin/${{ env.APP_NAME }}
-          cp -p ./build/${{ env.APP_NAME }} .rpmpkg/usr/bin/${{ env.APP_NAME }}
-          cp -p LICENSE .rpmpkg/usr/share/${{ env.APP_NAME }}-LICENSE
-          cp -p README.md .rpmpkg/usr/share/${{ env.APP_NAME }}-README.md
+          mkdir -p .rpmpkg/usr/share/manticore/modules/${{ env.APP_NAME }}
+          cp -rp build/share/modules/${{ env.APP_NAME }}/* .debpkg/usr/share/manticore/modules/${{ env.APP_NAME }}/
+          cp -rp build/share/modules/${{ env.APP_NAME }}/* .rpmpkg/usr/share/manticore/modules/${{ env.APP_NAME }}/
+          cp -r build/${{ env.APP_NAME }} .debpkg/usr/bin/${{ env.APP_NAME }}
+          cp -r build/${{ env.APP_NAME }} .rpmpkg/usr/bin/${{ env.APP_NAME }}
+          cp -p LICENSE .rpmpkg/usr/share/manticore/modules/${{ env.APP_NAME }}/LICENSE
+          cp -p README.md .rpmpkg/usr/share/manticore/modules/${{ env.APP_NAME }}/README.md
         shell: bash
       - uses: manticoresoftware/actions-build-deb-action@master
         with:
