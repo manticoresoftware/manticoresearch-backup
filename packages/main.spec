@@ -26,6 +26,8 @@ rm -rf %{buildroot}
 %install
 mkdir -p %{buildroot}/usr/bin
 cp -p usr/bin/{{ NAME }} %{buildroot}/usr/bin/
+mkdir -p %{buildroot}/usr/share/manticore/modules
+cp -rp usr/share/manticore/modules/{{ NAME }} %{buildroot}/usr/share/manticore/modules/{{ NAME }}
 
 %clean
 rm -rf %{buildroot}
@@ -35,7 +37,12 @@ rm -rf %{buildroot}
 %postun
 
 %files
-%doc usr/share/{{ NAME }}-README.md
-%license usr/share/{{ NAME }}-LICENSE
-%defattr(1755, root, root)
-/usr/bin/{{ NAME }}
+%dir /usr/share/manticore/modules/{{ NAME }}
+/usr/share/manticore/modules/{{ NAME }}/src/*
+/usr/share/manticore/modules/{{ NAME }}/vendor/*
+/usr/share/manticore/modules/{{ NAME }}/APP_VERSION
+/usr/share/manticore/modules/{{ NAME }}/composer.json
+/usr/share/manticore/modules/{{ NAME }}/composer.lock
+%doc /usr/share/manticore/modules/{{ NAME }}/README.md
+%license /usr/share/manticore/modules/{{ NAME }}/LICENSE
+%attr(1755, root, root) /usr/bin/{{ NAME }}
