@@ -2,3 +2,5 @@ build/**
 vendor/**
 .phpunit.result.cache
 phar_builder
+clt
+tests/*.rep
