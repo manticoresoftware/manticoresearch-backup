@@ -1,0 +1,54 @@
+name: tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  clt:
+    name: Run CLT tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download CLT tool
+        run: |
+          git clone https://github.com/manticoresoftware/clt.git
+
+      - name: Prepare Docker image
+        run: |
+          git clone https://github.com/manticoresoftware/phar_builder.git
+          ./phar_builder/bin/build --name="Manticore Backup" --package="manticore-backup"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: manticoresearch/manticore-backup-test
+          build-args: APP_NAME=manticore-backup
+
+      - name: Run all tests
+        run: |
+          set +e
+          for test in tests/*.rec; do
+            echo "Running test: $test"
+            script -q -e -c "clt/clt test -t $test manticoresearch/manticore-backup-test"
+            exit_code=$?
+            rep_file=$(echo $test | cut -d. -f1).rep
+            cat $rep_file
+            if [ $exit_code -ne 0 ]; then
+              echo "Test failed with exit code: $exit_code"
+              exit $exit_code
+            fi
+            echo "–––"
+          done
+        shell: bash

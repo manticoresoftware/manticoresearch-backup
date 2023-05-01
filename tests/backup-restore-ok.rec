@@ -1,0 +1,165 @@
+––– input –––
+searchd
+––– output –––
+Manticore #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{9}@[0-9]{6}/!# dev (columnar #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#) (secondary #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#)
+Copyright (c) 2001-2016, Andrew Aksyonoff
+Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
+Copyright (c) 2017-#!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+[#!/[0-9]{2}:[0-9]{2}.[0-9]{3}/!#] [26] using config file '/etc/manticoresearch/manticore.conf' (358 chars)...
+starting daemon version '#!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{9}@[0-9]{6}/!# dev (columnar #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#) (secondary #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#)' ...
+listening on all interfaces for sphinx and http(s), port=9312
+listening on all interfaces for mysql, port=9306
+listening on all interfaces for sphinx and http(s), port=9308
+––– input –––
+mysql -h0 -P9306 < tests/dumps/tables.sql
+––– output –––
+––– input –––
+mysql -h0 -P9306
+––– output –––
+––– input –––
+show tables;
+––– output –––
++---------------------+-------------+
+| Index               | Type        |
++---------------------+-------------+
+| distributed_index   | distributed |
+| rt_with_columnar    | rt          |
+| rt_without_columnar | rt          |
++---------------------+-------------+
+––– input –––
+exit;
+––– output –––
+––– input –––
+manticore-backup --backup-dir=/tmp
+––– output –––
+Copyright (c) #!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file: /etc/manticoresearch/manticore.conf
+Tables to backup: all tables
+Backup dir: /tmp
+Manticore config
+endpoint =  http://0.0.0.0:9312
+Manticore versions:
+manticore: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!# dev
+columnar: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#
+secondary: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#
+Manticore versions:
+manticore: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!# dev
+columnar: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#
+secondary: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Starting the backup...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Backing up config files...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   config files - [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Backing up global state files...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   global state files – [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Backing up tables...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   [93mSKIP[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   [93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   rt_with_columnar (rt) [2.884K]...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   rt_without_columnar (rt) [2.758K]...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Running sync
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]  [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Elapsed time: 0.01s
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Done
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]
+Unfreezing all tables...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   distributed_index...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    OK
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   rt_with_columnar...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    OK
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   rt_without_columnar...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    OK
+––– input –––
+mv /tmp/backup-* /tmp/backup-111
+––– output –––
+––– input –––
+manticore-backup --backup-dir=/tmp --restore
+––– output –––
+Copyright (c) #!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file:
+Backup dir: /tmp
+Available backups: 1
+backup-111 ([93m?[0m)
+––– input –––
+manticore-backup --backup-dir=/tmp --restore=backup-111
+––– output –––
+Copyright (c) #!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file:
+Backup dir: /tmp
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Starting to restore...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [[31mError[0m] Cannot initiate the restore process due to searchd daemon is running.
+––– input –––
+pgrep -f searchd | xargs kill
+––– output –––
+––– input –––
+manticore-backup --backup-dir=/tmp --restore=backup-111
+––– output –––
+Copyright (c) #!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file:
+Backup dir: /tmp
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Starting to restore...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [[31mError[0m] Destination file already exists: /etc/manticoresearch/manticore.conf
+––– input –––
+rm /etc/manticoresearch/manticore.conf
+––– output –––
+––– input –––
+manticore-backup --backup-dir=/tmp --restore=backup-111
+––– output –––
+Copyright (c) #!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file:
+Backup dir: /tmp
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Starting to restore...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [[31mError[0m] Destination file already exists: /var/lib/manticore/manticore.json
+––– input –––
+rm -fr /var/lib/manticore/*
+––– output –––
+––– input –––
+manticore-backup --backup-dir=/tmp --restore=backup-111
+––– output –––
+Copyright (c) #!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file:
+Backup dir: /tmp
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Starting to restore...
+Manticore config
+endpoint =  http://0.0.0.0:9312
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Restoring config files...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   config files - [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Restoring state files...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   state files - [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Restoring data files...
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   tables' files - [92mOK[0m
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] The backup '/tmp/backup-111' was successfully restored.
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Elapsed time: 0.01s
+[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Done
+––– input –––
+searchd
+––– output –––
+Manticore #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{9}@[0-9]{6}/!# dev (columnar #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#) (secondary #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#)
+Copyright (c) 2001-2016, Andrew Aksyonoff
+Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
+Copyright (c) 2017-#!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
+[#!/[0-9]{2}:[0-9]{2}.[0-9]{3}/!#] [26] using config file '/etc/manticoresearch/manticore.conf' (358 chars)...
+starting daemon version '#!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{9}@[0-9]{6}/!# dev (columnar #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#) (secondary #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#)' ...
+listening on all interfaces for sphinx and http(s), port=9312
+listening on all interfaces for mysql, port=9306
+listening on all interfaces for sphinx and http(s), port=9308
+precaching table 'rt_with_columnar'
+precaching table 'rt_without_columnar'
+precached 2 tables in 0.#!/[0-9]{3}/!# sec
+––– input –––
+mysql -h0 -P9306
+––– output –––
+––– input –––
+show tables;
+––– output –––
++---------------------+-------------+
+| Index               | Type        |
++---------------------+-------------+
+| distributed_index   | distributed |
+| rt_with_columnar    | rt          |
+| rt_without_columnar | rt          |
++---------------------+-------------+
+––– input –––
+exit;
+––– output –––
