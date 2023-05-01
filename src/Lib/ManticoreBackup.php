@@ -11,6 +11,7 @@
 
 namespace Manticoresearch\Backup\Lib;
 
+use CallbackFilterIterator;
 use Manticoresearch\Backup\Exception\InvalidPathException;
 use function println;
 
@@ -241,7 +242,15 @@ class ManticoreBackup {
 		}
 
 		$dataIterator = $storage->getFileIterator($config->dataDir);
-		$hasFiles = $dataIterator->valid() && iterator_count($dataIterator) > 2;
+		$dataDirLen = strlen($config->dataDir);
+		// Filter out directories and files starting with a dot (.)
+		$filteredIterator = new CallbackFilterIterator(
+			$dataIterator, function ($current/*, $key, $iterator*/) use ($dataDirLen) {
+				$relPath = ltrim(substr($current->getPathname(), $dataDirLen), DIRECTORY_SEPARATOR);
+				return !($relPath[0] === '.');
+			}
+		);
+		$hasFiles = $filteredIterator->valid() && iterator_count($filteredIterator) > 0;
 
 		if ($hasFiles) {
 			throw new \Exception('The data dir to restore is not empty: ' . $config->dataDir);
