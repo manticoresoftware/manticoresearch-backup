@@ -20,7 +20,7 @@ jobs:
       - name: Build binary
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
-          ./phar_builder/bin/build --name="Manticore Backup" --package="manticore-backup"
+          ./phar_builder/bin/build --name="Manticore Backup" --package="${{ env.APP_NAME }}"
 
       - id: vars
         run: |
@@ -31,8 +31,10 @@ jobs:
         run: |
           name="${{ env.APP_NAME }}_${{ steps.vars.outputs.app_version }}${{ steps.vars.outputs.deb_suffix }}"
           echo "$name"
-          tar czf "$name.tar.gz" build/manticore-backup
-          zip "$name.zip" build/manticore-backup.ps1
+          mkdir build/bin
+          cp build/${{ env.APP_NAME }} build/bin/${{ env.APP_NAME }}
+          tar czf "$name.tar.gz" -C build bin/${{ env.APP_NAME }} share
+          zip "$name.zip" build/${{ env.APP_NAME }}.ps1
         shell: bash
       - uses: actions/upload-artifact@v3
         with:
@@ -98,7 +100,7 @@ jobs:
       - name: Build binary
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
-          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="manticore-backup"
+          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="${{ env.APP_NAME }}"
       - id: vars
         run: |
           echo "app_version=$(<APP_VERSION)" >> $GITHUB_OUTPUT
