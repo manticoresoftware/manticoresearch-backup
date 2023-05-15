@@ -5,10 +5,11 @@ Manticore #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{9}@[0-9]{6}/!# dev (columnar #!/
 Copyright (c) 2001-2016, Andrew Aksyonoff
 Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
 Copyright (c) 2017-#!/[0-9]{4}/!#, Manticore Software LTD (https://manticoresearch.com)
-[#!/[0-9]{2}:[0-9]{2}.[0-9]{3}/!#] [26] using config file '/etc/manticoresearch/manticore.conf' (358 chars)...
+[#!/[0-9]{2}:[0-9]{2}.[0-9]{3}/!#] [#!/[0-9]+/!#] using config file '/etc/manticoresearch/manticore.conf' (358 chars)...
 starting daemon version '#!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{9}@[0-9]{6}/!# dev (columnar #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#) (secondary #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#)' ...
-listening on all interfaces for sphinx and http(s), port=9312
 listening on all interfaces for mysql, port=9306
+listening on UNIX socket /var/run/mysqld/mysqld.sock
+listening on #!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/!#:9312 for sphinx and http(s)
 listening on all interfaces for sphinx and http(s), port=9308
 ––– input –––
 mysql -h0 -P9306 < tests/dumps/tables.sql
@@ -86,7 +87,7 @@ Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: none
 Backup dir: /tmp
 Manticore config
-endpoint =  http://0.0.0.0:9312
+endpoint =  http://#!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/!#:9312
 Manticore versions:
 manticore: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!# dev
 columnar: #!/[0-9]\.[0-9]\.[0-9]/!# #!/[a-z0-9]{7}@[0-9]{6}/!#
@@ -108,5 +109,5 @@ Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: all tables
 Backup dir: /tmp
 Manticore config
-endpoint =  http://0.0.0.0:9312
+endpoint =  http://#!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/!#:9312
 [93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [[31mError[0m] Failed to send query to the manticoresearch daemon. Make sure it's listening for HTTP or HTTPS connections (with proper certificates).
