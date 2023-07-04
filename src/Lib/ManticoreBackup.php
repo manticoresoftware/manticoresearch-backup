@@ -219,8 +219,9 @@ class ManticoreBackup {
 	  // Second, lets check that destination is available to move files and we have nothing there
 		static::validateRestore(
 			$storage, $backup['config'], function (\SplFileInfo $file) use (&$config): bool {
-			// TODO: remove this hardcode, we can store the path to config when doing backup
-				if ($file->getFilename() === 'manticore.conf') {
+				$fileName = $file->getFilename();
+				// TODO: remove this hardcode, we can store the path to config when doing backup
+				if (strpos('manticore.conf|manticore.conf.zst', $fileName) !== false) {
 					$config = new ManticoreConfig($file->getRealPath());
 				}
 

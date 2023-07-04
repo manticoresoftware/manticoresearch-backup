@@ -13,6 +13,7 @@ namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\ChecksumException;
 use Manticoresearch\Backup\Exception\InvalidPathException;
+use RuntimeException;
 use Throwable;
 
 class FileStorage {
@@ -229,19 +230,26 @@ class FileStorage {
 			throw new InvalidPathException(__FUNCTION__ . ': the destination to copy to is not writable');
 		}
 
+		$validateChecksum = true;
 		$zstdPrefix = '';
 		if ($this->useCompression) {
+			$validateChecksum = false;
 			$to .= '.zst';
-			if (!function_exists('zstd_compress')) {
-				throw new \RuntimeException(
-					'Failed to find zstd_compress please make sure that you have ZSTD extensions compiled in'
-				);
-			}
+			static::validateZstdInstalled();
 			$zstdPrefix = 'compress.zstd://';
 		}
-		$result = copy($from, $zstdPrefix . $to);
 
-		if (!$this->useCompression) {
+		if (str_ends_with($from, '.zst')) {
+			var_dump($from);
+			$validateChecksum = false;
+			$result = !!file_put_contents($to, static::decompress($from));
+			$zstdPrefix = 'compress.zstd://';
+		} else {
+			$result = copy($from, $zstdPrefix . $to);
+		}
+
+
+		if ($validateChecksum) {
 		  // If checksum mismatch we fail immediately
 			if (md5_file($from, true) !== md5_file($to, true)) {
 				throw new ChecksumException(
@@ -285,6 +293,9 @@ class FileStorage {
 					}
 				}
 				if (is_file($path)) {
+					if (str_ends_with($dest, '.zst')) {
+						$dest = substr($dest, 0, -4);
+					}
 					$isOk = $this->copyFile($path, $dest);
 				} else {
 					$isOk = $this->copyDir($path, $dest);
@@ -487,6 +498,9 @@ class FileStorage {
 		$backupPaths = $this->getBackupPaths();
 		$rootLen = strlen($backupPaths['root']) + 1; // + 1 for dir separator
 		$realPath = substr($backupPath, $rootLen);
+		if (str_ends_with($realPath, '.zst')) {
+			$realPath = substr($realPath, 0, -4);
+		}
 		$preservedPath = str_replace(['config', 'state'], '', $realPath, $count);
 		if ($count > 0) {
 			return $preservedPath;
@@ -531,5 +545,39 @@ class FileStorage {
 			new \RecursiveDirectoryIterator($dir, $flags),
 			\RecursiveIteratorIterator::CHILD_FIRST
 		);
+	}
+
+	/**
+	 * Simple helper to validate that we have installed zstd extension
+	 * @return void
+	 * @throws RuntimeException
+	 */
+	protected static function validateZstdInstalled(): void {
+		if (!function_exists('zstd_compress')) {
+			throw new RuntimeException(
+				'Failed to find zstd_compress please make sure that you have ZSTD extensions compiled in'
+			);
+		}
+	}
+
+	/**
+	 * Helper function to read the compressed file with all checks and return its contents
+	 * @param string $file
+	 * @return string
+	 * @throws RuntimeException
+	 */
+	protected static function decompress(string $file): string {
+		static::validateZstdInstalled();
+
+		$data = file_get_contents($file);
+		if ($data === false) {
+			throw new RuntimeException("Failed to read file: $file");
+		}
+		$data = zstd_uncompress($data);
+		if ($data === false) {
+			throw new RuntimeException("Failed to decompress file: $file");
+		}
+
+		return $data;
 	}
 }

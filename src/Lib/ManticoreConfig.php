@@ -12,6 +12,7 @@
 namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\InvalidPathException;
+use RuntimeException;
 
 /**
  * Helper config parser for use in backup and client components
@@ -37,9 +38,18 @@ class ManticoreConfig {
    */
 	public function __construct(string $configPath) {
 		$config = file_get_contents($configPath);
+
 		if (false === $config) {
 			metric('config_unreachable', 1);
 			throw new \InvalidArgumentException('Failed to read config file: ' . $configPath);
+		}
+
+		// If this is compressed config we decompress the data first
+		if (str_ends_with($configPath, '.zst')) {
+			$config = zstd_uncompress($config);
+			if ($config === false) {
+				throw new RuntimeException('Failed to decompress config file');
+			}
 		}
 
 		$this->path = $configPath;
