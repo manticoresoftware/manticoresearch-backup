@@ -176,7 +176,7 @@ class ManticoreConfig {
 			$result[] = $this->sphinxqlState;
 		}
 
-		if (isset($this->lemmatizerBase)) {
+		if (isset($this->lemmatizerBase) && is_dir($this->lemmatizerBase)) {
 			$result[] = $this->lemmatizerBase;
 		}
 
