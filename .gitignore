@@ -4,3 +4,4 @@ vendor/**
 phar_builder
 clt
 tests/*.rep
+tests/*.cmp
