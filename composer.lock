@@ -65,16 +65,16 @@
         },
         {
             "name": "manticoresoftware/telemetry",
-            "version": "0.1.11",
+            "version": "0.1.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/manticoresoftware/telemetry-lib.git",
-                "reference": "ce1bd115dd4cf8ddd348db31932bbd71022b6cc1"
+                "reference": "98edb6dd3782fab16400220c378c449b0827c1fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/manticoresoftware/telemetry-lib/zipball/ce1bd115dd4cf8ddd348db31932bbd71022b6cc1",
-                "reference": "ce1bd115dd4cf8ddd348db31932bbd71022b6cc1",
+                "url": "https://api.github.com/repos/manticoresoftware/telemetry-lib/zipball/98edb6dd3782fab16400220c378c449b0827c1fe",
+                "reference": "98edb6dd3782fab16400220c378c449b0827c1fe",
                 "shasum": ""
             },
             "require": {
@@ -111,9 +111,9 @@
             ],
             "support": {
                 "issues": "https://github.com/manticoresoftware/telemetry-lib/issues",
-                "source": "https://github.com/manticoresoftware/telemetry-lib/tree/0.1.11"
+                "source": "https://github.com/manticoresoftware/telemetry-lib/tree/0.1.13"
             },
-            "time": "2023-07-28T10:47:33+00:00"
+            "time": "2023-07-28T11:37:28+00:00"
         }
     ],
     "packages-dev": [
