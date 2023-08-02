@@ -1,12 +1,12 @@
 ––– input –––
 manticore-backup --version
 ––– output –––
-Copyright (c) %{YEAR}47, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore Backup version: %{SEMVER}
 ––– input –––
 manticore-backup --help
 ––– output –––
-Copyright (c) %{YEAR}47, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 [93mUsage:[0m
 manticore-backup --backup-dir=path/to/backup [OPTIONS]
 [92m--backup-dir[0m=[94mpath/to/backup[0m
@@ -30,3 +30,13 @@ otherwise the backup will fail.
 Whether the backed up files should be compressed. Not by default.
 [92m--restore[=backup][0m
 Restore from --backup-dir. Just --restore lists available backups.
+--restore=backup will restore from <--backup-dir>/backup.
+[92m--disable-telemetry[0m
+Pass this flag in case you want to disable sending anonymized metrics  to Manticore. You can also use environment variable TELEMETRY=0.
+[92m--unlock[0m
+In rare cases when something goes wrong the tables can be left in
+locked state. Using this argument you can unlock them.
+[92m--version[0m
+Show the current version.
+[92m--help[0m
+Show this help.
