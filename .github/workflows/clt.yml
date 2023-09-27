@@ -8,14 +8,13 @@ on:
 
 jobs:
   clt:
-    uses: manticoresoftware/clt/.github/workflows/clt-template.yml@v2
-    with:
-      docker_images: |
-        [
-          {"image": "ghcr.io/manticoresoftware/manticoresearch:clt-dev"}
-        ]
-      init_code: |
-        git clone https://github.com/manticoresoftware/phar_builder.git
-        ./phar_builder/bin/build --name="Manticore Backup" --package="manticore-backup"
-      run_args: '-v $PWD/build/manticore-backup:/usr/bin/manticore-backup -v $PWD/build/share/modules/manticore-backup:/usr/share/manticore/modules/manticore-backup'
-      version: 'v2'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: manticoresoftware/clt-action@v1
+        with:
+          image: 'ghcr.io/manticoresoftware/manticoresearch:test-kit-latest'
+          init_code: |
+            git clone https://github.com/manticoresoftware/phar_builder.git
+            ./phar_builder/bin/build --name="Manticore Backup" --package="manticore-backup"
+          run_args: '-v $PWD/build/manticore-backup:/usr/bin/manticore-backup -v $PWD/build/share/modules/manticore-backup:/usr/share/manticore/modules/manticore-backup'
+          version: v3
