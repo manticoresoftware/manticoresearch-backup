@@ -1,6 +1,3 @@
 ––– input –––
 mysql -h0 -P9306 < tests/dumps/tables.sql
 ––– output –––
-––– input –––
-mysql -h0 -P9306
-––– output –––

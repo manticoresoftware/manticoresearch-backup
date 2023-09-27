@@ -1,7 +1,7 @@
 ––– block: start-searchd –––
 ––– block: init-database –––
 ––– input –––
-show tables;
+mysql -h0 -P9306 -e 'show tables'
 ––– output –––
 +---------------------+-------------+
 | Index               | Type        |
@@ -11,7 +11,7 @@ show tables;
 | rt_without_columnar | rt          |
 +---------------------+-------------+
 ––– input –––
-show create table distributed_index;
+mysql -h0 -P9306 -e 'show create table distributed_index'
 ––– output –––
 +-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
 | Table             | Create Table                                                                                                                                  |
@@ -19,7 +19,7 @@ show create table distributed_index;
 | distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
 +-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
 ––– input –––
-show create table rt_with_columnar;
+mysql -h0 -P9306 -e 'show create table rt_with_columnar'
 ––– output –––
 +------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Table            | Create Table                                                                                                                                                           |
@@ -35,7 +35,7 @@ tags multi
 ) |
 +------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ––– input –––
-show create table rt_without_columnar;
+mysql -h0 -P9306 -e 'show create table rt_without_columnar'
 ––– output –––
 +---------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Table               | Create Table                                                                                                                                            |
@@ -50,9 +50,6 @@ attributes json,
 tags multi
 ) |
 +---------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
-––– input –––
-exit;
-––– output –––
 ––– input –––
 ls -lt /tmp/backup-*
 ––– output –––
@@ -74,25 +71,25 @@ Manticore versions:
 manticore: %{SEMVER} %{COMMITDATE} dev
 columnar: %{SEMVER} %{COMMITDATE}
 secondary: %{SEMVER} %{COMMITDATE}
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Starting the backup...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Backing up config files...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   config files - [92mOK[0m
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Backing up tables...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   rt_without_columnar (rt) [2.758K]...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    [92mOK[0m
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Running sync
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]  [92mOK[0m
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info] Done
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]
+[93m%{DATETIME}[0m [Info] Starting the backup...
+[93m%{DATETIME}[0m [Info] Backing up config files...
+[93m%{DATETIME}[0m [Info]   config files - [92mOK[0m
+[93m%{DATETIME}[0m [Info] Backing up tables...
+[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.758K]...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info] Running sync
+[93m%{DATETIME}[0m [Info]  [92mOK[0m
+[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
+[93m%{DATETIME}[0m [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
+[93m%{DATETIME}[0m [Info] Done
+[93m%{DATETIME}[0m [Info]
 Unfreezing all tables...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   distributed_index...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    [92mOK[0m
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   rt_with_columnar...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    [92mOK[0m
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]   rt_without_columnar...
-[93m#!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/!#[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   distributed_index...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   rt_with_columnar...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   rt_without_columnar...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
 ––– input –––
 ls -lh /tmp/backup-*
 ––– output –––
