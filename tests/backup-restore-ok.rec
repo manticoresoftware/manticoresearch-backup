@@ -100,9 +100,6 @@ endpoint =  http://127.0.0.1:9312
 rm -fr /var/lib/manticore/*
 ––– output –––
 ––– input –––
-rm -fr /usr/local/lib/manticore/buddy-plugins
-––– output –––
-––– input –––
 manticore-backup --backup-dir=/tmp --restore=backup-111
 ––– output –––
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)

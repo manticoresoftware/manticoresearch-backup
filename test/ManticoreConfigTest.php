@@ -41,7 +41,6 @@ class ManticoreConfigTest extends TestCase {
 		$this->assertEquals('127.0.0.1', $config->host);
 		$this->assertEquals(9312, $config->port);
 		$this->assertEquals('/usr/local/var/manticore', $config->dataDir);
-		$this->assertEquals('/usr/local/lib/manticore', $config->pluginDir);
 		$this->assertEquals('/usr/local/var/manticore/manticore.json', $config->schemaPath);
 	}
 }
