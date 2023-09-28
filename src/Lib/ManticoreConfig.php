@@ -26,7 +26,6 @@ class ManticoreConfig {
 	public string $dataDir;
 	public string $sphinxqlState;
 	public string $lemmatizerBase;
-	public string $pluginDir;
 
 	public string $schemaPath;
 
@@ -69,7 +68,7 @@ class ManticoreConfig {
 		$this->port = 9308;
 
 	  // Try to parse and replace defaults
-		preg_match_all('/^\s*(listen|data_dir|lemmatizer_base|sphinxql_state|plugin_dir)\s*=\s*(.*)$/ium', $config, $m);
+		preg_match_all('/^\s*(listen|data_dir|lemmatizer_base|sphinxql_state)\s*=\s*(.*)$/ium', $config, $m);
 		if ($m) {
 			$endpoints = [];
 			foreach ($m[1] as $n => $key) {
@@ -84,7 +83,6 @@ class ManticoreConfig {
 						'data_dir' => 'dataDir',
 						'lemmatizer_base' => 'lemmatizerBase',
 						'sphinxql_state' => 'sphinxqlState',
-						'plugin_dir' => 'pluginDir',
 						default => $key,
 					};
 					$this->$property = $value;
@@ -178,10 +176,6 @@ class ManticoreConfig {
 
 		if (isset($this->lemmatizerBase) && is_dir($this->lemmatizerBase)) {
 			$result[] = $this->lemmatizerBase;
-		}
-
-		if (isset($this->pluginDir) && is_dir($this->pluginDir)) {
-			$result[] = $this->pluginDir;
 		}
 
 		return $result;
