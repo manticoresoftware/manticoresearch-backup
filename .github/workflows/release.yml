@@ -219,7 +219,7 @@ jobs:
       - build-artifact
       - sign-windows-artifact
       - build-linux-packages
-    runs-on: self-hosted
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         include:
