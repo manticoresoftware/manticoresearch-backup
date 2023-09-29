@@ -51,6 +51,14 @@ class ManticoreConfig {
 			}
 		}
 
+		// If this is shebang config execute it
+		if (preg_match('/^#!(.*)$/ium', $config, $m)) {
+			$config = shell_exec("{$m[1]} $configPath");
+			if (!is_string($config)) {
+				throw new RuntimeException('Failed to executed shebang config file');
+			}
+		}
+
 		$this->path = $configPath;
 		$this->parse($config);
 	}
