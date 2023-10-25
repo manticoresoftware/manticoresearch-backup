@@ -243,7 +243,6 @@ class FileStorage {
 		}
 
 		if (str_ends_with($from, '.zst')) {
-			var_dump($from);
 			$validateChecksum = false;
 			$result = !!file_put_contents($to, static::decompress($from));
 			$zstdPrefix = 'compress.zstd://';

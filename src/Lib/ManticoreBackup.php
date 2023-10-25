@@ -65,6 +65,27 @@ class ManticoreBackup {
 	}
 
 	/**
+	 * Validate if versions that we want to restore is the same
+	 * @param  FileStorage     $storage
+	 * @return bool
+	 */
+	public static function validateVersions(FileStorage $storage): bool {
+		$versionsEqual = false;
+		$currentVersions = ManticoreClient::getVersionsFromCli();
+		$backupPaths = $storage->getBackupPaths();
+		$storedVersions = ManticoreBackup::readVersions($backupPaths['root']);
+		println(LogLevel::Info, 'Stored versions: ' . json_encode($storedVersions));
+		println(LogLevel::Info, 'Current versions: ' . json_encode($currentVersions));
+		foreach ($currentVersions as $k => $v) {
+			if ($storedVersions[$k] !== $v) {
+				$versionsEqual = false;
+				break;
+			}
+		}
+		return $versionsEqual;
+	}
+
+	/**
    * Store the wanted tables in backup dir as backup
    *
    * @param ManticoreClient $client
@@ -361,6 +382,27 @@ class ManticoreBackup {
 	protected static function storeVersions(array $versions, string $backupDir): bool {
 		$filePath = $backupDir . DIRECTORY_SEPARATOR . 'versions.json';
 		return !!file_put_contents($filePath, json_encode($versions));
+	}
+
+	/**
+	 * Read the versions from file
+	 *
+	 * @param  string $backupDir
+	 * @return array<string,string>
+	 */
+	protected static function readVersions(string $backupDir): array {
+		$filePath = $backupDir . DIRECTORY_SEPARATOR . 'versions.json';
+		$data = file_get_contents($filePath);
+		if ($data === false) {
+			throw new \RuntimeException("Failed to read versions file: $filePath");
+		}
+		/** @var array<string,string> $versions */
+		$versions = json_decode($data, true);
+		if (!$versions) {
+			throw new \RuntimeException("Failed to decode versions from file: $filePath");
+		}
+
+		return $versions;
 	}
 
   /**
