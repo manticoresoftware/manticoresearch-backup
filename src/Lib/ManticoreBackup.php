@@ -70,12 +70,12 @@ class ManticoreBackup {
 	 * @return bool
 	 */
 	public static function validateVersions(FileStorage $storage): bool {
-		$versionsEqual = false;
 		$currentVersions = ManticoreClient::getVersionsFromCli();
 		$backupPaths = $storage->getBackupPaths();
 		$storedVersions = ManticoreBackup::readVersions($backupPaths['root']);
 		println(LogLevel::Info, 'Stored versions: ' . json_encode($storedVersions));
 		println(LogLevel::Info, 'Current versions: ' . json_encode($currentVersions));
+		$versionsEqual = true;
 		foreach ($currentVersions as $k => $v) {
 			if ($storedVersions[$k] !== $v) {
 				$versionsEqual = false;

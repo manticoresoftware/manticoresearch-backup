@@ -263,7 +263,7 @@ class ManticoreClient {
 		$opts = [
 			'http' => [
 				'method'  => 'POST',
-				'header'  => 'Content-type: application/json',
+				'header'  => 'Content-type: application/x-www-form-urlencoded',
 				'content' => http_build_query(compact('query')),
 				'ignore_errors' => false,
 				'timeout' => 3,
