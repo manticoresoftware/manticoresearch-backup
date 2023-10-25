@@ -64,7 +64,10 @@ class FileStorage {
    * @return static
    */
 	public function setTargetDir(string $dir): static {
-		$this->backupDir = backup_realpath(rtrim($dir, DIRECTORY_SEPARATOR));
+		if (isset($dir[1])) {
+			$dir = rtrim($dir, DIRECTORY_SEPARATOR);
+		}
+		$this->backupDir = backup_realpath($dir);
 		return $this;
 	}
 
@@ -421,7 +424,6 @@ class FileStorage {
 
 		$result = [];
 		$result['root'] = $destination;
-
 	  // Now lets create additional directories
 		foreach (['data', 'config', 'state'] as $dir) {
 			$path = $destination . DIRECTORY_SEPARATOR . $dir;

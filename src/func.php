@@ -44,9 +44,7 @@ function validate_args(array $args): array {
   // Run checks only if we really need it
 	$backupDir = isset($options['backup-dir']) ? backup_realpath($options['backup-dir']) : null;
 	if (!isset($args['unlock'])) {
-		if (!isset($backupDir)
-		|| !is_dir($backupDir)
-		|| !is_writeable($backupDir)) {
+		if (!isset($backupDir) || !is_dir($backupDir)) {
 			throw new InvalidArgumentException(
 				'Failed to find backup dir to store backup: ' . ($backupDir ?? 'none')
 			);
