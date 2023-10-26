@@ -176,17 +176,17 @@ jobs:
       - uses: manticoresoftware/upload_artifact_with_retries@main
         with:
           name: artifact-el7-rpm
-          path: ./*.el7.rpm
+          path: ./*.el7.noarch.rpm
 
       - uses: manticoresoftware/upload_artifact_with_retries@main
         with:
           name: artifact-el8-rpm
-          path: ./*.el9.rpm
+          path: ./*.el8.noarch.rpm
 
       - uses: manticoresoftware/upload_artifact_with_retries@main
         with:
           name: artifact-el9-rpm
-          path: ./*.el9.rpm
+          path: ./*.el9.noarch.rpm
 
   create-release:
     runs-on: ubuntu-22.04
