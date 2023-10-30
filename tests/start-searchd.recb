@@ -11,3 +11,8 @@ listening on all interfaces for mysql, port=9306
 listening on UNIX socket /var/run/mysqld/mysqld.sock
 listening on %{IPADDR}:9312 for sphinx and http(s)
 listening on all interfaces for sphinx and http(s), port=9308
+––– input –––
+manticore-backup --version
+––– output –––
+Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Manticore Backup version: %{SEMVER}
