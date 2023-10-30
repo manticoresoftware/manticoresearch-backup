@@ -34,9 +34,9 @@ secondary: %{SEMVER} %{COMMITDATE}
 [93m%{DATETIME}[0m [Info]   global state files – [92mOK[0m
 [93m%{DATETIME}[0m [Info] Backing up tables...
 [93m%{DATETIME}[0m [Info]   [93mSKIP[0m
-[93m%{DATETIME}[0m [Info]   [93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [2.884K]...
+[93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [2.897K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
-[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.758K]...
+[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.771K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info] Running sync
 [93m%{DATETIME}[0m [Info]  [92mOK[0m
@@ -46,11 +46,11 @@ secondary: %{SEMVER} %{COMMITDATE}
 [93m%{DATETIME}[0m [Info]
 Unfreezing all tables...
 [93m%{DATETIME}[0m [Info]   distributed_index...
-[93m%{DATETIME}[0m [Info]    OK
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_with_columnar...
-[93m%{DATETIME}[0m [Info]    OK
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar...
-[93m%{DATETIME}[0m [Info]    OK
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
 ––– input –––
 mv /tmp/backup-* /tmp/backup-111
 ––– output –––
@@ -81,7 +81,7 @@ Manticore config file:
 Backup dir: /tmp
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
-endpoint =  http://127.0.0.1:9312
+endpoint =  http://%{IPADDR}:9312
 [93m%{DATETIME}[0m [[31mError[0m] Destination file already exists: /etc/manticoresearch/manticore.conf
 ––– input –––
 rm /etc/manticoresearch/manticore.conf
@@ -94,7 +94,7 @@ Manticore config file:
 Backup dir: /tmp
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
-endpoint =  http://127.0.0.1:9312
+endpoint =  http://%{IPADDR}:9312
 [93m%{DATETIME}[0m [[31mError[0m] Destination file already exists: /var/lib/manticore/manticore.json
 ––– input –––
 rm -fr /var/lib/manticore/*
@@ -128,8 +128,8 @@ Copyright (c) 2017-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 starting daemon version '%{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} %{COMMITDATE}) (secondary %{SEMVER} %{COMMITDATE})' ...
 listening on all interfaces for mysql, port=9306
 listening on UNIX socket /var/run/mysqld/mysqld.sock
-listening on #!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:9312|all interfaces/!# for sphinx and http(s)
-listening on #!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:9308|all interfaces/!# for sphinx and http(s)
+listening on %{IPADDR}:9312 for sphinx and http(s)
+listening on all interfaces for sphinx and http(s), port=9308
 precaching table 'rt_with_columnar'
 precaching table 'rt_without_columnar'
 precached 2 tables in 0.#!/[0-9]{3}/!# sec
