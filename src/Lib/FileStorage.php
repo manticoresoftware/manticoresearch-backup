@@ -537,16 +537,18 @@ class FileStorage {
    * @param string $dir
    *  The directory where we should look into
    * @param int $flags
-   * @return \RecursiveIteratorIterator<\RecursiveDirectoryIterator>
+   * @return FileSortingIterator<\RecursiveDirectoryIterator>
    */
 	public static function getFileIterator(
 		string $dir,
 		int $flags = \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO
-	): \RecursiveIteratorIterator {
-		return new \RecursiveIteratorIterator(
+	): FileSortingIterator {
+		$iterator = new \RecursiveIteratorIterator(
 			new \RecursiveDirectoryIterator($dir, $flags),
 			\RecursiveIteratorIterator::CHILD_FIRST
 		);
+
+		return new FileSortingIterator($iterator);
 	}
 
 	/**
