@@ -429,7 +429,7 @@ class ManticoreBackup {
    * @throws \Exception
    */
 	protected static function validateRestore(FileStorage $storage, string $backupPath, ?\Closure $fn = null): void {
-		$fileIterator = $storage->getFileIterator($backupPath);
+		$fileIterator = $storage->getSortedFileIterator($backupPath);
 	  /** @var \SplFileInfo $file */
 		foreach ($fileIterator as $file) {
 			if (!$file->isFile()) {
