@@ -110,6 +110,29 @@ switch (true) {
 		}
 
 		$storage->setBackupPathsUsingDir($options['restore']);
+		// Validate versions if no force passed
+		$versionsEqual = ManticoreBackup::validateVersions($storage);
+		if (!$versionsEqual) {
+			println(
+				LogLevel::Info,
+				'Warning: You try to restore backup of the different version. '
+				. 'Use --force to bypass this.'
+			);
+
+			if (!$options['force']) {
+				$continue = false;
+				if (function_exists('posix_isatty') && posix_isatty(STDIN)) {
+					// Ask user for input
+					echo PHP_EOL . 'Do you wish to continue? (y or n): ';
+					$response = strtolower(trim(fgets(STDIN) ?: ''));
+					$continue = $response === 'y';
+				}
+
+				if (!$continue) {
+					exit(0);
+				}
+			}
+		}
 
 	  // Here is when real restore is starting
 		ManticoreBackup::run('restore', [$storage]);

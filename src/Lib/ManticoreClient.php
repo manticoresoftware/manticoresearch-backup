@@ -196,16 +196,36 @@ class ManticoreClient {
 	public function getVersions(): array {
 		$result = $this->execute('SHOW STATUS LIKE \'version\'');
 		$version = $result[0]['data'][0]['Value'] ?? '';
+		return static::parseVersions($version);
+	}
+
+	/**
+	 * Get versions for manticore but using CLI instead of sql
+	 * @return array{manticore:string,columnar:string,secondary:string}
+	 *  Parsed list of versions available with keys of [manticore, columnar, secondary]
+	 */
+	public static function getVersionsFromCli(): array {
+		$output = [];
+		exec('searchd --version 2>/dev/null', $output);
+		$version = $output[0] ?? '';
+		return static::parseVersions($version);
+	}
+
+	/**
+	 * @param string $version
+	 * @return array{manticore:string,columnar:string,secondary:string}
+	 */
+	protected static function parseVersions(string $version): array {
 		$verPattern = '(\d+\.\d+\.\d+[^\(\)]+)';
-		$matchExpr = "/^{$verPattern}(\(columnar\s{$verPattern}\))?"
+		$matchExpr = "/^(?:Manticore )?{$verPattern}(\(columnar\s{$verPattern}\))?"
 			. "([^\(]*\(secondary\s{$verPattern}\))?$/ius"
 		;
 		preg_match($matchExpr, $version, $m);
 
 		return [
-			'manticore' => $m[1] ?? '0.0.0',
-			'columnar' => $m[3] ?? '0.0.0',
-			'secondary' => $m[5] ?? '0.0.0',
+			'manticore' => trim($m[1] ?? '0.0.0'),
+			'columnar' => trim($m[3] ?? '0.0.0'),
+			'secondary' => trim($m[5] ?? '0.0.0'),
 		];
 	}
 
@@ -243,7 +263,7 @@ class ManticoreClient {
 		$opts = [
 			'http' => [
 				'method'  => 'POST',
-				'header'  => 'Content-type: application/json',
+				'header'  => 'Content-type: application/x-www-form-urlencoded',
 				'content' => http_build_query(compact('query')),
 				'ignore_errors' => false,
 				'timeout' => 3,

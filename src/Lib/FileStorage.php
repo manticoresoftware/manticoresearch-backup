@@ -243,9 +243,8 @@ class FileStorage {
 		}
 
 		if (str_ends_with($from, '.zst')) {
-			var_dump($from);
 			$validateChecksum = false;
-			$result = !!file_put_contents($to, static::decompress($from));
+			$result = static::decompress($from, $to);
 			$zstdPrefix = 'compress.zstd://';
 		} else {
 			$result = copy($from, $zstdPrefix . $to);
@@ -574,22 +573,35 @@ class FileStorage {
 
 	/**
 	 * Helper function to read the compressed file with all checks and return its contents
-	 * @param string $file
-	 * @return string
+	 * @param string $source compressed file name
+	 * @param string $target destination to uncompress
+	 * @return bool
 	 * @throws RuntimeException
 	 */
-	protected static function decompress(string $file): string {
+	protected static function decompress(string $source, string $target): bool {
 		static::validateZstdInstalled();
-
-		$data = file_get_contents($file);
-		if ($data === false) {
-			throw new RuntimeException("Failed to read file: $file");
-		}
-		$data = zstd_uncompress($data);
-		if ($data === false) {
-			throw new RuntimeException("Failed to decompress file: $file");
+		$sourceStream = fopen("compress.zstd://{$source}", 'rb');
+		$targetStream = fopen($target, 'wb');
+		if (!$sourceStream || !$targetStream) {
+			return false;
 		}
 
-		return $data;
+		while (!feof($sourceStream)) {
+			$buffer = fread($sourceStream, 4096);
+			if (!$buffer) {
+				break;
+			}
+
+			$written = fwrite($targetStream, $buffer);
+			if (!$written) {
+				return false;
+			}
+		}
+
+	  // Close the streams when we're done
+		fclose($sourceStream);
+		fclose($targetStream);
+
+		return true;
 	}
 }

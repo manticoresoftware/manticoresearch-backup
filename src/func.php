@@ -20,7 +20,7 @@ use Manticoresoftware\Telemetry\Metric;
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool}
+ * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool,force:bool}
  *  Options that we can use for access with predefined keys: config, backup-dir, all, tables
  */
 function validate_args(array $args): array {
@@ -30,6 +30,7 @@ function validate_args(array $args): array {
 		'compress' => isset($args['compress']),
 		'tables' => array_filter(array_map('trim', explode(',', $args['tables'] ?? ''))),
 		'restore' => $args['restore'] ?? false,
+		'force' => isset($args['force']),
 		'disable-telemetry' => isset($args['disable-telemetry']),
 	];
 
@@ -92,6 +93,7 @@ function get_input_args(): array {
 		'', [
 			'help', 'config:', 'tables:', 'backup-dir:',
 			'compress', 'restore::', 'unlock', 'version', 'disable-telemetry',
+			'force',
 		]
 	);
 	if (false === $args) {
@@ -100,7 +102,7 @@ function get_input_args(): array {
 
   // Do not let user to pass non supported options to script
 	$supportedArgs = '!--help!--config!--tables!--backup-dir!--compress!--restore!'
-		. '--unlock!--version!--disable-telemetry!'
+		. '--unlock!--version!--disable-telemetry!--force!'
 	;
 	$argv = $_SERVER['argv'];
 	array_shift($argv);
@@ -207,6 +209,8 @@ function show_help(): void {
 	. colored('--restore[=backup]', TextColor::LightGreen) . $nl
 	. "  Restore from --backup-dir. Just --restore lists available backups.$nl"
 	. "  --restore=backup will restore from <--backup-dir>/backup.$nl$nl"
+	. colored('--force', TextColor::LightGreen) . $nl
+	. "  Skip versions check on restore and gracefully restore the backup.$nl"
 	. colored('--disable-telemetry', TextColor::LightGreen) . $nl
 	. '  Pass this flag in case you want to disable sending anonymized metrics '
 		. " to Manticore. You can also use environment variable TELEMETRY=0.$nl$nl"
