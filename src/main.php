@@ -115,8 +115,8 @@ switch (true) {
 		if (!$versionsEqual) {
 			println(
 				LogLevel::Info,
-				'Warning: You try to restore backup of the different version. '
-				. 'Use --force to bypass this.'
+				'Warning: You are trying to restore a backup from a different version. '
+				. 'Use --force to bypass this restriction.'
 			);
 
 			if (!$options['force']) {
