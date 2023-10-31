@@ -31,6 +31,8 @@ Whether the backed up files should be compressed. Not by default.
 [92m--restore[=backup][0m
 Restore from --backup-dir. Just --restore lists available backups.
 --restore=backup will restore from <--backup-dir>/backup.
+[92m--force[0m
+Skip versions check on restore and gracefully restore the backup.
 [92m--disable-telemetry[0m
 Pass this flag in case you want to disable sending anonymized metrics  to Manticore. You can also use environment variable TELEMETRY=0.
 [92m--unlock[0m
