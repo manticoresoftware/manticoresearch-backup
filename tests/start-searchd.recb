@@ -9,7 +9,7 @@ Copyright (c) 2017-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 starting daemon version '%{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} %{COMMITDATE}) (secondary %{SEMVER} %{COMMITDATE})' ...
 listening on all interfaces for mysql, port=9306
 listening on UNIX socket /var/run/mysqld/mysqld.sock
-listening on %{IPADDR}:9312 for sphinx and http(s)
+listening on all interfaces for sphinx and http(s), port=9312
 listening on all interfaces for sphinx and http(s), port=9308
 ––– input –––
 manticore-backup --version
