@@ -37,6 +37,7 @@ rm -rf %{buildroot}
 %postun
 
 %files
+%defattr(-, root, root)
 %dir /usr/share/manticore/modules/{{ NAME }}
 /usr/share/manticore/modules/{{ NAME }}/src/*
 /usr/share/manticore/modules/{{ NAME }}/vendor/*
