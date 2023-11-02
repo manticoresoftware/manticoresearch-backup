@@ -132,6 +132,8 @@ jobs:
           cp -r build/${{ env.APP_NAME }} .rpmpkg/usr/bin/${{ env.APP_NAME }}
           cp -p LICENSE .rpmpkg/usr/share/manticore/modules/${{ env.APP_NAME }}/LICENSE
           cp -p README.md .rpmpkg/usr/share/manticore/modules/${{ env.APP_NAME }}/README.md
+          sudo chown -R root:root .debpkg
+          sudo chown -R root:root .rpmpkg
         shell: bash
       - uses: manticoresoftware/actions-build-deb-action@master
         with:
