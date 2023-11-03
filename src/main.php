@@ -93,9 +93,9 @@ switch (true) {
 				throw new InvalidArgumentException('There is no backup-dir detected');
 			}
 
-			$backups = glob($backupDir . DIRECTORY_SEPARATOR . 'backup-*');
+			$backups = glob($backupDir . 'backup-*');
 			if ($backups) {
-				$prefixLen = strlen($backupDir) + 1;
+				$prefixLen = strlen($backupDir);
 				echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
 				foreach ($backups as $path) {
 					$dir = substr($path, $prefixLen);

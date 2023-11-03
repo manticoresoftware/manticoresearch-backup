@@ -25,7 +25,7 @@ class FileStorage {
   /**
    * We store paths for current backup here
    *
-   * @var non-empty-array<'config'|'data'|'root'|'state',non-falsy-string>
+   * @var non-empty-array<'config'|'data'|'root'|'state',string>
    */
 	protected array $backupPaths;
 
@@ -64,10 +64,7 @@ class FileStorage {
    * @return static
    */
 	public function setTargetDir(string $dir): static {
-		if (isset($dir[1])) {
-			$dir = rtrim($dir, DIRECTORY_SEPARATOR);
-		}
-		$this->backupDir = backup_realpath($dir);
+		$this->backupDir = rtrim(backup_realpath($dir), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 		return $this;
 	}
 
@@ -418,7 +415,7 @@ class FileStorage {
    * @return static
    */
 	public function setBackupPathsUsingDir(string $dir): static {
-		$destination = $this->backupDir . DIRECTORY_SEPARATOR . $dir;
+		$destination = $this->backupDir . $dir;
 	  // state – all global state files are stored here
 
 		$result = [];
@@ -440,13 +437,13 @@ class FileStorage {
   /**
    * Get current file storage final backup destination
    *
-   * @return non-empty-array<'config'|'data'|'root'|'state',non-falsy-string>
+   * @return non-empty-array<'config'|'data'|'root'|'state',string>
    *  Absolute paths for storing different data types
    * @throws InvalidPathException
    */
 	public function getBackupPaths(): array {
 		if (!isset($this->backupPaths)) {
-			$destination = $this->backupDir . DIRECTORY_SEPARATOR . 'backup-' . gmdate('YmdHis');
+			$destination = $this->backupDir . 'backup-' . gmdate('YmdHis');
 		  // Check that backup dir is writable
 			if (!is_writable($this->backupDir)) {
 				throw new InvalidPathException('Backup directory is not writable');
