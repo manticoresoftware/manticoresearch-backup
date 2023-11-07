@@ -201,8 +201,8 @@ class ManticoreClient {
 
 	/**
 	 * Get versions for manticore but using CLI instead of sql
-	 * @return array{manticore:string,columnar:string,secondary:string}
-	 *  Parsed list of versions available with keys of [manticore, columnar, secondary]
+	 * @return array{backup:string,manticore:string,columnar:string,secondary:string}
+	 *  Parsed list of versions available with keys of [backup, manticore, columnar, secondary]
 	 */
 	public static function getVersionsFromCli(): array {
 		$output = [];
@@ -213,7 +213,7 @@ class ManticoreClient {
 
 	/**
 	 * @param string $version
-	 * @return array{manticore:string,columnar:string,secondary:string}
+	 * @return array{backup:string,manticore:string,columnar:string,secondary:string}
 	 */
 	protected static function parseVersions(string $version): array {
 		$verPattern = '(\d+\.\d+\.\d+[^\(\)]+)';
@@ -223,6 +223,7 @@ class ManticoreClient {
 		preg_match($matchExpr, $version, $m);
 
 		return [
+			'backup' => ManticoreBackup::getVersion(),
 			'manticore' => trim($m[1] ?? '0.0.0'),
 			'columnar' => trim($m[3] ?? '0.0.0'),
 			'secondary' => trim($m[5] ?? '0.0.0'),

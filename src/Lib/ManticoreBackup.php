@@ -77,6 +77,15 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Current versions: ' . json_encode($currentVersions));
 		$versionsEqual = true;
 		foreach ($currentVersions as $k => $v) {
+			if ($k === 'backup') {
+				$currentMajor = (int)strtok($currentVersions[$k], '.');
+				$storedMajor = (int)strtok($v, '.');
+				if ($currentMajor !== $storedMajor) {
+					$versionsEqual = false;
+					break;
+				}
+				continue;
+			}
 			if ($storedVersions[$k] !== $v) {
 				$versionsEqual = false;
 				break;

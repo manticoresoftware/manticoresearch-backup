@@ -68,8 +68,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 [93m%{DATETIME}[0m [[31mError[0m] Cannot initiate the restore process due to searchd daemon is running.
 ––– input –––
@@ -81,8 +81,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
@@ -96,8 +96,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
@@ -111,8 +111,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
