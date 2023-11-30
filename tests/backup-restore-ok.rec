@@ -23,16 +23,15 @@ Manticore versions:
 manticore: %{SEMVER} %{COMMITDATE} dev
 columnar: %{SEMVER} %{COMMITDATE}
 secondary: %{SEMVER} %{COMMITDATE}
-Manticore versions:
-manticore: %{SEMVER} %{COMMITDATE} dev
-columnar: %{SEMVER} %{COMMITDATE}
-secondary: %{SEMVER} %{COMMITDATE}
+knn: %{SEMVER} %{COMMITDATE}
+buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info] Starting the backup...
 [93m%{DATETIME}[0m [Info] Backing up config files...
 [93m%{DATETIME}[0m [Info]   config files - [92mOK[0m
 [93m%{DATETIME}[0m [Info] Backing up global state files...
 [93m%{DATETIME}[0m [Info]   global state files – [92mOK[0m
 [93m%{DATETIME}[0m [Info] Backing up tables...
+[93m%{DATETIME}[0m [Info]   distributed_index (distributed)...
 [93m%{DATETIME}[0m [Info]   [93mSKIP[0m
 [93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [2.897K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
@@ -68,8 +67,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"0.0.0"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 [93m%{DATETIME}[0m [[31mError[0m] Cannot initiate the restore process due to searchd daemon is running.
 ––– input –––
@@ -81,8 +80,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"0.0.0"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
@@ -96,8 +95,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"0.0.0"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
@@ -111,8 +110,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
-[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#"}
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"0.0.0"}
 [93m%{DATETIME}[0m [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
@@ -123,23 +122,23 @@ endpoint =  http://%{IPADDR}:9312
 [93m%{DATETIME}[0m [Info] Restoring data files...
 [93m%{DATETIME}[0m [Info]   tables' files - [92mOK[0m
 [93m%{DATETIME}[0m [Info] The backup '/tmp/backup-111' was successfully restored.
-[93m%{DATETIME}[0m [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
+[93m%{DATETIME}[0m [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
 [93m%{DATETIME}[0m [Info] Done
 ––– input –––
 searchd
 ––– output –––
-Manticore %{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#) (secondary %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#)
+Manticore %{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#) (secondary %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#) (knn %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#)
 Copyright (c) 2001-2016, Andrew Aksyonoff
 Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
 Copyright (c) 2017-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 [#!/[0-9]{2}:[0-9]{2}\.[0-9]{3}/!#] [#!/[0-9]+/!#] using config file '/etc/manticoresearch/manticore.conf' (#!/[0-9]+/!# chars)...
-starting daemon version '%{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} %{COMMITDATE}) (secondary %{SEMVER} %{COMMITDATE})' ...
-listening on all interfaces for mysql, port=9306
-listening on UNIX socket /var/run/mysqld/mysqld.sock
-listening on #!/all interfaces|[0-9\.]+:9312/!# for sphinx and http(s)#!/, port=9312|/!#
-listening on all interfaces for sphinx and http(s), port=9308
+starting daemon version '%{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} %{COMMITDATE}) (secondary %{SEMVER} %{COMMITDATE}) (knn %{SEMVER} %{COMMITDATE})' ...
+listening on %{IPADDR}:9312 for sphinx and http(s)
+listening on %{IPADDR}:9306 for mysql
+listening on %{IPADDR}:9308 for sphinx and http(s)
 precaching table 'rt_with_columnar'
 precaching table 'rt_without_columnar'
+WARNING: table 'distributed_index': ha_strategy defined, but no ha agents in the table
 precached 2 tables in 0.#!/[0-9]{3}/!# sec
 ––– input –––
 mysql -h0 -P9306 -e 'show tables'

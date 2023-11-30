@@ -67,16 +67,15 @@ Manticore versions:
 manticore: %{SEMVER} %{COMMITDATE} dev
 columnar: %{SEMVER} %{COMMITDATE}
 secondary: %{SEMVER} %{COMMITDATE}
-Manticore versions:
-manticore: %{SEMVER} %{COMMITDATE} dev
-columnar: %{SEMVER} %{COMMITDATE}
-secondary: %{SEMVER} %{COMMITDATE}
+knn: %{SEMVER} %{COMMITDATE}
+buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info] Starting the backup...
 [93m%{DATETIME}[0m [Info] Backing up config files...
 [93m%{DATETIME}[0m [Info]   config files - [92mOK[0m
 [93m%{DATETIME}[0m [Info] Backing up global state files...
 [93m%{DATETIME}[0m [Info]   global state files – [92mOK[0m
 [93m%{DATETIME}[0m [Info] Backing up tables...
+[93m%{DATETIME}[0m [Info]   distributed_index (distributed)...
 [93m%{DATETIME}[0m [Info]   [93mSKIP[0m
 [93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [2.897K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m

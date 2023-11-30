@@ -28,6 +28,7 @@ class ManticoreClient {
 
 		$versions = $this->getVersions();
 		$verNum = strtok($versions['manticore'], ' ');
+		metric(labels: $versions);
 
 		if ($verNum === false || version_compare($verNum, Searchd::MIN_VERSION) <= 0) {
 			$verSfx = strtok(' ');
@@ -47,10 +48,13 @@ class ManticoreClient {
 				);
 			}
 		}
+
 		echo PHP_EOL . 'Manticore versions:' . PHP_EOL
 			. '  manticore: ' . $versions['manticore'] . PHP_EOL
 			. '  columnar: ' . $versions['columnar'] . PHP_EOL
 			. '  secondary: ' . $versions['secondary'] . PHP_EOL
+			. '  knn: ' . $versions['knn'] . PHP_EOL
+			. '  buddy: ' . $versions['buddy'] . PHP_EOL
 		;
 
 	  // Validate config path or fail
@@ -81,37 +85,7 @@ class ManticoreClient {
    */
 	public static function init(string $configPath): self {
 		$config = new ManticoreConfig($configPath);
-		$client = new ManticoreClient($config);
-
-		$versions = $client->getVersions();
-		metric(labels: $versions);
-		$verNum = strtok($versions['manticore'], ' ');
-
-		if ($verNum === false || version_compare($verNum, Searchd::MIN_VERSION) <= 0) {
-			$verSfx = strtok(' ');
-			if (false === $verSfx) {
-				throw new \RuntimeException('Failed to find the version of the manticore searchd');
-			}
-
-			$isOld = $verNum < Searchd::MIN_VERSION;
-			if (!$isOld) {
-				[, $verDate] = explode('@', $verSfx);
-				$isOld = $verDate < Searchd::MIN_DATE;
-			}
-
-			if ($isOld) {
-				throw new \RuntimeException(
-					'You are running old version of manticore searchd, minimum required: ' . Searchd::MIN_VERSION
-				);
-			}
-		}
-		echo PHP_EOL . 'Manticore versions:' . PHP_EOL
-			. '  manticore: ' . $versions['manticore'] . PHP_EOL
-			. '  columnar: ' . $versions['columnar'] . PHP_EOL
-			. '  secondary: ' . $versions['secondary'] . PHP_EOL
-		;
-
-		return $client;
+		return new ManticoreClient($config);
 	}
 
   /**
@@ -190,8 +164,8 @@ class ManticoreClient {
   /**
    * Get manticore, protocol and columnar versions
    *
-   * @return array{manticore:string,columnar:string,secondary:string}
-   *  Parsed list of versions available with keys of [manticore, columnar, secondary]
+   * @return array{manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
+   *  Parsed list of versions available with keys of [manticore, columnar, secondary, knn, buddy]
    */
 	public function getVersions(): array {
 		$result = $this->execute('SHOW STATUS LIKE \'version\'');
@@ -201,7 +175,7 @@ class ManticoreClient {
 
 	/**
 	 * Get versions for manticore but using CLI instead of sql
-	 * @return array{backup:string,manticore:string,columnar:string,secondary:string}
+	 * @return array{backup:string,manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
 	 *  Parsed list of versions available with keys of [backup, manticore, columnar, secondary]
 	 */
 	public static function getVersionsFromCli(): array {
@@ -213,20 +187,23 @@ class ManticoreClient {
 
 	/**
 	 * @param string $version
-	 * @return array{backup:string,manticore:string,columnar:string,secondary:string}
+	 * @return array{backup:string,manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
 	 */
 	protected static function parseVersions(string $version): array {
 		$verPattern = '(\d+\.\d+\.\d+[^\(\)]+)';
-		$matchExpr = "/^(?:Manticore )?{$verPattern}(\(columnar\s{$verPattern}\))?"
-			. "([^\(]*\(secondary\s{$verPattern}\))?$/ius"
+		$matchExpr = "/^(?:Manticore\s)?{$verPattern}(?:[^\(]*\(columnar\s{$verPattern}\))?"
+			. "(?:[^\(]*\(secondary\s{$verPattern}\))?"
+			. "(?:[^\(]*\(knn\s{$verPattern}\))?"
+			. '(?:[^\(]*\(buddy\sv?(\d+\.\d+\.\d+)\))?$/ius'
 		;
 		preg_match($matchExpr, $version, $m);
-
 		return [
 			'backup' => ManticoreBackup::getVersion(),
 			'manticore' => trim($m[1] ?? '0.0.0'),
-			'columnar' => trim($m[3] ?? '0.0.0'),
-			'secondary' => trim($m[5] ?? '0.0.0'),
+			'columnar' => trim($m[2] ?? '0.0.0'),
+			'secondary' => trim($m[3] ?? '0.0.0'),
+			'knn' => trim($m[4] ?? '0.0.0'),
+			'buddy' => trim($m[5] ?? '0.0.0'),
 		];
 	}
 

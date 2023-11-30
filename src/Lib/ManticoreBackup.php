@@ -77,6 +77,9 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Current versions: ' . json_encode($currentVersions));
 		$versionsEqual = true;
 		foreach ($currentVersions as $k => $v) {
+			if ($k === 'buddy') {
+				continue;
+			}
 			if ($k === 'backup') {
 				$currentMajor = (int)strtok($currentVersions[$k], '.');
 				$storedMajor = (int)strtok($v, '.');
@@ -179,8 +182,12 @@ class ManticoreBackup {
 		foreach ($tables as $index => $type) {
 		  // We will have no directory for distributed indexes and so should not back it up
 			if ($type === 'distributed') {
-				  println(LogLevel::Info, '  ' . colored('SKIP', TextColor::LightYellow));
-				  continue;
+				println(
+					LogLevel::Info,
+					'  ' . $index . ' ('  . $type . ')...'
+				);
+				println(LogLevel::Info, '  ' . colored('SKIP', TextColor::LightYellow));
+				continue;
 			}
 
 			$files = $client->freeze($index);
