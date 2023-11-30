@@ -67,10 +67,8 @@ Manticore versions:
 manticore: %{SEMVER} %{COMMITDATE} dev
 columnar: %{SEMVER} %{COMMITDATE}
 secondary: %{SEMVER} %{COMMITDATE}
-Manticore versions:
-manticore: %{SEMVER} %{COMMITDATE} dev
-columnar: %{SEMVER} %{COMMITDATE}
-secondary: %{SEMVER} %{COMMITDATE}
+knn: %{SEMVER} %{COMMITDATE}
+buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info] Starting the backup...
 [93m%{DATETIME}[0m [Info] Backing up config files...
 [93m%{DATETIME}[0m [Info]   config files - [92mOK[0m

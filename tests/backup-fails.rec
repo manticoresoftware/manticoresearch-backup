@@ -72,10 +72,8 @@ Manticore versions:
 manticore: %{SEMVER} %{COMMITDATE} dev
 columnar: %{SEMVER} %{COMMITDATE}
 secondary: %{SEMVER} %{COMMITDATE}
-Manticore versions:
-manticore: %{SEMVER} %{COMMITDATE} dev
-columnar: %{SEMVER} %{COMMITDATE}
-secondary: %{SEMVER} %{COMMITDATE}
+knn: %{SEMVER} %{COMMITDATE}
+buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info] Starting the backup...
 [93m%{DATETIME}[0m [[31mError[0m] Can't find some of the tables: none
 ––– input –––
