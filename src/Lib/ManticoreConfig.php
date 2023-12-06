@@ -96,7 +96,6 @@ class ManticoreConfig {
 					$this->$property = $value;
 				}
 			}
-
 			$this->setupEndpoints($endpoints);
 		}
 
@@ -123,8 +122,11 @@ class ManticoreConfig {
 	 * @return void
 	 */
 	protected function setupEndpoints(array $endpoints): void {
+		$vipOnly = array_filter($endpoints, fn ($v) => $v['proto'] === '_vip' || $v['proto'] === 'http_vip');
 		$httpOnly = array_filter($endpoints, fn ($v) => $v['proto'] === 'http');
-		if ($httpOnly) {
+		if ($vipOnly) {
+			$endpoint = $vipOnly[array_key_first($vipOnly)];
+		} elseif ($httpOnly) {
 			$endpoint = $httpOnly[array_key_first($httpOnly)];
 		} else {
 			$endpoint = $endpoints[0] ?? null;
@@ -134,7 +136,7 @@ class ManticoreConfig {
 			return;
 		}
 
-		['proto' => $this->proto, 'host' => $this->host, 'port' => $this->port] = $endpoint;
+		['host' => $this->host, 'port' => $this->port] = $endpoint;
 	}
 
 	/**
