@@ -256,7 +256,11 @@ class ManticoreClient {
 			);
 		} catch (\ErrorException) {
 			throw new SearchdException(
-				'Failed to send query to the manticoresearch daemon. Make sure '
+				'Failed to send query to the Manticore Search daemon.'
+				. ' Ensure that it is set up to listen for HTTP or HTTPS connections'
+				. ' and has the appropriate certificates in place.'
+				. ' Additionally, check the \'max_connections\' setting in the configuration'
+				. ' file to ensure that it has not been exceeded. '
 				. 'it\'s listening for HTTP or HTTPS connections (with proper certificates).'
 			);
 		}
