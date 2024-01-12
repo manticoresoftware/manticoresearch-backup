@@ -2,7 +2,7 @@
 	"name": "manticoresoftware/manticoresearch-backup",
 	"description": "Backup tool for Manticore Search",
 	"keywords": ["search", "backup", "manticoresearch"],
-	"license": "GPL-2.0-or-later",
+	"license": "GPL-3.0-or-later",
 	"type": "library",
 	"require": {
 		"php": ">=8.1",
