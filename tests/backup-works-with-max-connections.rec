@@ -18,7 +18,7 @@ listening on %{IPADDR}:9313 for VIP sphinx and http(s)
 ––– input –––
 manticore-backup --version
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore Backup version: %{SEMVER}
 ––– block: init-database –––
 ––– input –––
@@ -82,7 +82,7 @@ ls: cannot access '/tmp/backup-*': No such file or directory
 ––– input –––
 manticore-backup --backup-dir=/tmp
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: all tables
 Backup dir: /tmp

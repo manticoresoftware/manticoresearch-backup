@@ -57,7 +57,7 @@ ls: cannot access '/tmp/backup-*': No such file or directory
 ––– input –––
 manticore-backup --backup-dir=/tmp --tables=rt_without_columnar
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: rt_without_columnar
 Backup dir: /tmp
