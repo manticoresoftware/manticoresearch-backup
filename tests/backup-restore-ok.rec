@@ -13,7 +13,7 @@ mysql -h0 -P9306 -e 'show tables'
 ––– input –––
 manticore-backup --backup-dir=/tmp
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: all tables
 Backup dir: /tmp
@@ -56,7 +56,7 @@ mv /tmp/backup-* /tmp/backup-111
 ––– input –––
 manticore-backup --backup-dir=/tmp --restore
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
 Available backups: 1
@@ -64,7 +64,7 @@ backup-111 ([93m?[0m)
 ––– input –––
 manticore-backup --backup-dir=/tmp --restore=backup-111
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
 [93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}
@@ -77,7 +77,7 @@ pgrep -f searchd | xargs kill -9
 ––– input –––
 manticore-backup --backup-dir=/tmp --restore=backup-111
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
 [93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}
@@ -92,7 +92,7 @@ rm /etc/manticoresearch/manticore.conf
 ––– input –––
 manticore-backup --backup-dir=/tmp --restore=backup-111
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
 [93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}
@@ -107,7 +107,7 @@ rm /var/lib/manticore/manticore.json
 ––– input –––
 manticore-backup --backup-dir=/tmp --restore=backup-111
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
 [93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","secondary":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","knn":"%{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#","buddy":"%{SEMVER}"}

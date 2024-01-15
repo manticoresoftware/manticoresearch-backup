@@ -1,12 +1,12 @@
 ––– input –––
 manticore-backup --version
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore Backup version: %{SEMVER}
 ––– input –––
 manticore-backup --help
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 [93mUsage:[0m
 manticore-backup --backup-dir=path/to/backup [OPTIONS]
 [92m--backup-dir[0m=[94mpath/to/backup[0m

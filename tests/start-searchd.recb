@@ -13,5 +13,5 @@ listening on %{IPADDR}:9308 for sphinx and http(s)
 ––– input –––
 manticore-backup --version
 ––– output –––
-Copyright (c) %{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore Backup version: %{SEMVER}
