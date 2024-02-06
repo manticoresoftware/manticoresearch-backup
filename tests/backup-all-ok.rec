@@ -30,8 +30,8 @@ title text,
 category_id integer,
 price float,
 description string attribute engine='columnar',
-attributes json,
-tags multi
+tags multi,
+attributes json
 ) |
 +------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ––– input –––
