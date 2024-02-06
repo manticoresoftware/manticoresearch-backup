@@ -46,8 +46,8 @@ title text,
 category_id integer,
 price float,
 description string attribute,
-attributes json,
-tags multi
+tags multi,
+attributes json
 ) |
 +---------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
 ––– input –––
