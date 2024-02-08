@@ -261,7 +261,6 @@ class ManticoreClient {
 				. ' and has the appropriate certificates in place.'
 				. ' Additionally, check the \'max_connections\' setting in the configuration'
 				. ' file to ensure that it has not been exceeded. '
-				. 'it\'s listening for HTTP or HTTPS connections (with proper certificates).'
 			);
 		}
 
