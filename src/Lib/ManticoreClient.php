@@ -244,7 +244,7 @@ class ManticoreClient {
 				'header'  => 'Content-type: application/x-www-form-urlencoded',
 				'content' => http_build_query(compact('query')),
 				'ignore_errors' => false,
-				'timeout' => 3,
+				'timeout' => 0,
 			],
 		];
 		$context = stream_context_create($opts);
