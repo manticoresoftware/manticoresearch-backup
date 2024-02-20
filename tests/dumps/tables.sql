@@ -20,6 +20,8 @@ CREATE TABLE rt_without_columnar (
   attributes JSON
 );
 
+CREATE TABLE test ( title text, image_vector float_vector knn_type='hnsw' knn_dims='4' hnsw_similarity='l2' );
+
 -- table distributed_index
 CREATE TABLE distributed_index type='distributed' local='rt_with_columnar, rt_without_columanr' AGENT='127.0.0.1:9312:plain_with_columnar, plain_without_columnar';
 
@@ -54,3 +56,7 @@ INSERT INTO rt_without_columnar (id, title, category_id, price, description, tag
 (11, 'Manticore Backpack', 7, 49.99, 'Spacious Manticore Backpack', (201, 202), '{"color": "black", "capacity": "20L"}'),
 (12, 'Manticore Phone Case', 8, 15.99, 'Protective Manticore Phone Case', (201, 203), '{"color": "clear", "model": "iPhone 13"}'),
 (13, 'Manticore Socks', 1, 7.99, 'Comfy Manticore Socks', (202, 204), '{"color": "white", "size": "M"}');
+
+INSERT INTO test VALUES
+( 1, 'yellow bag', (0.653448,0.192478,0.017971,0.339821) ),
+( 2, 'white bag', (0.148894,0.748278,0.091892,0.095406) );
