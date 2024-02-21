@@ -9,6 +9,7 @@ mysql -h0 -P9306 -e 'show tables'
 | distributed_index   | distributed |
 | rt_with_columnar    | rt          |
 | rt_without_columnar | rt          |
+| test                | rt          |
 +---------------------+-------------+
 ––– input –––
 manticore-backup --backup-dir=/tmp
@@ -37,10 +38,12 @@ buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.789K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test (rt) [956B]...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info] Running sync
 [93m%{DATETIME}[0m [Info]  [92mOK[0m
-[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
-[93m%{DATETIME}[0m [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
+[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-%{NUMBER}
+[93m%{DATETIME}[0m [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
 [93m%{DATETIME}[0m [Info] Done
 [93m%{DATETIME}[0m [Info]
 Unfreezing all tables...
@@ -49,6 +52,8 @@ Unfreezing all tables...
 [93m%{DATETIME}[0m [Info]   rt_with_columnar...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 ––– input –––
 mv /tmp/backup-* /tmp/backup-111
@@ -138,8 +143,9 @@ listening on %{IPADDR}:9306 for mysql
 listening on %{IPADDR}:9308 for sphinx and http(s)
 precaching table 'rt_with_columnar'
 precaching table 'rt_without_columnar'
+precaching table 'test'
 WARNING: table 'distributed_index': ha_strategy defined, but no ha agents in the table
-precached 2 tables in 0.#!/[0-9]{3}/!# sec
+precached 3 tables in #!/([0-9]+\.[0-9]+|0)/!# sec
 ––– input –––
 mysql -h0 -P9306 -e 'show tables'
 ––– output –––
@@ -149,4 +155,5 @@ mysql -h0 -P9306 -e 'show tables'
 | distributed_index   | distributed |
 | rt_with_columnar    | rt          |
 | rt_without_columnar | rt          |
+| test                | rt          |
 +---------------------+-------------+

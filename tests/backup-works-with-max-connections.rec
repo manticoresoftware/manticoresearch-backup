@@ -34,6 +34,7 @@ mysql -h0 -P9307 -e 'show tables'
 | distributed_index   | distributed |
 | rt_with_columnar    | rt          |
 | rt_without_columnar | rt          |
+| test                | rt          |
 +---------------------+-------------+
 ––– input –––
 mysql -h0 -P9307 -e 'show create table distributed_index'
@@ -106,10 +107,12 @@ buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.789K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test (rt) [956B]...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info] Running sync
 [93m%{DATETIME}[0m [Info]  [92mOK[0m
-[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
-[93m%{DATETIME}[0m [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
+[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-%{NUMBER}
+[93m%{DATETIME}[0m [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
 [93m%{DATETIME}[0m [Info] Done
 ––– input –––
 ls -lh /tmp/backup-*
