@@ -130,7 +130,7 @@ mysql -h0 -P9306 -e "flush ramchunk test; select * from test.@files;"
 |    1 | /var/lib/manticore/test/test.meta     | /var/lib/manticore/test/test.meta     |    741 |
 +------+---------------------------------------+---------------------------------------+--------+
 ––– input –––
-manticore-backup --backup-dir=/tmp/ > /dev/null; echo $?
+manticore-backup --backup-dir=/tmp/; echo $?
 ––– output –––
 0
 ––– input –––
