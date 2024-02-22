@@ -27,7 +27,7 @@ class ManticoreBackupRestoreTest extends TestCase {
 		SearchdTestCase::setUpBeforeClass();
 
 		static::$config = new ManticoreConfig(Searchd::getConfigPath());
-		$client = new ManticoreClient(static::$config);
+		$client = new ManticoreClient([static::$config]);
 
 		$fileStorage = new FileStorage(static::$backupDir);
 		ManticoreBackup::run('store', [$client, $fileStorage]);
@@ -77,7 +77,7 @@ class ManticoreBackupRestoreTest extends TestCase {
 		[, $fileStorage] = $this->initTestEnv();
 
 		$this->expectException(Exception::class);
-		$this->expectExceptionMessage('Destination file already exists');
+		$this->expectExceptionMessageMatches('/^Destination file already exists: .*?$/');
 		ManticoreBackup::run('restore', [$fileStorage]);
 	}
 
@@ -87,7 +87,7 @@ class ManticoreBackupRestoreTest extends TestCase {
 
 		[, $fileStorage] = $this->initTestEnv();
 		$this->expectException(Exception::class);
-		$this->expectExceptionMessage('Destination file already exists');
+		$this->expectExceptionMessageMatches('/^Destination file already exists: .*?$/');
 		ManticoreBackup::run('restore', [$fileStorage]);
 	}
 
@@ -99,22 +99,23 @@ class ManticoreBackupRestoreTest extends TestCase {
 
 		[, $fileStorage] = $this->initTestEnv();
 		$this->expectException(Exception::class);
-		$this->expectExceptionMessage('Destination file already exists');
+		$this->expectExceptionMessageMatches('/^The data dir to restore is not empty: .*?$/');
 		ManticoreBackup::run('restore', [$fileStorage]);
 	}
 
-	public function testRestoreFailedWhenStatePathExists(): void {
-		SearchdTestCase::tearDownAfterClass();
+	// We do not have state now, cuz docker changed
+	// public function testRestoreFailedWhenStatePathExists(): void {
+	// 	SearchdTestCase::tearDownAfterClass();
 
-		$this->safeDelete(static::$config->path);
-		$this->safeDelete(static::$config->schemaPath);
-		$this->safeDelete(static::$config->dataDir);
+	// 	$this->safeDelete(static::$config->path);
+	// 	$this->safeDelete(static::$config->schemaPath);
+	// 	$this->safeDelete(static::$config->dataDir);
 
-		[, $fileStorage] = $this->initTestEnv();
-		$this->expectException(Exception::class);
-		$this->expectExceptionMessage('Destination file already exists');
-		ManticoreBackup::run('restore', [$fileStorage]);
-	}
+	// 	[, $fileStorage] = $this->initTestEnv();
+	// 	$this->expectException(Exception::class);
+	// 	$this->expectExceptionMessageMatches('/^Destination file already exists: .*?$/');
+	// 	ManticoreBackup::run('restore', [$fileStorage]);
+	// }
 
 
 	public function testRestoreIsOK(): void {

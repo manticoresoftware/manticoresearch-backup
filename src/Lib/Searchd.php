@@ -20,13 +20,13 @@ class Searchd {
 	public static ?string $cmd;
 
 	/**
-	 * @return string
+	 * @return array<string>
 	 */
-	public static function getConfigPath(): string {
+	public static function getConfigPaths(): array {
 		// First check env and if we have there, return config file from there
 		$envConfig = getenv('MANTICORE_CONFIG');
 		if ($envConfig) {
-			return $envConfig;
+			return array_map(trim(...), explode('|', $envConfig));
 		}
 
 		$output = shell_exec(static::getCmd() . ' --status');
@@ -38,7 +38,20 @@ class Searchd {
 			throw new InvalidPathException('Failed to find searchd config from command line');
 		}
 
-		return backup_realpath($m[1]);
+		return [backup_realpath($m[1])];
+	}
+
+	/**
+	 * Get actual config path from all ocnfigs
+	 * @return string
+	 */
+	public static function getConfigPath(): string {
+		$configs = static::getConfigPaths();
+		if (!isset($configs[0])) {
+			throw new \RuntimeException('Failed to find actual config from the provided paths');
+		}
+
+		return $configs[0];
 	}
 
   /**

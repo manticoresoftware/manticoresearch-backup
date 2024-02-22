@@ -11,8 +11,8 @@
 
 namespace Manticoresearch\Backup\Lib;
 
-use CallbackFilterIterator;
 use Manticoresearch\Backup\Exception\InvalidPathException;
+
 use function println;
 
 /**
@@ -131,7 +131,7 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Backing up config files...');
 		$isOk = $storage->copyPaths(
 			[
-				$client->getConfig()->path,
+				...array_map(fn ($v) => $v->path, $client->getConfigs()),
 				$client->getConfig()->schemaPath,
 			], $destination['config'], true
 		);
@@ -279,17 +279,7 @@ class ManticoreBackup {
 			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $config->dataDir);
 		}
 
-		$dataIterator = $storage->getFileIterator($config->dataDir);
-		$dataDirLen = strlen($config->dataDir);
-		// Filter out directories and files starting with a dot (.)
-		$filteredIterator = new CallbackFilterIterator(
-			$dataIterator, function ($current/*, $key, $iterator*/) use ($dataDirLen) {
-				$relPath = ltrim(substr($current->getPathname(), $dataDirLen), DIRECTORY_SEPARATOR);
-				return !($relPath[0] === '.');
-			}
-		);
-		$hasFiles = $filteredIterator->valid() && iterator_count($filteredIterator) > 0;
-
+		$hasFiles = $storage::hasFiles($config->dataDir);
 		if ($hasFiles) {
 			throw new \Exception('The data dir to restore is not empty: ' . $config->dataDir);
 		}
@@ -503,6 +493,7 @@ class ManticoreBackup {
 			}
 
 			$preservedPath = $storage->getOriginRealPath($file->getRealPath());
+
 			if (is_file($preservedPath)) {
 				metric('restore_target_exists', 1);
 				throw new \Exception('Destination file already exists: ' . $preservedPath);

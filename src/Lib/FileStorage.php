@@ -11,8 +11,11 @@
 
 namespace Manticoresearch\Backup\Lib;
 
+use FilesystemIterator;
 use Manticoresearch\Backup\Exception\ChecksumException;
 use Manticoresearch\Backup\Exception\InvalidPathException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 use Throwable;
 
@@ -553,6 +556,26 @@ class FileStorage {
 	public static function getSortedFileIterator(...$args): FileSortingIterator {
 		// @phpstan-ignore-next-line
 		return new FileSortingIterator(static::getFileIterator(...$args));
+	}
+
+
+	/**
+	 * Check if we have some files in dir that is not hidden (.)
+	 * @param  string  $dir
+	 * @return bool
+	 */
+	public static function hasFiles(string $dir): bool {
+		$directory = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
+		$iterator = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::SELF_FIRST);
+
+		/** @var \SplFileInfo $fileinfo */
+		foreach ($iterator as $fileinfo) {
+			if ($fileinfo->isFile() && strpos($fileinfo->getFilename(), '.') !== 0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

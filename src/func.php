@@ -20,12 +20,12 @@ use Manticoresoftware\Telemetry\Metric;
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{config:string,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool,force:bool}
+ * @return array{configs:array<string>,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool,force:bool}
  *  Options that we can use for access with predefined keys: config, backup-dir, all, tables
  */
 function validate_args(array $args): array {
 	$options = [
-		'config' => $args['config'] ?? ($args['c'] ?? (isset($args['restore']) ? '' : Searchd::getConfigPath())),
+		'configs' => validate_get_configs($args),
 		'backup-dir' => $args['backup-dir'] ?? null,
 		'compress' => isset($args['compress']),
 		'tables' => array_filter(array_map('trim', explode(',', $args['tables'] ?? ''))),
@@ -36,9 +36,14 @@ function validate_args(array $args): array {
 
   // Validate arguments
 	if (!isset($args['restore'])) {
-		$options['config'] = backup_realpath($options['config']);
-		if (!is_file($options['config']) || !is_readable($options['config'])) {
-			throw new InvalidArgumentException('Failed to find passed config: ' . $options['config']);
+		$options['configs'] = array_map(
+			fn ($v) => backup_realpath($v),
+			$options['configs']
+		);
+		foreach ($options['configs'] as $n => $config) {
+			if (!is_file($config) || !is_readable($config)) {
+				throw new InvalidArgumentException("Failed to find passed config[{$n}]: {$config}");
+			}
 		}
 	}
 
@@ -59,6 +64,14 @@ function validate_args(array $args): array {
 	}
 
 	return $options;
+}
+
+/**
+ * @param array<string,string> $args
+ * @return  array<string>
+ */
+function validate_get_configs(array $args): array {
+	return (array)($args['config'] ?? ($args['c'] ?? (isset($args['restore']) ? '' : Searchd::getConfigPaths())));
 }
 
 /**
@@ -91,7 +104,7 @@ function format_bytes(int $bytes, int $precision = 3): string {
 function get_input_args(): array {
 	$args = getopt(
 		'', [
-			'help', 'config:', 'tables:', 'backup-dir:',
+			'help', 'config::', 'tables:', 'backup-dir:',
 			'compress', 'restore::', 'unlock', 'version', 'disable-telemetry',
 			'force',
 		]
@@ -195,7 +208,10 @@ function show_help(): void {
 	  . $nl
 	. "  Path to Manticore config. This is optional and in case it's not passed$nl"
 	. "  we use a default one for your operating system. It's used to get the host$nl"
-	. "  and port to talk with the Manticore daemon.$nl$nl"
+	. "  and port to talk with the Manticore daemon.$nl"
+	. "  You can use --config path1 --config path2 ... --config pathN$nl"
+	. "  to include all of the provided paths in the backup, but only$nl"
+	. "  the first one will be used for communication with the daemon.$nl$nl"
 	. colored('--tables', TextColor::LightGreen)
 	  . '='
 	  . colored('table1,table2,...', TextColor::LightBlue)
