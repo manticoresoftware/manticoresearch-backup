@@ -209,8 +209,9 @@ function show_help(): void {
 	. "  Path to Manticore config. This is optional and in case it's not passed$nl"
 	. "  we use a default one for your operating system. It's used to get the host$nl"
 	. "  and port to talk with the Manticore daemon.$nl"
-	. "  You can pass multiple values to include in the backup,$nl"
-	. "  but only the first one will be used to communicate with the daemon. $nl$nl"
+	. "  You can use --config path1 --config path2 ... --config pathN$nl"
+	. "  to include all of the provided paths in the backup, but only$nl"
+	. "  the first one will be used for communication with the daemon.$nl$nl"
 	. colored('--tables', TextColor::LightGreen)
 	  . '='
 	  . colored('table1,table2,...', TextColor::LightBlue)
