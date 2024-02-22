@@ -69,7 +69,8 @@ if (isset($args['version'])) {
 
 // OK, now gather all options in an array with default values
 $options = validate_args($args); // @phpstan-ignore-line
-echo 'Manticore config file: ' . $options['config'] . PHP_EOL
+$config = $options['configs'][0] ?? '';
+echo 'Manticore config file: ' . $config . PHP_EOL
   . (
 	  isset($args['restore'])
 		? ''
@@ -80,7 +81,7 @@ echo 'Manticore config file: ' . $options['config'] . PHP_EOL
 
 switch (true) {
 	case isset($args['unlock']): // unlock
-		$client = ManticoreClient::init($options['config']);
+		$client = ManticoreClient::init($options['configs']);
 		$client->unfreezeAll();
 	break;
 
@@ -139,7 +140,7 @@ switch (true) {
 	break;
 
 	default: // backup
-		$client = ManticoreClient::init($options['config']);
+		$client = ManticoreClient::init($options['configs']);
 
 		$storage = new FileStorage($options['backup-dir'], $options['compress']);
 

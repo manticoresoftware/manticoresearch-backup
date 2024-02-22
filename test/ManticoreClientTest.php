@@ -19,7 +19,7 @@ class ManticoreClientTest extends SearchdTestCase {
 	public function setUp(): void {
 
 		$config = new ManticoreConfig(Searchd::getConfigPath());
-		$this->client = new ManticoreClient($config);
+		$this->client = new ManticoreClient([$config]);
 	}
 
 	public function testGetVersions(): void {

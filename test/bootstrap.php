@@ -32,7 +32,7 @@ SearchdTestCase::setUpBeforeClass();
 $configPath = Searchd::getConfigPath();
 
 $config = new ManticoreConfig($configPath);
-$client = new ManticoreClient($config);
+$client = new ManticoreClient([$config]);
 
 // people table
 $client->execute('DROP TABLE IF EXISTS people');

@@ -131,7 +131,7 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Backing up config files...');
 		$isOk = $storage->copyPaths(
 			[
-				$client->getConfig()->path,
+				...array_map(fn ($v) => $v->path, $client->getConfigs()),
 				$client->getConfig()->schemaPath,
 			], $destination['config'], true
 		);
