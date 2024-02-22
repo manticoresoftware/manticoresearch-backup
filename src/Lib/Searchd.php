@@ -48,7 +48,7 @@ class Searchd {
 	public static function getConfigPath(): string {
 		$configs = static::getConfigPaths();
 		if (!isset($configs[0])) {
-			throw new \RuntimeException('Faield to find actual config from multiple paths');
+			throw new \RuntimeException('Failed to find actual config from the provided paths');
 		}
 
 		return $configs[0];
