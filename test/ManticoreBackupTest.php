@@ -18,7 +18,7 @@ use Manticoresearch\Backup\Lib\ManticoreConfig;
 class ManticoreBackupTest extends SearchdTestCase {
 	public function testStoreAllTables(): void {
 		[$config, $storage, $backupDir] = $this->initTestEnv();
-		$client = new ManticoreClient($config);
+		$client = new ManticoreClient([$config]);
 
 	  // Backup of all tables
 		ManticoreBackup::run('store', [$client, $storage, []]);
@@ -45,7 +45,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		rename($backupDir, $realPath);
 		shell_exec("ln -s '$realPath' '$backupDir'");
 
-		$client = new ManticoreClient($config);
+		$client = new ManticoreClient([$config]);
 
 	  // Backup of all tables
 		ManticoreBackup::run('store', [$client, $storage, []]);
@@ -66,7 +66,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreOnlyTwoTables(): void {
 		[$config, $storage, $backupDir] = $this->initTestEnv();
-		$client = new ManticoreClient($config);
+		$client = new ManticoreClient([$config]);
 
 		ManticoreBackup::run('store', [$client, $storage, ['movie', 'people']]);
 		$this->assertBackupIsOK($client, $backupDir, ['movie' => 'rt', 'people' => 'rt']);
@@ -74,7 +74,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreOnlyOneIndex(): void {
 		[$config, $storage, $backupDir] = $this->initTestEnv();
-		$client = new ManticoreClient($config);
+		$client = new ManticoreClient([$config]);
 
 	  // Backup only one
 		ManticoreBackup::run('store', [$client, $storage, ['people']]);
@@ -83,7 +83,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreUnexistingIndexOnly(): void {
 		[$config, $storage] = $this->initTestEnv();
-		$client = new ManticoreClient($config);
+		$client = new ManticoreClient([$config]);
 
 		$this->expectException(InvalidArgumentException::class);
 		ManticoreBackup::run('store', [$client, $storage, ['unknown']]);
@@ -91,7 +91,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreExistingAndUnexistingTablesTogether(): void {
 		[$config, $storage] = $this->initTestEnv();
-		$client = new ManticoreClient($config);
+		$client = new ManticoreClient([$config]);
 
 		$this->expectException(InvalidArgumentException::class);
 		ManticoreBackup::run('store', [$client, $storage, ['people', 'unknown']]);
@@ -101,7 +101,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 	// https://github.com/alpinelinux/docker-alpine/issues/156
 	// public function testStoreFailsInCaseNoPermissionsToWriteTargetDir(): void {
 	// 	[$config, $storage, $backupDir] = $this->initTestEnv();
-	// 	$client = new ManticoreClient($config);
+	// 	$client = new ManticoreClient([$config]);
 
 	//   // Create read only dir and modify it in FileStorage
 	// 	$roBackupDir = '/mnt' . $backupDir . '-ro';
@@ -115,7 +115,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreAbortedOnSignalCaught(): void {
 		[$config, $storage] = $this->initTestEnv();
-		$client = new ManticoreMockedClient($config);
+		$client = new ManticoreMockedClient([$config]);
 		$client->setTimeout(1);
 		$client->setTimeoutFn(
 			function () use ($client, $storage): bool {
@@ -149,7 +149,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreAbortedOnPermissionChanges(): void {
 		[$config, $storage] = $this->initTestEnv();
-		$client = new ManticoreMockedClient($config);
+		$client = new ManticoreMockedClient([$config]);
 
 		$client->setTimeout(1);
 		$client->setTimeoutFn(
@@ -202,7 +202,7 @@ class ManticoreBackupTest extends SearchdTestCase {
 		);
 
 		return [
-			new ManticoreConfig($options['config']),
+			new ManticoreConfig($options['configs'][0]),
 			new FileStorage($options['backup-dir']),
 			$backupDir,
 		];

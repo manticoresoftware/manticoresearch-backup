@@ -27,7 +27,7 @@ class ManticoreBackupRestoreTest extends TestCase {
 		SearchdTestCase::setUpBeforeClass();
 
 		static::$config = new ManticoreConfig(Searchd::getConfigPath());
-		$client = new ManticoreClient(static::$config);
+		$client = new ManticoreClient([static::$config]);
 
 		$fileStorage = new FileStorage(static::$backupDir);
 		ManticoreBackup::run('store', [$client, $fileStorage]);

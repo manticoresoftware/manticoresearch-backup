@@ -21,10 +21,16 @@ use function println;
 class ManticoreClient {
 	const API_PATH = '/sql?mode=raw';
 
-	protected ManticoreConfig $config;
+	/**
+	 * @var array<ManticoreConfig>
+	 */
+	protected array $configs;
 
-	public function __construct(ManticoreConfig $config) {
-		$this->config = $config;
+	/**
+	 * @param array<ManticoreConfig> $configs [description]
+	 */
+	public function __construct(array $configs) {
+		$this->configs = $configs;
 
 		$versions = $this->getVersions();
 		$verNum = strtok($versions['manticore'], ' ');
@@ -59,9 +65,9 @@ class ManticoreClient {
 
 	  // Validate config path or fail
 		$configPath = $this->getConfigPath();
-		if (!OS::isSamePath($configPath, $this->config->path)) {
+		if (!OS::isSamePath($configPath, $this->getConfig()->path)) {
 			throw new \RuntimeException(
-				"Configs mismatched: '{$this->config->path} <> {$configPath}"
+				"Configs mismatched: '{$this->getConfig()->path} <> {$configPath}"
 				. ', make sure the instance you are backing up is using the provided config'
 			);
 		}
@@ -74,18 +80,33 @@ class ManticoreClient {
    *  Structure with initialized config
    */
 	public function getConfig(): ManticoreConfig {
-		return $this->config;
+		// This should never happen
+		if (!isset($this->configs[0])) {
+			throw new \RuntimeException('Failed to fetch config due to nothing presents');
+		}
+		return $this->configs[0];
+	}
+
+	/**
+	 * Get all configs defined for backup
+	 * @return array<ManticoreConfig>
+	 */
+	public function getConfigs(): array {
+		return $this->configs;
 	}
 
   /**
    * Helper function that we will use for first init of client and config
    *
-   * @param string $configPath
+   * @param array<string> $configPaths
    * @return self
    */
-	public static function init(string $configPath): self {
-		$config = new ManticoreConfig($configPath);
-		return new ManticoreClient($config);
+	public static function init(array $configPaths): self {
+		$configs = [];
+		foreach ($configPaths as $configPath) {
+			$configs[] = new ManticoreConfig($configPath);
+		}
+		return new ManticoreClient($configs);
 	}
 
   /**
@@ -247,9 +268,10 @@ class ManticoreClient {
 			],
 		];
 		$context = stream_context_create($opts);
+		$config = $this->getConfig();
 		try {
 			$result = file_get_contents(
-				$this->config->proto . '://' . $this->config->host . ':' . $this->config->port . static::API_PATH,
+				$config->proto . '://' . $config->host . ':' . $config->port . static::API_PATH,
 				false,
 				$context
 			);
