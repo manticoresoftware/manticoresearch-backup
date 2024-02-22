@@ -240,7 +240,7 @@ searchd {
 common {
 
     # https://manual.manticoresearch.com/Server_settings/Common#lemmatizer_base
-    # lemmatizer_base = /usr/local/share
+    lemmatizer_base = /usr/local/share
 
     # https://manual.manticoresearch.com/Server_settings/Common#progressive_merge
     # progressive_merge =

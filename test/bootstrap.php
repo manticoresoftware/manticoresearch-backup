@@ -21,7 +21,7 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'SearchdTestCase.php';
 
 if (!OS::isWindows()) {
-	system('id -u test 2>/dev/null || adduser -D test');
+	system('id -u test 2>/dev/null || adduser --disabled-password --gecos "" test');
 }
 
 FileStorage::deleteDir(FileStorage::getTmpDir(), false);
@@ -62,10 +62,10 @@ $client->execute(
 
 // movie table
 $client->execute('DROP TABLE IF EXISTS movie');
-$client->execute('CREATE TABLE movie (title text, year int)');
+$client->execute('CREATE TABLE movie (title text, year1 int)');
 $client->execute(
 	"
-  INSERT INTO movie (id, title, year)
+  INSERT INTO movie (id, title, year1)
   VALUES
     (1, 'Conjuring', 2022),
     (2, 'The Avengers', 2020),
@@ -93,4 +93,5 @@ $client->execute("CREATE TABLE people_dist_local type='distributed' local='peopl
 // people_dist_agent table
 $client->execute('DROP TABLE IF EXISTS people_dist_agent');
 $client->execute("CREATE TABLE people_dist_agent type='distributed' agent='127.0.0.1:9312:people'");
+
 SearchdTestCase::tearDownAfterClass();
