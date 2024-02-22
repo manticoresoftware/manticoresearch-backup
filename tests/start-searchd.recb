@@ -1,4 +1,7 @@
 ––– input –––
+cp ./tests/config/manticore.conf /etc/manticoresearch/manticore.conf
+––– output –––
+––– input –––
 searchd
 ––– output –––
 Manticore %{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#) (secondary %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#) (knn %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#)
