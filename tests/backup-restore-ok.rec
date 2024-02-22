@@ -102,7 +102,7 @@ Manticore config
 endpoint =  http://%{IPADDR}:9312
 [93m%{DATETIME}[0m [[31mError[0m] Destination file already exists: /var/lib/manticore/manticore.json
 ––– input –––
-rm /var/lib/manticore/manticore.json
+rm -fr /var/lib/manticore && mkdir -p /var/lib/manticore
 ––– output –––
 ––– input –––
 manticore-backup --backup-dir=/tmp --restore=backup-111
