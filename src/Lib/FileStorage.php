@@ -568,7 +568,7 @@ class FileStorage {
 		$directory = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
 		$iterator = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::SELF_FIRST);
 		$iterator->setMaxDepth(0);
-		
+
 		/** @var \SplFileInfo $fileinfo */
 		foreach ($iterator as $fileinfo) {
 			if ($fileinfo->isFile() && strpos($fileinfo->getFilename(), '.') !== 0) {
