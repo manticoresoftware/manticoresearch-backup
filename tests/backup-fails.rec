@@ -9,6 +9,7 @@ mysql -h0 -P9306 -e 'show tables'
 | distributed_index   | distributed |
 | rt_with_columnar    | rt          |
 | rt_without_columnar | rt          |
+| test                | rt          |
 +---------------------+-------------+
 ––– input –––
 mysql -h0 -P9306 -e 'show create table distributed_index'

@@ -51,10 +51,12 @@ buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.789K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test (rt) [956B]...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info] Running sync
 [93m%{DATETIME}[0m [Info]  [92mOK[0m
-[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
-[93m%{DATETIME}[0m [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
+[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-%{NUMBER}
+[93m%{DATETIME}[0m [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
 [93m%{DATETIME}[0m [Info] Done
 [93m%{DATETIME}[0m [Info]
 Unfreezing all tables...
@@ -63,6 +65,8 @@ Unfreezing all tables...
 [93m%{DATETIME}[0m [Info]   rt_with_columnar...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 ––– input –––
 ls -lh /tmp/backup-*

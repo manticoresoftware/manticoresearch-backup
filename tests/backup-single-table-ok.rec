@@ -9,6 +9,7 @@ mysql -h0 -P9306 -e 'show tables'
 | distributed_index   | distributed |
 | rt_with_columnar    | rt          |
 | rt_without_columnar | rt          |
+| test                | rt          |
 +---------------------+-------------+
 ––– input –––
 mysql -h0 -P9306 -e 'show create table distributed_index'
@@ -87,6 +88,8 @@ Unfreezing all tables...
 [93m%{DATETIME}[0m [Info]   rt_with_columnar...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 ––– input –––
 ls -lh /tmp/backup-*
