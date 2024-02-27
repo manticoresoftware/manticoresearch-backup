@@ -1,0 +1,115 @@
+––– input –––
+cp /etc/manticoresearch/manticore.conf /tmp/
+––– output –––
+––– block: start-searchd –––
+––– block: init-database –––
+––– input –––
+manticore-backup --version
+––– output –––
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Manticore Backup version: %{SEMVER}
+––– input –––
+mysql -h0 -P9306 -e 'show tables'
+––– output –––
++---------------------+-------------+
+| Index               | Type        |
++---------------------+-------------+
+| distributed_index   | distributed |
+| rt_with_columnar    | rt          |
+| rt_without_columnar | rt          |
+| test                | rt          |
++---------------------+-------------+
+––– input –––
+manticore-backup --config=/etc/manticoresearch/manticore.conf --config=/tmp/manticore.conf --backup-dir=/tmp/
+––– output –––
+Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file: /etc/manticoresearch/manticore.conf
+Tables to backup: all tables
+Backup dir: /tmp/
+Manticore config
+endpoint =  http://%{IPADDR}:9312
+Manticore config
+endpoint =  http://%{IPADDR}:9312
+Manticore versions:
+manticore: %{SEMVER} %{COMMITDATE} dev
+columnar: %{SEMVER} %{COMMITDATE}
+secondary: %{SEMVER} %{COMMITDATE}
+knn: %{SEMVER} %{COMMITDATE}
+buddy: %{SEMVER}
+[93m%{DATETIME}[0m [Info] Starting the backup...
+[93m%{DATETIME}[0m [Info] Backing up config files...
+[93m%{DATETIME}[0m [Info]   config files - [92mOK[0m
+[93m%{DATETIME}[0m [Info] Backing up global state files...
+[93m%{DATETIME}[0m [Info]   global state files – [92mOK[0m
+[93m%{DATETIME}[0m [Info] Backing up tables...
+[93m%{DATETIME}[0m [Info]   distributed_index (distributed)...
+[93m%{DATETIME}[0m [Info]   [93mSKIP[0m
+[93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [2.915K]...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.789K]...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test (rt) [956B]...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info] Running sync
+[93m%{DATETIME}[0m [Info]  [92mOK[0m
+[93m%{DATETIME}[0m [Info] You can find backup here: /tmp/backup-%{NUMBER}
+[93m%{DATETIME}[0m [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
+[93m%{DATETIME}[0m [Info] Done
+[93m%{DATETIME}[0m [Info]
+Unfreezing all tables...
+[93m%{DATETIME}[0m [Info]   distributed_index...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   rt_with_columnar...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   rt_without_columnar...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+[93m%{DATETIME}[0m [Info]   test...
+[93m%{DATETIME}[0m [Info]    [92mOK[0m
+––– input –––
+rm -rf /etc/manticoresearch/manticore.conf /tmp/manticore.conf /var/lib/manticore; mkdir /var/lib/manticore;
+––– output –––
+––– input –––
+manticore-backup --backup-dir=/tmp/ --restore
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file:
+Backup dir: /tmp/
+Available backups: 1
+backup-%{NUMBER} ([93m#!/(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{1,2}\s\d{4}\s\d{2}:\d{2}:\d{2}/!#[0m)
+––– input –––
+ls /tmp/
+––– output –––
+backup-%{NUMBER}
+––– input –––
+export BACKUP_DATE=$(ls /tmp/)
+––– output –––
+––– input –––
+manticore-backup --backup-dir=/tmp/ --restore=$BACKUP_DATE
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file:
+Backup dir: /tmp/
+[93m%{DATETIME}[0m [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
+[93m%{DATETIME}[0m [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
+[93m%{DATETIME}[0m [Info] Starting to restore...
+Manticore config
+endpoint =  http://%{IPADDR}:9312
+Manticore config
+endpoint =  http://%{IPADDR}:9312
+[93m%{DATETIME}[0m [Info] Restoring config files...
+[93m%{DATETIME}[0m [Info]   config files - [92mOK[0m
+[93m%{DATETIME}[0m [Info] Restoring state files...
+[93m%{DATETIME}[0m [Info]   state files - [92mOK[0m
+[93m%{DATETIME}[0m [Info] Restoring data files...
+[93m%{DATETIME}[0m [Info]   tables' files - [92mOK[0m
+[93m%{DATETIME}[0m [Info] The backup '/tmp/backup-%{NUMBER}' was successfully restored.
+[93m%{DATETIME}[0m [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
+[93m%{DATETIME}[0m [Info] Done
+––– input –––
+ls /tmp/manticore.conf
+––– output –––
+/tmp/manticore.conf
+––– input –––
+ls /etc/manticoresearch/manticore.conf
+––– output –––
+/etc/manticoresearch/manticore.conf
