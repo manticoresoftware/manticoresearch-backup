@@ -31,11 +31,11 @@ endpoint =  http://%{IPADDR}:9312
 Manticore config
 endpoint =  http://127.0.0.1:9312
 Manticore versions:
-manticore: 6.2.13 d6f2c7d84@24022421 dev
-columnar: 2.2.5 a5342a1@240217
-secondary: 2.2.5 a5342a1@240217
-knn: 2.2.5 a5342a1@240217
-buddy: 2.1.7
+manticore: %{SEMVER} %{COMMITDATE} dev
+columnar: %{SEMVER} %{COMMITDATE}
+secondary: %{SEMVER} %{COMMITDATE}
+knn: %{SEMVER} %{COMMITDATE}
+buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info] Starting the backup...
 [93m%{DATETIME}[0m [Info] Backing up config files...
 [93m%{DATETIME}[0m [Info]   config files - [92mOK[0m
