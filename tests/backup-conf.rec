@@ -76,3 +76,19 @@ Manticore config file:
 Backup dir: /tmp/
 Available backups: 1
 backup-%{NUMBER} ([93m#!/(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{1,2}\s\d{4}\s\d{2}:\d{2}:\d{2}/!#[0m)
+––– input –––
+find /tmp/backup-*/. -type f
+––– output –––
+/tmp/backup-%{NUMBER}/./data/rt_with_columnar/rt_with_columnar.settings
+/tmp/backup-%{NUMBER}/./data/rt_with_columnar/rt_with_columnar.ram
+/tmp/backup-%{NUMBER}/./data/rt_with_columnar/rt_with_columnar.meta
+/tmp/backup-%{NUMBER}/./data/test/test.meta
+/tmp/backup-%{NUMBER}/./data/test/test.settings
+/tmp/backup-%{NUMBER}/./data/test/test.ram
+/tmp/backup-%{NUMBER}/./data/rt_without_columnar/rt_without_columnar.ram
+/tmp/backup-%{NUMBER}/./data/rt_without_columnar/rt_without_columnar.settings
+/tmp/backup-%{NUMBER}/./data/rt_without_columnar/rt_without_columnar.meta
+/tmp/backup-%{NUMBER}/./config/tmp/manticore.conf
+/tmp/backup-%{NUMBER}/./config/var/lib/manticore/manticore.json
+/tmp/backup-%{NUMBER}/./config/etc/manticoresearch/manticore.conf
+/tmp/backup-%{NUMBER}/./versions.json
