@@ -290,7 +290,7 @@ jobs:
           - artifact: artifact
             type: arc
             arch: noarch
-            delimiter: "_"
+            delimiter: "-"
             distro: ""
     steps:
       - name: Deploy package
