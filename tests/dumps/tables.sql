@@ -23,7 +23,7 @@ CREATE TABLE rt_without_columnar (
 CREATE TABLE test ( title text, image_vector float_vector knn_type='hnsw' knn_dims='4' hnsw_similarity='l2' );
 
 -- table distributed_index
-CREATE TABLE distributed_index type='distributed' local='rt_with_columnar, rt_without_columanr' AGENT='127.0.0.1:9312:plain_with_columnar, plain_without_columnar';
+CREATE TABLE distributed_index type='distributed' local='rt_with_columnar, rt_without_columnar' AGENT='127.0.0.1:9312:plain_with_columnar, plain_without_columnar';
 
 -- data for rt_with_columnar
 INSERT INTO rt_with_columnar (id, title, category_id, price, description, tags, attributes) VALUES

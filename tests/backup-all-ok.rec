@@ -14,11 +14,11 @@ mysql -h0 -P9306 -e 'show tables'
 ––– input –––
 mysql -h0 -P9306 -e 'show create table distributed_index'
 ––– output –––
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
-| Table             | Create Table                                                                                                                                  |
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
-| distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table             | Create Table                                                                                                                                                              |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' local='rt_without_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ––– input –––
 mysql -h0 -P9306 -e 'show create table rt_with_columnar'
 ––– output –––
@@ -72,7 +72,7 @@ mysql -h0 -P9306 -e "flush ramchunk test; select * from test.@files;"
 |   10 | /var/lib/manticore/test/test.0.spds   | /var/lib/manticore/test/test.0.spds   |     64 |
 |   11 | /var/lib/manticore/test/test.0.spknn  | /var/lib/manticore/test/test.0.spknn  |    456 |
 |   12 | /var/lib/manticore/test/test.0.spt    | /var/lib/manticore/test/test.0.spt    |     41 |
-|   13 | /var/lib/manticore/test/test.0.spidx  | /var/lib/manticore/test/test.0.spidx  |    309 |
+|   13 | /var/lib/manticore/test/test.0.spidx  | /var/lib/manticore/test/test.0.spidx  |    149 |
 |   14 | /var/lib/manticore/test/test.0.spa    | /var/lib/manticore/test/test.0.spa    |     96 |
 |   15 | /var/lib/manticore/test/test.0.spb    | /var/lib/manticore/test/test.0.spb    | 131116 |
 |    1 | /var/lib/manticore/test/test.meta     | /var/lib/manticore/test/test.meta     |    741 |
@@ -104,7 +104,7 @@ buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.789K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
-[93m%{DATETIME}[0m [Info]   test (rt) [130.574K]...
+[93m%{DATETIME}[0m [Info]   test (rt) [130.418K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info] Running sync
 [93m%{DATETIME}[0m [Info]  [92mOK[0m
