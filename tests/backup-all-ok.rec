@@ -14,11 +14,11 @@ mysql -h0 -P9306 -e 'show tables'
 ––– input –––
 mysql -h0 -P9306 -e 'show create table distributed_index'
 ––– output –––
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
-| Table             | Create Table                                                                                                                                  |
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
-| distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table             | Create Table                                                                                                                                                              |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' local='rt_without_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ––– input –––
 mysql -h0 -P9306 -e 'show create table rt_with_columnar'
 ––– output –––
@@ -61,21 +61,21 @@ mysql -h0 -P9306 -e "flush ramchunk test; select * from test.@files;"
 +------+---------------------------------------+---------------------------------------+--------+
 | id   | file                                  | normalized                            | size   |
 +------+---------------------------------------+---------------------------------------+--------+
-|    2 | /var/lib/manticore/test/test.settings | /var/lib/manticore/test/test.settings |      3 |
-|    3 | /var/lib/manticore/test/test.0.sph    | /var/lib/manticore/test/test.0.sph    |    715 |
-|    4 | /var/lib/manticore/test/test.0.spd    | /var/lib/manticore/test/test.0.spd    |     20 |
-|    5 | /var/lib/manticore/test/test.0.spp    | /var/lib/manticore/test/test.0.spp    |      1 |
-|    6 | /var/lib/manticore/test/test.0.spe    | /var/lib/manticore/test/test.0.spe    |      1 |
-|    7 | /var/lib/manticore/test/test.0.spi    | /var/lib/manticore/test/test.0.spi    |     59 |
-|    8 | /var/lib/manticore/test/test.0.spm    | /var/lib/manticore/test/test.0.spm    |      4 |
-|    9 | /var/lib/manticore/test/test.0.sphi   | /var/lib/manticore/test/test.0.sphi   |     82 |
-|   10 | /var/lib/manticore/test/test.0.spds   | /var/lib/manticore/test/test.0.spds   |     64 |
-|   11 | /var/lib/manticore/test/test.0.spknn  | /var/lib/manticore/test/test.0.spknn  |    456 |
-|   12 | /var/lib/manticore/test/test.0.spt    | /var/lib/manticore/test/test.0.spt    |     41 |
-|   13 | /var/lib/manticore/test/test.0.spidx  | /var/lib/manticore/test/test.0.spidx  |    309 |
-|   14 | /var/lib/manticore/test/test.0.spa    | /var/lib/manticore/test/test.0.spa    |     96 |
-|   15 | /var/lib/manticore/test/test.0.spb    | /var/lib/manticore/test/test.0.spb    | 131116 |
-|    1 | /var/lib/manticore/test/test.meta     | /var/lib/manticore/test/test.meta     |    741 |
+|    2 | /var/lib/manticore/test/test.settings | /var/lib/manticore/test/test.settings |      %{NUMBER} |
+|    3 | /var/lib/manticore/test/test.0.sph    | /var/lib/manticore/test/test.0.sph    |    %{NUMBER} |
+|    4 | /var/lib/manticore/test/test.0.spd    | /var/lib/manticore/test/test.0.spd    |     %{NUMBER} |
+|    5 | /var/lib/manticore/test/test.0.spp    | /var/lib/manticore/test/test.0.spp    |      %{NUMBER} |
+|    6 | /var/lib/manticore/test/test.0.spe    | /var/lib/manticore/test/test.0.spe    |      %{NUMBER} |
+|    7 | /var/lib/manticore/test/test.0.spi    | /var/lib/manticore/test/test.0.spi    |     %{NUMBER} |
+|    8 | /var/lib/manticore/test/test.0.spm    | /var/lib/manticore/test/test.0.spm    |      %{NUMBER} |
+|    9 | /var/lib/manticore/test/test.0.sphi   | /var/lib/manticore/test/test.0.sphi   |     %{NUMBER} |
+|   10 | /var/lib/manticore/test/test.0.spds   | /var/lib/manticore/test/test.0.spds   |     %{NUMBER} |
+|   11 | /var/lib/manticore/test/test.0.spknn  | /var/lib/manticore/test/test.0.spknn  |    %{NUMBER} |
+|   12 | /var/lib/manticore/test/test.0.spt    | /var/lib/manticore/test/test.0.spt    |     %{NUMBER} |
+|   13 | /var/lib/manticore/test/test.0.spidx  | /var/lib/manticore/test/test.0.spidx  |    %{NUMBER} |
+|   14 | /var/lib/manticore/test/test.0.spa    | /var/lib/manticore/test/test.0.spa    |     %{NUMBER} |
+|   15 | /var/lib/manticore/test/test.0.spb    | /var/lib/manticore/test/test.0.spb    | %{NUMBER} |
+|    1 | /var/lib/manticore/test/test.meta     | /var/lib/manticore/test/test.meta     |    %{NUMBER} |
 +------+---------------------------------------+---------------------------------------+--------+
 ––– input –––
 manticore-backup --backup-dir=/tmp
@@ -100,11 +100,11 @@ buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info] Backing up tables...
 [93m%{DATETIME}[0m [Info]   distributed_index (distributed)...
 [93m%{DATETIME}[0m [Info]   [93mSKIP[0m
-[93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [2.915K]...
+[93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [#!/[0-9]{1}\.[0-9]{3}/!#K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
-[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.789K]...
+[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [#!/[0-9]{1}\.[0-9]{3}/!#K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
-[93m%{DATETIME}[0m [Info]   test (rt) [130.574K]...
+[93m%{DATETIME}[0m [Info]   test (rt) [#!/[0-9]{3}\.[0-9]{3}/!#K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info] Running sync
 [93m%{DATETIME}[0m [Info]  [92mOK[0m

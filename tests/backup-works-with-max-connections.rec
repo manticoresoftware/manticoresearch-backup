@@ -39,11 +39,11 @@ mysql -h0 -P9307 -e 'show tables'
 ––– input –––
 mysql -h0 -P9307 -e 'show create table distributed_index'
 ––– output –––
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
-| Table             | Create Table                                                                                                                                  |
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
-| distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
-+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table             | Create Table                                                                                                                                                              |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' local='rt_without_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ––– input –––
 mysql -h0 -P9307 -e 'show create table rt_with_columnar'
 ––– output –––
@@ -103,11 +103,11 @@ buddy: %{SEMVER}
 [93m%{DATETIME}[0m [Info] Backing up tables...
 [93m%{DATETIME}[0m [Info]   distributed_index (distributed)...
 [93m%{DATETIME}[0m [Info]   [93mSKIP[0m
-[93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [2.915K]...
+[93m%{DATETIME}[0m [Info]   rt_with_columnar (rt) [#!/[0-9]{1}\.[0-9]{3}/!#K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
-[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [2.789K]...
+[93m%{DATETIME}[0m [Info]   rt_without_columnar (rt) [#!/[0-9]{1}\.[0-9]{3}/!#K]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
-[93m%{DATETIME}[0m [Info]   test (rt) [956B]...
+[93m%{DATETIME}[0m [Info]   test (rt) [%{NUMBER}B]...
 [93m%{DATETIME}[0m [Info]    [92mOK[0m
 [93m%{DATETIME}[0m [Info] Running sync
 [93m%{DATETIME}[0m [Info]  [92mOK[0m
@@ -118,7 +118,7 @@ buddy: %{SEMVER}
 ls -lh /tmp/backup-*
 ––– output –––
 total 16K
-%{FILEPERMS} %{NUMBER} root root 4.0K #!/[a-zA-Z]{3}/!# #!/[0-9]{1,2}/!# #!/[0-9]{2}:[0-9]{2}/!# config
-%{FILEPERMS} %{NUMBER} root root 4.0K #!/[a-zA-Z]{3}/!# #!/[0-9]{1,2}/!# #!/[0-9]{2}:[0-9]{2}/!# data
-%{FILEPERMS} %{NUMBER} root root 4.0K #!/[a-zA-Z]{3}/!# #!/[0-9]{1,2}/!# #!/[0-9]{2}:[0-9]{2}/!# state
+%{FILEPERMS} %{NUMBER} root root #!/[0-9]{1}\.[0-9]{1}/!#K #!/[a-zA-Z]{3}/!# #!/[0-9]{1,2}/!# #!/[0-9]{2}:[0-9]{2}/!# config
+%{FILEPERMS} %{NUMBER} root root #!/[0-9]{1}\.[0-9]{1}/!#K #!/[a-zA-Z]{3}/!# #!/[0-9]{1,2}/!# #!/[0-9]{2}:[0-9]{2}/!# data
+%{FILEPERMS} %{NUMBER} root root #!/[0-9]{1}\.[0-9]{1}/!#K #!/[a-zA-Z]{3}/!# #!/[0-9]{1,2}/!# #!/[0-9]{2}:[0-9]{2}/!# state
 %{FILEPERMS} %{NUMBER} root root  %{NUMBER} #!/[a-zA-Z]{3}/!# #!/[0-9]{1,2}/!# #!/[0-9]{2}:[0-9]{2}/!# versions.json
