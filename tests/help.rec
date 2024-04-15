@@ -21,7 +21,7 @@ times.
 Path to Manticore config. This is optional and in case it's not passed
 we use a default one for your operating system. It's used to get the host
 and port to talk with the Manticore daemon.
-You can use --config path1 --config path2 ... --config pathN 
+You can use --config path1 --config path2 ... --config pathN
 to include all of the provided paths in the backup, but only
 the first one will be used for communication with the daemon.
 [92m--tables[0m=[94mtable1,table2,...[0m
