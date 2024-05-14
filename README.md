@@ -14,7 +14,7 @@ Read the [official documentation](https://manual.manticoresearch.com/Securing_an
 | bin/run | This script is used for run the backup script in development and use it for debug purpose |
 | build | This directory is ignored by git but built binary goes there |
 | src | All sources code goes here |
-| src/lib | Library independed components |
+| src/lib | Library independent components |
 | src/lib/func.php | All helper functions that required to use the script are here |
 | src/main.php | This is the main entrypoint for starting the logic |
 | test | All tests are here |
