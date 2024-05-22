@@ -4,7 +4,7 @@ cp tests/config/manticore.sh /etc/manticoresearch/manticore.conf
 ––– input –––
 searchd
 ––– output –––
-Manticore %{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#) (secondary %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#) (knn %{SEMVER} #!/[a-f0-9]{7}@[0-9]{6}/!#)
+Manticore %{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} %{COMMITDATE}) (secondary %{SEMVER} %{COMMITDATE}) (knn %{SEMVER} %{COMMITDATE})
 Copyright (c) 2001-2016, Andrew Aksyonoff
 Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
 Copyright (c) 2017-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
