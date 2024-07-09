@@ -3,5 +3,5 @@ vendor/**
 .phpunit.result.cache
 phar_builder
 clt
-tests/*.rep
-tests/*.cmp
+test/clt-tests/*.rep
+test/clt-tests/*.cmp

@@ -1,0 +1,86 @@
+You can use regex in the output sections.
+More info here: https://github.com/manticoresoftware/clt#refine
+Time taken for test: 381ms
+––– input –––
+cp test/clt-tests/config/manticore.sh /etc/manticoresearch/manticore.conf
+––– output –––
+––– duration: 2ms (0.52%) –––
+––– input –––
+searchd
+––– output –––
+Manticore 6.2.13 5de07b0ae@24022215 dev (columnar 2.2.5 a5342a1@240217) (secondary 2.2.5 a5342a1@240217) (knn 2.2.5 a5342a1@240217)
+Copyright (c) 2001-2016, Andrew Aksyonoff
+Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
+Copyright (c) 2017-2024, Manticore Software LTD (https://manticoresearch.com)
+[44:34.537] [29] using config file '/etc/manticoresearch/manticore.conf' (9274 chars)...
+starting daemon version '6.2.13 5de07b0ae@24022215 dev (columnar 2.2.5 a5342a1@240217) (secondary 2.2.5 a5342a1@240217) (knn 2.2.5 a5342a1@240217)' ...
+listening on all interfaces for mysql, port=9306
+listening on UNIX socket /var/run/mysqld/mysqld.sock
+listening on 172.17.0.7:9312 for sphinx and http(s)
+listening on all interfaces for sphinx and http(s), port=9308
+––– duration: 107ms (28.08%) –––
+––– input –––
+manticore-backup --version
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Manticore Backup version: 1.3.5
+––– duration: 16ms (4.20%) –––
+––– input –––
+mysql -h0 -P9306 < test/clt-tests/dumps/tables.sql
+––– output –––
+––– duration: 7ms (1.84%) –––
+––– input –––
+ls -lt /tmp/backup-*
+––– output –––
+ls: cannot access '/tmp/backup-*': No such file or directory
+––– duration: 4ms (1.05%) –––
+––– input –––
+manticore-backup --backup-dir=/tmp
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file: /etc/manticoresearch/manticore.conf
+Tables to backup: all tables
+Backup dir: /tmp
+Manticore config
+endpoint =  http://172.17.0.7:9312
+Manticore versions:
+manticore: 6.2.13 5de07b0ae@24022215 dev
+columnar: 2.2.5 a5342a1@240217
+secondary: 2.2.5 a5342a1@240217
+knn: 2.2.5 a5342a1@240217
+buddy: 2.1.7
+[93m2024-02-22 11:44:34[0m [Info] Starting the backup...
+[93m2024-02-22 11:44:34[0m [Info] Backing up config files...
+[93m2024-02-22 11:44:34[0m [Info]   config files - [92mOK[0m
+[93m2024-02-22 11:44:34[0m [Info] Backing up global state files...
+[93m2024-02-22 11:44:34[0m [Info]   global state files – [92mOK[0m
+[93m2024-02-22 11:44:34[0m [Info] Backing up tables...
+[93m2024-02-22 11:44:34[0m [Info]   distributed_index (distributed)...
+[93m2024-02-22 11:44:34[0m [Info]   [93mSKIP[0m
+[93m2024-02-22 11:44:34[0m [Info]   rt_with_columnar (rt) [2.915K]...
+[93m2024-02-22 11:44:34[0m [Info]    [92mOK[0m
+[93m2024-02-22 11:44:34[0m [Info]   rt_without_columnar (rt) [2.789K]...
+[93m2024-02-22 11:44:34[0m [Info]    [92mOK[0m
+[93m2024-02-22 11:44:34[0m [Info] Running sync
+[93m2024-02-22 11:44:34[0m [Info]  [92mOK[0m
+[93m2024-02-22 11:44:34[0m [Info] You can find backup here: /tmp/backup-20240222114434
+[93m2024-02-22 11:44:34[0m [Info] Elapsed time: 0.01s
+[93m2024-02-22 11:44:34[0m [Info] Done
+[93m2024-02-22 11:44:34[0m [Info]
+Unfreezing all tables...
+[93m2024-02-22 11:44:34[0m [Info]   distributed_index...
+[93m2024-02-22 11:44:34[0m [Info]    [92mOK[0m
+[93m2024-02-22 11:44:34[0m [Info]   rt_with_columnar...
+[93m2024-02-22 11:44:34[0m [Info]    [92mOK[0m
+[93m2024-02-22 11:44:34[0m [Info]   rt_without_columnar...
+[93m2024-02-22 11:44:34[0m [Info]    [92mOK[0m
+––– duration: 240ms (62.99%) –––
+––– input –––
+ls -lh /tmp/backup-*
+––– output –––
+total 16K
+drwxr-xr-x. 4 root root 4.0K Feb 22 11:44 config
+drwxr-xr-x. 4 root root 4.0K Feb 22 11:44 data
+drwxr-xr-x. 3 root root 4.0K Feb 22 11:44 state
+-rw-r--r--. 1 root root  176 Feb 22 11:44 versions.json
+––– duration: 5ms (1.31%) –––

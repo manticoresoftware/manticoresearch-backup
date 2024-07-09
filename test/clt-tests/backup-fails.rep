@@ -1,0 +1,128 @@
+You can use regex in the output sections.
+More info here: https://github.com/manticoresoftware/clt#refine
+Time taken for test: 229ms
+––– input –––
+cp ./test/clt-tests/config/manticore.conf /etc/manticoresearch/manticore.conf
+––– output –––
+––– duration: 2ms (0.87%) –––
+––– input –––
+searchd
+––– output –––
+Manticore 6.2.13 5de07b0ae@24022215 dev (columnar 2.2.5 a5342a1@240217) (secondary 2.2.5 a5342a1@240217) (knn 2.2.5 a5342a1@240217)
+Copyright (c) 2001-2016, Andrew Aksyonoff
+Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
+Copyright (c) 2017-2024, Manticore Software LTD (https://manticoresearch.com)
+[44:32.476] [29] using config file '/etc/manticoresearch/manticore.conf' (273 chars)...
+starting daemon version '6.2.13 5de07b0ae@24022215 dev (columnar 2.2.5 a5342a1@240217) (secondary 2.2.5 a5342a1@240217) (knn 2.2.5 a5342a1@240217)' ...
+listening on 127.0.0.1:9312 for sphinx and http(s)
+listening on 127.0.0.1:9306 for mysql
+listening on 127.0.0.1:9308 for sphinx and http(s)
+––– duration: 106ms (46.29%) –––
+––– input –––
+manticore-backup --version
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Manticore Backup version: 1.3.5
+––– duration: 16ms (6.99%) –––
+––– input –––
+mysql -h0 -P9306 < test/clt-tests/dumps/tables.sql
+––– output –––
+––– duration: 7ms (3.06%) –––
+––– input –––
+mysql -h0 -P9306 -e 'show tables'
+––– output –––
++---------------------+-------------+
+| Index               | Type        |
++---------------------+-------------+
+| distributed_index   | distributed |
+| rt_with_columnar    | rt          |
+| rt_without_columnar | rt          |
++---------------------+-------------+
+––– duration: 5ms (2.18%) –––
+––– input –––
+mysql -h0 -P9306 -e 'show create table distributed_index'
+––– output –––
++-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
+| Table             | Create Table                                                                                                                                  |
++-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
+| distributed_index | CREATE TABLE distributed_index type='distributed' local='rt_with_columnar' agent='127.0.0.1:9312:plain_with_columnar, plain_without_columnar' |
++-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------+
+––– duration: 4ms (1.75%) –––
+––– input –––
+mysql -h0 -P9306 -e 'show create table rt_with_columnar'
+––– output –––
++------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table            | Create Table                                                                                                                                                           |
++------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| rt_with_columnar | CREATE TABLE rt_with_columnar (
+id bigint,
+title text,
+category_id integer,
+price float,
+description string attribute engine='columnar',
+tags multi,
+attributes json
+) |
++------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+––– duration: 8ms (3.49%) –––
+––– input –––
+mysql -h0 -P9306 -e 'show create table rt_without_columnar'
+––– output –––
++---------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table               | Create Table                                                                                                                                            |
++---------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| rt_without_columnar | CREATE TABLE rt_without_columnar (
+id bigint,
+title text,
+category_id integer,
+price float,
+description string attribute,
+tags multi,
+attributes json
+) |
++---------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+––– duration: 7ms (3.06%) –––
+––– input –––
+ls -lt /tmp/non-exist
+––– output –––
+ls: cannot access '/tmp/non-exist': No such file or directory
+––– duration: 4ms (1.75%) –––
+––– input –––
+manticore-backup --backup-dir=/tmp/non-exist
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+[93m2024-02-22 11:44:32[0m [[31mError[0m] Failed to find backup dir to store backup: /tmp/non-exist
+––– duration: 21ms (9.17%) –––
+––– input –––
+manticore-backup --backup-dir=/tmp --tables=none
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file: /etc/manticoresearch/manticore.conf
+Tables to backup: none
+Backup dir: /tmp
+Manticore config
+endpoint =  http://127.0.0.1:9312
+Manticore versions:
+manticore: 6.2.13 5de07b0ae@24022215 dev
+columnar: 2.2.5 a5342a1@240217
+secondary: 2.2.5 a5342a1@240217
+knn: 2.2.5 a5342a1@240217
+buddy: 2.1.7
+[93m2024-02-22 11:44:32[0m [Info] Starting the backup...
+[93m2024-02-22 11:44:32[0m [[31mError[0m] Can't find some of the tables: none
+––– duration: 24ms (10.48%) –––
+––– input –––
+pgrep -f searchd | xargs kill
+––– output –––
+––– duration: 3ms (1.31%) –––
+––– input –––
+manticore-backup --backup-dir=/tmp
+––– output –––
+Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Manticore config file: /etc/manticoresearch/manticore.conf
+Tables to backup: all tables
+Backup dir: /tmp
+Manticore config
+endpoint =  http://127.0.0.1:9312
+[93m2024-02-22 11:44:32[0m [[31mError[0m] Failed to send query to the Manticore Search daemon. Ensure that it is set up to listen for HTTP or HTTPS connections and has the appropriate certificates in place. Additionally, check the 'max_connections' setting in the configuration file to ensure that it has not been exceeded.
+––– duration: 22ms (9.61%) –––
