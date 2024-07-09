@@ -1,6 +1,9 @@
 ––– block: start-searchd –––
 ––– block: init-database –––
 ––– input –––
+touch /usr/share/manticore/{abc,zed}.pak
+––– output –––
+––– input –––
 mysql -h0 -P9306 -e 'show tables'
 ––– output –––
 +---------------------+-------------+
@@ -157,3 +160,7 @@ mysql -h0 -P9306 -e 'show tables'
 | rt_without_columnar | rt          |
 | test                | rt          |
 +---------------------+-------------+
+––– input –––
+ls /usr/share/manticore/{abc,zed}.pak
+––– output –––
+/usr/share/manticore/abc.pak  /usr/share/manticore/zed.pak
