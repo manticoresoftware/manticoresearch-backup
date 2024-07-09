@@ -1,5 +1,5 @@
 ––– input –––
-cp ./tests/config/manticore.conf /etc/manticoresearch/manticore.conf
+cp ./test/clt-tests/config/manticore.conf /etc/manticoresearch/manticore.conf
 ––– output –––
 ––– input –––
 searchd
