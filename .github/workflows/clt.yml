@@ -10,7 +10,7 @@ jobs:
   clt:
     runs-on: ubuntu-22.04
     steps:
-      - uses: manticoresoftware/clt@0.2.1
+      - uses: manticoresoftware/clt@0.2.3
         with:
           image: 'ghcr.io/manticoresoftware/manticoresearch:test-kit-latest'
           init_code: |

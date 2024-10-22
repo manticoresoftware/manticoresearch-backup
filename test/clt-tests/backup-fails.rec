@@ -59,7 +59,7 @@ ls: cannot access '/tmp/non-exist': No such file or directory
 manticore-backup --backup-dir=/tmp/non-exist
 ––– output –––
 Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
-[93m%{DATETIME}[0m [[31mError[0m] Failed to find backup dir to store backup: /tmp/non-exist
+%{DATETIME} [Error] Failed to find backup dir to store backup: /tmp/non-exist
 ––– input –––
 manticore-backup --backup-dir=/tmp --tables=none
 ––– output –––
@@ -75,8 +75,8 @@ columnar: %{SEMVER} %{COMMITDATE}
 secondary: %{SEMVER} %{COMMITDATE}
 knn: %{SEMVER} %{COMMITDATE}
 buddy: %{SEMVER}
-[93m%{DATETIME}[0m [Info] Starting the backup...
-[93m%{DATETIME}[0m [[31mError[0m] Can't find some of the tables: none
+%{DATETIME} [Info] Starting the backup...
+%{DATETIME} [Error] Can't find some of the tables: none
 ––– input –––
 pgrep -f searchd | xargs kill
 ––– output –––
@@ -89,4 +89,4 @@ Tables to backup: all tables
 Backup dir: /tmp
 Manticore config
 endpoint =  http://%{IPADDR}:9312
-[93m%{DATETIME}[0m [[31mError[0m] Failed to send query to the Manticore Search daemon. Ensure that it is set up to listen for HTTP or HTTPS connections and has the appropriate certificates in place. Additionally, check the 'max_connections' setting in the configuration file to ensure that it has not been exceeded.
+%{DATETIME} [Error] Failed to send query to the Manticore Search daemon. Ensure that it is set up to listen for HTTP or HTTPS connections and has the appropriate certificates in place. Additionally, check the 'max_connections' setting in the configuration file to ensure that it has not been exceeded.
