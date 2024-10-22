@@ -75,8 +75,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-%{DATETIME} [Info] Stored versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
-%{DATETIME} [Info] Current versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
+%{DATETIME} [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
+%{DATETIME} [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
 %{DATETIME} [Info] Starting to restore...
 %{DATETIME} [Error] Cannot initiate the restore process due to searchd daemon is running.
 ––– input –––
@@ -88,8 +88,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-%{DATETIME} [Info] Stored versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
-%{DATETIME} [Info] Current versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
+%{DATETIME} [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
+%{DATETIME} [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
 %{DATETIME} [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
@@ -103,8 +103,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-%{DATETIME} [Info] Stored versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
-%{DATETIME} [Info] Current versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
+%{DATETIME} [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
+%{DATETIME} [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
 %{DATETIME} [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
@@ -118,8 +118,8 @@ manticore-backup --backup-dir=/tmp --restore=backup-111
 Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp
-%{DATETIME} [Info] Stored versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
-%{DATETIME} [Info] Current versions: {"backup":"1.3.9","manticore":"6.3.7 796202c1e@24102113 dev","columnar":"2.3.1 30ad2d6@24100914","secondary":"2.3.1 30ad2d6@24100914","knn":"2.3.1 30ad2d6@24100914","buddy":"0.0.0"}
+%{DATETIME} [Info] Stored versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
+%{DATETIME} [Info] Current versions: {"backup":"%{SEMVER}","manticore":"%{SEMVER} %{COMMITDATE} dev","columnar":"%{SEMVER} %{COMMITDATE}","secondary":"%{SEMVER} %{COMMITDATE}","knn":"%{SEMVER} %{COMMITDATE}","buddy":"%{SEMVER}"}
 %{DATETIME} [Info] Starting to restore...
 Manticore config
 endpoint =  http://%{IPADDR}:9312
