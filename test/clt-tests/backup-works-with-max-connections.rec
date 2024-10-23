@@ -29,7 +29,7 @@ curl localhost:9312/sql?mode=raw -d 'query=debug sleep 10' &
 mysql -h0 -P9307 -e 'show tables'
 ––– output –––
 +---------------------+-------------+
-| Index               | Type        |
+| Table               | Type        |
 +---------------------+-------------+
 | distributed_index   | distributed |
 | rt_with_columnar    | rt          |
