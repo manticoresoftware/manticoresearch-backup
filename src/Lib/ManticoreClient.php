@@ -172,9 +172,12 @@ class ManticoreClient {
    *  array with index as a key and type as a value [ index => type ]
    */
 	public function getTables(): array {
+		/** @var array{0:array{data:array<array<string,string>>}} */
 		$result = $this->execute('SHOW TABLES');
+		// To maintain compatibility with manticore that has Index instead of Table in output
+		$key = isset($result[0]['data'][0]['Table']) ? 'Table' : 'Index';
 		$tables = array_combine(
-			array_column($result[0]['data'], 'Index'),
+			array_column($result[0]['data'], $key),
 			array_column($result[0]['data'], 'Type')
 		);
 
