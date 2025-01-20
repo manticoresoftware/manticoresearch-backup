@@ -147,7 +147,6 @@ listening on %{IPADDR}:9308 for sphinx and http(s)
 precaching table 'rt_with_columnar'
 precaching table 'rt_without_columnar'
 precaching table 'test'
-WARNING: table 'distributed_index': ha_strategy defined, but no ha agents in the table
 precached 3 tables in #!/([0-9]+\.[0-9]+|0)/!# sec
 ––– input –––
 mysql -h0 -P9306 -e 'show tables'
