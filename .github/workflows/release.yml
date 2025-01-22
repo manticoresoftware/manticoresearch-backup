@@ -1,9 +1,10 @@
 name: release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [ tests ]
+    types: [ completed ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
@@ -327,6 +328,7 @@ jobs:
           artifact: ${{ matrix.artifact }}
           type: ${{ matrix.type }}
           delimiter: ${{ matrix.delimiter }}
+          target: ${{ env.target }}
 
   update-manticoresearch-deps:
     needs:
