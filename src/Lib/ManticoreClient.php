@@ -214,11 +214,11 @@ class ManticoreClient {
 	 * @return array{backup:string,manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
 	 */
 	protected static function parseVersions(string $version): array {
-		$verPattern = '(\d+\.\d+\.\d+[^\(\)]+)';
-		$matchExpr = "/^(?:Manticore\s)?{$verPattern}(?:[^\(]*\(columnar\s{$verPattern}\))?"
-			. "(?:[^\(]*\(secondary\s{$verPattern}\))?"
-			. "(?:[^\(]*\(knn\s{$verPattern}\))?"
-			. '(?:[^\(]*\(buddy\sv?(\d+\.\d+\.\d+)\))?$/ius'
+		$verPattern = 'v?((?:x\.x\.x|\d+\.\d+\.\d+)[^\(\)]*)';
+		$matchExpr = "/^(?:Manticore\s)?{$verPattern}(?:\s+\(columnar\s{$verPattern}\))?"
+			. "(?:\s+\(secondary\s{$verPattern}\))?"
+			. "(?:\s+\(knn\s{$verPattern}\))?"
+			. "(?:\s+\(buddy\s{$verPattern}\))?$/ius"
 		;
 		preg_match($matchExpr, $version, $m);
 		return [
