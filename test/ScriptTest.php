@@ -21,6 +21,17 @@ class ScriptTest extends SearchdTestCase {
 			. ' --package="manticore-backup"'
 			. ' --index="src/main.php"';
 		system($cmd);
+		system(
+			'test -d /usr/share/manticore/modules/manticore-backup && ' .
+				'mv /usr/share/manticore/modules/manticore-backup /usr/share/manticore/modules/manticore-backup-old'
+		);
+	}
+
+	public static function tearDownAfterClass(): void {
+		system(
+			'test -d /usr/share/manticore/modules/manticore-backup-old && ' .
+				'mv /usr/share/manticore/modules/manticore-backup-old /usr/share/manticore/modules/manticore-backup'
+		);
 	}
 
 	public function testHelpArg(): void {
