@@ -4,12 +4,12 @@ cp test/clt-tests/config/manticore.sh /etc/manticoresearch/manticore.conf
 ––– input –––
 searchd
 ––– output –––
-Manticore %{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} %{COMMITDATE}) (secondary %{SEMVER} %{COMMITDATE}) (knn %{SEMVER} %{COMMITDATE})
+Manticore %{VERSION} (columnar %{VERSION}) (secondary %{VERSION}) (knn %{VERSION})
 Copyright (c) 2001-2016, Andrew Aksyonoff
 Copyright (c) 2008-2016, Sphinx Technologies Inc (http://sphinxsearch.com)
 Copyright (c) 2017-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
 [#!/[0-9]{2}:[0-9]{2}\.[0-9]{3}/!#] [#!/[0-9]+/!#] using config file '/etc/manticoresearch/manticore.conf' (#!/[0-9]+/!# chars)...
-starting daemon version '%{SEMVER} %{COMMITDATE} dev (columnar %{SEMVER} %{COMMITDATE}) (secondary %{SEMVER} %{COMMITDATE}) (knn %{SEMVER} %{COMMITDATE})' ...
+starting daemon version '%{VERSION} (columnar %{VERSION}) (secondary %{VERSION}) (knn %{VERSION})' ...
 listening on all interfaces for mysql, port=9306
 listening on UNIX socket /var/run/mysqld/mysqld.sock
 listening on %{IPADDR}:9312 for sphinx and http(s)
@@ -18,7 +18,7 @@ listening on all interfaces for sphinx and http(s), port=9308
 manticore-backup --version
 ––– output –––
 Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
-Manticore Backup version: %{SEMVER}
+Manticore Backup version: %{VERSION}
 ––– block: init-database –––
 ––– input –––
 ls -lt /tmp/backup-*
@@ -34,11 +34,11 @@ Backup dir: /tmp
 Manticore config
 endpoint =  http://%{IPADDR}:9312
 Manticore versions:
-manticore: %{SEMVER} %{COMMITDATE} dev
-columnar: %{SEMVER} %{COMMITDATE}
-secondary: %{SEMVER} %{COMMITDATE}
-knn: %{SEMVER} %{COMMITDATE}
-buddy: %{SEMVER}
+manticore: %{VERSION}
+columnar: %{VERSION}
+secondary: %{VERSION}
+knn: %{VERSION}
+buddy: %{VERSION}
 %{DATETIME} [Info] Starting the backup...
 %{DATETIME} [Info] Backing up config files...
 %{DATETIME} [Info]   config files - OK
