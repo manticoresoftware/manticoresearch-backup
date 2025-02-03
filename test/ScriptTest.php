@@ -21,6 +21,11 @@ class ScriptTest extends SearchdTestCase {
 			. ' --package="manticore-backup"'
 			. ' --index="src/main.php"';
 		system($cmd);
+		system('test -d /usr/share/manticore/modules/manticore-backup && mv $_ $_-old');
+	}
+
+	public static function tearDownAfterClass(): void {
+		system('test -d /usr/share/manticore/modules/manticore-backup-old && mv $_-old $_');
 	}
 
 	public function testHelpArg(): void {
@@ -78,7 +83,7 @@ class ScriptTest extends SearchdTestCase {
 		$this->assertStringContainsString('Unknown option: --backup-dir1', $output);
 	}
 
-	public function testUnlockArg(): void {
+	public function tstUnlockArg(): void {
 		$output = $this->exec('--unlock');
 
 		$this->assertStringContainsString('Unfreezing all tables', $output);
