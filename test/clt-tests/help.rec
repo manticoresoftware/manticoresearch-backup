@@ -2,7 +2,7 @@
 manticore-backup --version
 ––– output –––
 Copyright (c) %{YEAR}-%{YEAR}, Manticore Software LTD (https://manticoresearch.com)
-Manticore Backup version: %{SEMVER}
+Manticore Backup version: %{%{VERSION}}
 ––– input –––
 manticore-backup --help
 ––– output –––
