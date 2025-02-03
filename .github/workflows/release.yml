@@ -89,55 +89,6 @@ jobs:
           name: artifact
           path: ./*.{tar.gz,zip}
 
-  sign-windows-artifact:
-    needs:
-      - build-artifact
-    runs-on: windows-2019
-    steps:
-      - name: Import code signing certificate
-        shell: powershell
-        run: |
-          $pfxCertFilePath = Join-Path -Path $PSScriptRoot -ChildPath "CodeSigningCertificate.pfx"
-          Set-Content -Value $([System.Convert]::FromBase64String($env:BASE64_PFX)) -Path $pfxCertFilePath -Encoding Byte
-          $codeSigningCert = Import-PfxCertificate -FilePath $pfxCertFilePath -Password $($env:PFX_PASSWORD | ConvertTo-SecureString -AsPlainText -Force) -CertStoreLocation Cert:\CurrentUser\My
-        env:
-          BASE64_PFX: ${{ secrets.CODESIGN_PFX_BASE64 }}
-          PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
-      - uses: manticoresoftware/download_artifact_with_retries@main
-        with:
-          name: artifact
-          path: .
-      - name: Sign PowerShell scripts
-        shell: powershell
-        run: |
-          Expand-Archive -Path "*.zip" -DestinationPath .
-          $scripts = Get-ChildItem -Path . -Filter ".\build\*.ps1" -ErrorAction Stop
-          # load cert
-          $codeSigningCert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Select-Object -First 1
-          foreach ($script in $scripts) {
-            try {
-              $scriptContent = Get-Content -Path $script.FullName
-              Write-Output "Signing script `"$($script.Name)`" with certificate `"$($codeSigningCert.Thumbprint)`""
-              # sign script
-              $null = Set-AuthenticodeSignature -Certificate $codeSigningCert -FilePath $script.FullName -TimestampServer "http://timestamp.comodoca.com/rfc3161"
-            }
-            catch {
-              Write-Error $_
-            }
-          }
-
-          # Now recompress signed script
-          $zipFile = Get-ChildItem -Path . -Filter "*.zip" | Select-Object -First 1
-          Remove-Item -Path $zipFile
-          [system.io.directory]::CreateDirectory(".\bin")
-          Move-Item ".\build\*.ps1" ".\bin\"
-          Compress-Archive -Path ".\bin" -DestinationPath $zipFile
-
-      - uses: manticoresoftware/upload_artifact_with_retries@main
-        with:
-          name: artifact
-          path: ./*.{tar.gz,zip}
-
   build-linux-packages:
     runs-on: ubuntu-22.04
     needs:
@@ -266,7 +217,6 @@ jobs:
   deploy:
     needs:
       - build-artifact
-      - sign-windows-artifact
       - build-linux-packages
     runs-on: ubuntu-22.04
     strategy:
