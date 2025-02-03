@@ -70,11 +70,11 @@ Backup dir: /tmp
 Manticore config
 endpoint =  http://%{IPADDR}:9312
 Manticore versions:
-manticore: %{SEMVER} %{COMMITDATE} dev
-columnar: %{SEMVER} %{COMMITDATE}
-secondary: %{SEMVER} %{COMMITDATE}
-knn: %{SEMVER} %{COMMITDATE}
-buddy: %{SEMVER}
+manticore: %{VERSION}
+columnar: %{VERSION}
+secondary: %{VERSION}
+knn: %{VERSION}
+buddy: %{%{VERSION}}
 %{DATETIME} [Info] Starting the backup...
 %{DATETIME} [Error] Can't find some of the tables: none
 ––– input –––
