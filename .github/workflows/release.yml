@@ -219,6 +219,8 @@ jobs:
       - build-artifact
       - build-linux-packages
     runs-on: ubuntu-22.04
+    env:
+      target: ${{ needs.vars.outputs.target }}
     strategy:
       matrix:
         include:
