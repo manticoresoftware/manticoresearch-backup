@@ -42,7 +42,7 @@ class ManticoreClient {
 				throw new \RuntimeException('Failed to find the version of the manticore searchd');
 			}
 
-			$isOld = $verNum < Searchd::MIN_VERSION;
+			$isOld = $verNum !== '0.0.0' && $verNum < Searchd::MIN_VERSION;
 			if (!$isOld) {
 				[, $verDate] = explode('@', $verSfx);
 				$isOld = $verDate < Searchd::MIN_DATE;
