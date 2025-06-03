@@ -214,21 +214,59 @@ class ManticoreClient {
 	 * @return array{backup:string,manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
 	 */
 	protected static function parseVersions(string $version): array {
-		$verPattern = 'v?((?:x\.x\.x|\d+\.\d+\.\d+)[^\(\)]*)';
-		$matchExpr = "/^(?:Manticore\s)?{$verPattern}(?:\s+\(columnar\s{$verPattern}\))?"
-			. "(?:\s+\(secondary\s{$verPattern}\))?"
-			. "(?:\s+\(knn\s{$verPattern}\))?"
-			. "(?:\s+\(buddy\s{$verPattern}\))?$/ius"
-		;
-		preg_match($matchExpr, $version, $m);
-		return [
+		// Initialize result array with default values
+		$result = [
 			'backup' => ManticoreBackup::getVersion(),
-			'manticore' => trim($m[1] ?? '0.0.0'),
-			'columnar' => trim($m[2] ?? '0.0.0'),
-			'secondary' => trim($m[3] ?? '0.0.0'),
-			'knn' => trim($m[4] ?? '0.0.0'),
-			'buddy' => trim($m[5] ?? '0.0.0'),
+			'manticore' => '0.0.0',
+			'columnar' => '0.0.0',
+			'secondary' => '0.0.0',
+			'embeddings' => '0.0.0',
+			'knn' => '0.0.0',
+			'buddy' => '0.0.0',
 		];
+
+		$semverPattern = '(?:\d+\.\d+\.\d+(?:[^\s\(\)]*)?)';
+
+		// Process version string using the new flexible approach
+		$splitVersions = explode('(', $version);
+
+		foreach ($splitVersions as $n => $versionPart) {
+			$versionPart = trim($versionPart);
+
+			// Remove trailing parenthesis if present
+			if ($versionPart && $versionPart[mb_strlen($versionPart) - 1] === ')') {
+				$versionPart = substr($versionPart, 0, -1);
+			}
+
+			// Skip empty parts
+			if (empty($versionPart)) {
+				continue;
+			}
+
+			$exploded = explode(' ', $versionPart);
+
+			// Extract the semver format using regex
+			if (!preg_match("/$semverPattern/", $versionPart, $matches)) {
+				continue;
+			}
+
+			$semver = $matches[0];
+
+			if ($n === 0) {
+				// First part is the main Manticore version
+				$result['manticore'] = $semver;
+			} else {
+				// Component name is the first word in the part
+				$componentName = strtolower($exploded[0]);
+
+				// Map component to result array if it exists
+				if (isset($result[$componentName])) {
+					$result[$componentName] = $semver;
+				}
+			}
+		}
+
+		return $result;
 	}
 
 	public function flushAttributes(): void {
