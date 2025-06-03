@@ -225,7 +225,7 @@ class ManticoreClient {
 			'buddy' => '0.0.0',
 		];
 
-		$semverPattern = '(?:\d+\.\d+\.\d+(?:[^\s\(\)]*)?)';
+		$semverPattern = '(?:\d+\.\d+\.\d+(\s+[^\s\(\)]*)?)';
 
 		// Process version string using the new flexible approach
 		$splitVersions = explode('(', $version);
