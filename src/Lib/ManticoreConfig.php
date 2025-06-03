@@ -76,8 +76,7 @@ class ManticoreConfig {
 		$this->port = 9308;
 
 	  // Try to parse and replace defaults
-		preg_match_all('/^\s*(listen|data_dir|lemmatizer_base|sphinxql_state)\s*=\s*(.*)$/ium', $config, $m);
-		if ($m) {
+		if (preg_match_all('/^\s*(listen|data_dir|lemmatizer_base|sphinxql_state)\s*=\s*(.*)$/ium', $config, $m)) {
 			$endpoints = [];
 			foreach ($m[1] as $n => $key) {
 				$value = trim($m[2][$n]);

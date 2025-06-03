@@ -34,7 +34,7 @@ class ManticoreConfigTest extends TestCase {
           data_dir = /usr/local/var/manticore
           query_log_format = sphinxql
       }
-    EOF
+EOF
 		);
 		$config = new ManticoreConfig($configPath);
 		$this->assertEquals($configPath, $config->path);
