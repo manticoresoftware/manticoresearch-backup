@@ -211,7 +211,7 @@ class ManticoreClient {
 
 	/**
 	 * @param string $version
-	 * @return array{backup:string,manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
+	 * @return array{backup:string,manticore:string,columnar:string,secondary:string,embeddings:string,knn:string,buddy:string}
 	 */
 	protected static function parseVersions(string $version): array {
 		// Initialize result array with default values
@@ -266,6 +266,7 @@ class ManticoreClient {
 			}
 		}
 
+		/** @var array{backup:string,manticore:string,columnar:string,secondary:string,embeddings:string,knn:string,buddy:string} */
 		return $result;
 	}
 
