@@ -37,15 +37,15 @@ Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: all tables
 Backup dir: /tmp/
 Manticore config
-endpoint =  http://%{IPADDR}:9312
+  endpoint =  http://%{IPADDR}:9312
 Manticore config
-endpoint =  http://%{IPADDR}:9312
+  endpoint =  http://%{IPADDR}:9312
 Manticore versions:
-manticore: %{VERSION}
-columnar: %{VERSION}
-secondary: %{VERSION}
-knn: %{VERSION}
-buddy: %{VERSION}
+  manticore: %{VERSION}
+  columnar: %{VERSION}
+  secondary: %{VERSION}
+  knn: %{VERSION}
+  buddy: %{VERSION}
 %{DATETIME} [Info] Starting the backup...
 %{DATETIME} [Info] Backing up config files...
 %{DATETIME} [Info]   config files - OK
@@ -85,7 +85,7 @@ Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp/
 Available backups: 1
-backup-%{NUMBER} (#!/(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{1,2}\s\d{4}\s\d{2}:\d{2}:\d{2}/!#)
+  backup-%{NUMBER} (#!/(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{1,2}\s\d{4}\s\d{2}:\d{2}:\d{2}/!#)
 ––– input –––
 ls /tmp/
 ––– output –––
@@ -99,13 +99,13 @@ manticore-backup --backup-dir=/tmp/ --restore=$BACKUP_DATE
 Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp/
-%{DATETIME} [Info] Stored versions: {"backup":"%{VERSION}","manticore":"%{VERSION}","columnar":"%{VERSION}","secondary":"%{VERSION}","knn":"%{VERSION}","buddy":"%{VERSION}"}
-%{DATETIME} [Info] Current versions: {"backup":"%{VERSION}","manticore":"%{VERSION}","columnar":"%{VERSION}","secondary":"%{VERSION}","knn":"%{VERSION}","buddy":"%{VERSION}"}
+%{DATETIME} [Info] Stored versions: {"backup":"%{VERSION}","manticore":"%{VERSION}","columnar":"%{VERSION}","secondary":"%{VERSION}","embeddings":"%{VERSION}","knn":"%{VERSION}","buddy":"%{VERSION}"}
+%{DATETIME} [Info] Current versions: {"backup":"%{VERSION}","manticore":"%{VERSION}","columnar":"%{VERSION}","secondary":"%{VERSION}","embeddings":"%{VERSION}","knn":"%{VERSION}","buddy":"%{VERSION}"}
 %{DATETIME} [Info] Starting to restore...
 Manticore config
-endpoint =  http://127.0.0.1:9312
+  endpoint =  http://127.0.0.1:9312
 Manticore config
-endpoint =  http://127.0.0.1:9312
+  endpoint =  http://127.0.0.1:9312
 %{DATETIME} [Info] Restoring config files...
 %{DATETIME} [Info]   config files - OK
 %{DATETIME} [Info] Restoring state files...
