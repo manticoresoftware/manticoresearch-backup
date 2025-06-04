@@ -20,13 +20,13 @@ Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: all tables
 Backup dir: /tmp
 Manticore config
-endpoint =  http://%{IPADDR}:9312
+  endpoint =  http://%{IPADDR}:9312
 Manticore versions:
-manticore: %{VERSION}
-columnar: %{VERSION}
-secondary: %{VERSION}
-knn: %{VERSION}
-buddy: %{VERSION}
+  manticore: %{VERSION}
+  columnar: %{VERSION}
+  secondary: %{VERSION}
+  knn: %{VERSION}
+  buddy: %{VERSION}
 %{DATETIME} [Info] Starting the backup...
 %{DATETIME} [Info] Backing up config files...
 %{DATETIME} [Info]   config files - OK
