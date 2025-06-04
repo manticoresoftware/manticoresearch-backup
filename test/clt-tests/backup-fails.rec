@@ -68,13 +68,13 @@ Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: none
 Backup dir: /tmp
 Manticore config
-endpoint =  http://%{IPADDR}:9312
+  endpoint =  http://%{IPADDR}:9312
 Manticore versions:
-manticore: %{VERSION}
-columnar: %{VERSION}
-secondary: %{VERSION}
-knn: %{VERSION}
-buddy: %{VERSION}
+  manticore: %{VERSION}
+  columnar: %{VERSION}
+  secondary: %{VERSION}
+  knn: %{VERSION}
+  buddy: %{VERSION}
 %{DATETIME} [Info] Starting the backup...
 %{DATETIME} [Error] Can't find some of the tables: none
 ––– input –––
@@ -88,5 +88,5 @@ Manticore config file: /etc/manticoresearch/manticore.conf
 Tables to backup: all tables
 Backup dir: /tmp
 Manticore config
-endpoint =  http://%{IPADDR}:9312
+  endpoint =  http://%{IPADDR}:9312
 %{DATETIME} [Error] Failed to send query to the Manticore Search daemon. Ensure that it is set up to listen for HTTP or HTTPS connections and has the appropriate certificates in place. Additionally, check the 'max_connections' setting in the configuration file to ensure that it has not been exceeded.
