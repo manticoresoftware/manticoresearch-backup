@@ -24,7 +24,6 @@ Manticore Backup version: %{VERSION}
 ––– input –––
 curl localhost:9312/sql?mode=raw -d 'query=debug sleep 10' &
 ––– output –––
-[1] %{NUMBER}
 ––– input –––
 mysql -h0 -P9307 -e 'show tables'
 ––– output –––
