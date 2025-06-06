@@ -223,6 +223,7 @@ jobs:
     needs:
       - build-artifact
       - build-linux-packages
+      - vars
     runs-on: ubuntu-22.04
     env:
       target: ${{ needs.vars.outputs.target }}
