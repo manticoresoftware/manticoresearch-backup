@@ -103,6 +103,7 @@ jobs:
       - name: Build binary
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
+          echo "${{ needs.vars.outputs.version_full }}" > APP_VERSION
           ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="${{ env.APP_NAME }}"
       - name: Prepare packages structure
         run: |
