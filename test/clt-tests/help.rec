@@ -6,7 +6,7 @@ Manticore Backup version: %{VERSION}
 ––– input –––
 manticore-backup --help
 ––– output –––
-Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 Usage:
   manticore-backup --backup-dir=path/to/backup [OPTIONS]
 --backup-dir=path/to/backup

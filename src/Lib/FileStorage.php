@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /*
-  Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+  Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 3 or any later
@@ -19,7 +19,7 @@ use RecursiveIteratorIterator;
 use RuntimeException;
 use Throwable;
 
-class FileStorage {
+class FileStorage implements StorageInterface {
 	const DIR_PERMISSION = 0755;
 
   /** @var string */
@@ -58,6 +58,13 @@ class FileStorage {
 		}
 
 		return $this->backupDir;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getFullBackupPath(): string {
+		return rtrim($this->backupDir ?? '', DIRECTORY_SEPARATOR);
 	}
 
   /**
@@ -312,7 +319,7 @@ class FileStorage {
 	 * @param string $path
 	 * @Return string
 	 */
-	protected static function normalizeAbsolutePath(string $path): string {
+	public static function normalizeAbsolutePath(string $path): string {
 		if ($path[0] !== '/') {
 			return DIRECTORY_SEPARATOR . substr($path, 2);
 		}
@@ -517,12 +524,12 @@ class FileStorage {
    * @return void
    */
 	public function cleanUp(): void {
-	  // Do nothing if we have no backup paths at all
+		// Do nothing if we have no backup paths at all
 		if (!isset($this->backupPaths)) {
 			return;
 		}
 
-	  // Try to delete destination root path if it exists
+		// Try to delete destination root path if it exists
 		if (!is_dir($this->backupPaths['root'])) {
 			return;
 		}
@@ -530,32 +537,32 @@ class FileStorage {
 		$this->deleteDir($this->backupPaths['root']);
 	}
 
-  /**
-   * Get recursive iterator for all paths inside wanted dir
-   *
-   * @param string $dir
-   *  The directory where we should look into
-   * @param int $flags
-   * @return \RecursiveIteratorIterator<\RecursiveDirectoryIterator>
-   */
+	/**
+	 * Get iterator for files in directory
+	 *
+	 * @param string $dir
+	 * @param int $flags
+	 * @return \RecursiveIteratorIterator<\RecursiveDirectoryIterator>
+	 */
 	public static function getFileIterator(
 		string $dir,
 		int $flags = \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO
 	): \RecursiveIteratorIterator {
+		/** @var \RecursiveIteratorIterator<\RecursiveDirectoryIterator> */
 		return new \RecursiveIteratorIterator(
 			new \RecursiveDirectoryIterator($dir, $flags),
 			\RecursiveIteratorIterator::CHILD_FIRST
 		);
 	}
 
-  /**
-   * Same as iterator bu sorted
-   * @param array{0:string,1:int} $args
-   * @return FileSortingIterator<\RecursiveDirectoryIterator>
-   */
-	public static function getSortedFileIterator(...$args): FileSortingIterator {
-		// @phpstan-ignore-next-line
-		return new FileSortingIterator(static::getFileIterator(...$args));
+	/**
+	 * Same as iterator but sorted
+	 * @param string $dir
+	 * @param int $flags
+	 * @return FileSortingIterator
+	 */
+	public static function getSortedFileIterator(string $dir, int $flags = 0): FileSortingIterator {
+		return new FileSortingIterator(static::getFileIterator($dir, $flags));
 	}
 
 
@@ -624,5 +631,41 @@ class FileStorage {
 		fclose($targetStream);
 
 		return true;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function putContents(string $path, string $content): bool {
+		$fullPath = $this->backupPaths['root'] . DIRECTORY_SEPARATOR . $path;
+		return file_put_contents($fullPath, $content) !== false;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getContents(string $path): string {
+		$fullPath = $this->backupPaths['root'] . DIRECTORY_SEPARATOR . $path;
+		$content = file_get_contents($fullPath);
+		if ($content === false) {
+			throw new RuntimeException("Failed to read file: {$fullPath}");
+		}
+		return $content;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 * For local filesystem, we don't track uploaded files - manifest is built by iterating directories
+	 */
+	public function getUploadedFiles(): array {
+		return [];
+	}
+
+	/**
+	 * {@inheritdoc}
+	 * For local filesystem, no-op since we don't track uploaded files
+	 */
+	public function clearUploadedFiles(): void {
+		// No-op for local filesystem
 	}
 }

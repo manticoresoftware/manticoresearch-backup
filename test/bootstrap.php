@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /*
-  Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+  Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 3 or any later
@@ -19,6 +19,7 @@ include_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR
 	. 'vendor' .  DIRECTORY_SEPARATOR . 'autoload.php'
 ;
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'SearchdTestCase.php';
+include_once __DIR__ . DIRECTORY_SEPARATOR . 'MockS3Storage.php';
 
 if (!OS::isWindows()) {
 	system('id -u test 2>/dev/null || adduser --disabled-password --gecos "" test');

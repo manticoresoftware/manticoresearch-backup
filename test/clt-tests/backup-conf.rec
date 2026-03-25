@@ -81,7 +81,7 @@ rm -rf /etc/manticoresearch/manticore.conf /tmp/manticore.conf /var/lib/manticor
 ––– input –––
 manticore-backup --backup-dir=/tmp/ --restore
 ––– output –––
-Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp/
 Available backups: 1
@@ -96,7 +96,7 @@ export BACKUP_DATE=$(ls /tmp/)
 ––– input –––
 manticore-backup --backup-dir=/tmp/ --restore=$BACKUP_DATE
 ––– output –––
-Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 Manticore config file:
 Backup dir: /tmp/
 %{DATETIME} [Info] Stored versions: {"backup":"%{VERSION}","manticore":"%{VERSION}","columnar":"%{VERSION}","secondary":"%{VERSION}","embeddings":"%{VERSION}","knn":"%{VERSION}","buddy":"%{VERSION}"}

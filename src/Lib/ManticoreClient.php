@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /*
-  Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+  Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 3 or any later
@@ -292,14 +292,14 @@ class ManticoreClient {
 		return $configPath;
 	}
 
-  /**
-   * Run SQL query via HTTP endpoint and return result set
-   *
-   * @param string $query
-   *  SQL query to execute
-   * @return array{0:array{data:array<array{Value:string}>,error:string}}
-   *  The result of the query passed to be executed
-   */
+	/**
+	 * Run SQL query via HTTP endpoint and return result set
+	 *
+	 * @param string $query
+	 *  SQL query to execute
+	 * @return array{0: array{data: array<array<string, string>>, error: string}}
+	 *  The result of the query passed to be executed
+	 */
 	public function execute(string $query): array {
 		$opts = [
 			'http' => [
@@ -331,16 +331,20 @@ class ManticoreClient {
 			throw new SearchdException(__METHOD__ . ': failed to execute query: "' . $query . '"');
 		}
 
-	  // @phpstan-ignore-next-line
-		return json_decode($result, true);
-	}
+		$decoded = json_decode($result, true);
+		if (!is_array($decoded)) {
+			throw new SearchdException(__METHOD__ . ': failed to decode JSON response for query: "' . $query . '"');
+		}
 
+		/** @var array{0: array{data: array<array<string, string>>, error: string}} $decoded */
+		return $decoded;
+	}
   /**
    * Get signal handler for received signals on interruption
    *
    * @return \Closure
    */
-	public function getSignalHandlerFn(FileStorage $storage): \Closure {
+	public function getSignalHandlerFn(StorageInterface $storage): \Closure {
 		return function (int $signal) use ($storage): void {
 			println(LogLevel::Warn, 'Caught signal ' . $signal);
 			metric('terminations', 1);

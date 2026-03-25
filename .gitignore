@@ -5,3 +5,4 @@ phar_builder
 clt
 test/clt-tests/*.rep
 test/clt-tests/*.cmp
+.env

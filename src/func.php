@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /*
-  Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+  Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 3 or any later
@@ -34,27 +34,12 @@ function validate_args(array $args): array {
 		'disable-telemetry' => isset($args['disable-telemetry']),
 	];
 
-  // Validate arguments
 	if (!isset($args['restore'])) {
-		$options['configs'] = array_map(
-			fn ($v) => backup_realpath($v),
-			$options['configs']
-		);
-		foreach ($options['configs'] as $n => $config) {
-			if (!is_file($config) || !is_readable($config)) {
-				throw new InvalidArgumentException("Failed to find passed config[{$n}]: {$config}");
-			}
-		}
+		$options['configs'] = validate_resolve_configs($options['configs']);
 	}
 
-  // Run checks only if we really need it
-	$backupDir = isset($options['backup-dir']) ? backup_realpath($options['backup-dir']) : null;
 	if (!isset($args['unlock'])) {
-		if (!isset($backupDir) || !is_dir($backupDir)) {
-			throw new InvalidArgumentException(
-				'Failed to find backup dir to store backup: ' . ($backupDir ?? 'none')
-			);
-		}
+		validate_backup_dir($options['backup-dir']);
 	}
 
 	if ($options['compress'] && !function_exists('zstd_compress')) {
@@ -64,6 +49,41 @@ function validate_args(array $args): array {
 	}
 
 	return $options;
+}
+
+/**
+ * Resolve config paths to real paths and validate each one exists and is readable.
+ *
+ * @param array<string> $configs
+ * @return array<string>
+ */
+function validate_resolve_configs(array $configs): array {
+	$configs = array_map(fn ($v) => backup_realpath($v), $configs);
+	foreach ($configs as $n => $config) {
+		if (!is_file($config) || !is_readable($config)) {
+			throw new InvalidArgumentException("Failed to find passed config[{$n}]: {$config}");
+		}
+	}
+	return $configs;
+}
+
+/**
+ * Validate that backup-dir is set and exists (skips is_dir check for S3 URLs).
+ *
+ * @param ?string $backupDir
+ * @return void
+ */
+function validate_backup_dir(?string $backupDir): void {
+	$isS3 = $backupDir !== null && str_starts_with($backupDir, 's3://');
+	if (!$isS3) {
+		$backupDir = isset($backupDir) ? backup_realpath($backupDir) : null;
+	}
+	if (!isset($backupDir)) {
+		throw new InvalidArgumentException('Failed to find backup dir to store backup: none');
+	}
+	if (!$isS3 && !is_dir($backupDir)) {
+		throw new InvalidArgumentException('Failed to find backup dir to store backup: ' . $backupDir);
+	}
 }
 
 /**
