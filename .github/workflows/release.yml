@@ -72,6 +72,10 @@ jobs:
       - vars
     steps:
       - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
       - name: Build binary
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
@@ -100,6 +104,10 @@ jobs:
       - vars
     steps:
       - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
       - name: Build binary
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
