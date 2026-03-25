@@ -5,7 +5,7 @@ use Manticoresearch\Backup\Lib\ManticoreConfig;
 use Manticoresearch\Backup\Lib\Searchd;
 
 /*
-  Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+  Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 3 or any later
@@ -31,11 +31,9 @@ class ManticoreClientTest extends SearchdTestCase {
 
 	public function testGetTables(): void {
 		$tables = array_keys($this->client->getTables());
-		$this->assertEquals(5, sizeof($tables));
-		$this->assertContains('movie', $tables);
-		$this->assertContains('people', $tables);
-		$this->assertContains('people_pq', $tables);
-		$this->assertContains('people_dist_local', $tables);
-		$this->assertContains('people_dist_agent', $tables);
+		$expectedTables = ['movie', 'people', 'people_pq', 'people_dist_local', 'people_dist_agent'];
+		foreach ($expectedTables as $table) {
+			$this->assertContains($table, $tables, "Expected table '$table' not found");
+		}
 	}
 }

@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /*
-  Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+  Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 3 or any later
@@ -9,10 +9,11 @@
   program; if you did not, you can find it at http://www.gnu.org/
 */
 
-use Manticoresearch\Backup\Lib\FileStorage;
 use Manticoresearch\Backup\Lib\LogLevel;
 use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\ManticoreClient;
+use Manticoresearch\Backup\Lib\S3Storage;
+use Manticoresearch\Backup\Lib\StorageFactory;
 use Manticoresearch\Backup\Lib\TextColor;
 
 /**
@@ -33,7 +34,7 @@ chdir(sys_get_temp_dir());
 set_exception_handler(exception_handler(...));
 set_error_handler(error_handler(...)); // @phpstan-ignore-line
 
-echo 'Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)'
+echo 'Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)'
   . PHP_EOL . PHP_EOL
 ;
 
@@ -68,7 +69,8 @@ if (isset($args['version'])) {
 // We do not check in the beginning of file just to let user read --help command
 
 // OK, now gather all options in an array with default values
-$options = validate_args($args); // @phpstan-ignore-line
+/** @var array<string, string> $args */
+$options = validate_args((array)$args);
 $config = $options['configs'][0] ?? '';
 echo 'Manticore config file: ' . $config . PHP_EOL
   . (
@@ -86,26 +88,40 @@ switch (true) {
 	break;
 
 	case isset($args['restore']): // restore
-		$storage = new FileStorage($options['backup-dir']);
+		$storage = StorageFactory::create($options['backup-dir'], $options['compress']);
 
 		if ($options['restore'] === false) {
-			$backupDir = $storage->getBackupDir();
-			if (!$backupDir) {
-				throw new InvalidArgumentException('There is no backup-dir detected');
-			}
-
-			$backups = glob($backupDir . 'backup-*');
-			if ($backups) {
-				$prefixLen = strlen($backupDir);
-				echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
-				foreach ($backups as $path) {
-					$dir = substr($path, $prefixLen);
-					$ts = strtotime(explode('-', $dir)[1] ?? '0');
-					$date = $ts ? date('M d Y H:i:s', $ts) : '?';
-					echo '  ' . $dir . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
+			if ($storage instanceof S3Storage) {
+				$backups = $storage->listBackups();
+				if ($backups) {
+					echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
+					foreach ($backups as $backup) {
+						$ts = strtotime(explode('-', $backup)[1] ?? '0');
+						$date = $ts ? date('M d Y H:i:s', $ts) : '?';
+						echo '  ' . $backup . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
+					}
+				} else {
+					echo PHP_EOL . 'There are no backups available to restore' . PHP_EOL;
 				}
 			} else {
-				echo PHP_EOL . 'There are no backups available to restore' .  PHP_EOL;
+				$backupDir = $storage->getBackupDir();
+				if (!$backupDir) {
+					throw new InvalidArgumentException('There is no backup-dir detected');
+				}
+
+				$backups = glob($backupDir . 'backup-*');
+				if ($backups) {
+					$prefixLen = strlen($backupDir);
+					echo PHP_EOL . 'Available backups: ' . sizeof($backups) . PHP_EOL;
+					foreach ($backups as $path) {
+						$dir = substr($path, $prefixLen);
+						$ts = strtotime(explode('-', $dir)[1] ?? '0');
+						$date = $ts ? date('M d Y H:i:s', $ts) : '?';
+						echo '  ' . $dir . ' (' . colored($date, TextColor::LightYellow) . ')' . PHP_EOL;
+					}
+				} else {
+					echo PHP_EOL . 'There are no backups available to restore' . PHP_EOL;
+				}
 			}
 			exit(0);
 		}
@@ -142,7 +158,7 @@ switch (true) {
 	default: // backup
 		$client = ManticoreClient::init($options['configs']);
 
-		$storage = new FileStorage($options['backup-dir'], $options['compress']);
+		$storage = StorageFactory::create($options['backup-dir'], $options['compress']);
 
 	  // In case of backing up it's important to install signal handler
 		if (function_exists('pcntl_async_signals')) {

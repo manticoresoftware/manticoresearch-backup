@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /*
-  Copyright (c) 2023-2024, Manticore Software LTD (https://manticoresearch.com)
+  Copyright (c) 2023-2026, Manticore Software LTD (https://manticoresearch.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 3 or any later
@@ -39,11 +39,11 @@ class ManticoreBackup {
 	 * Main entry point to make it easier to collect metrics when in package mode
 	 *
 	 * Available commands:
-	 * store: ManticoreClient $client, FileStorage $storage, array $tables = []
-	 * restore: FileStorage $storage
+	 * store: ManticoreClient $client, StorageInterface $storage, array $tables = []
+	 * restore: StorageInterface $storage
 	 *
 	 * @param string $command
-	 * @param array{}|array{0:ManticoreClient,1:FileStorage,2?:array<string>}|array{0:FileStorage} $args
+	 * @param array{}|array{0:ManticoreClient,1:StorageInterface,2?:array<string>}|array{0:StorageInterface} $args
 	 * @return void
 	 */
 	public static function run(string $command, array $args = []): void {
@@ -66,13 +66,12 @@ class ManticoreBackup {
 
 	/**
 	 * Validate if versions that we want to restore is the same
-	 * @param  FileStorage     $storage
+	 * @param  StorageInterface $storage
 	 * @return bool
 	 */
-	public static function validateVersions(FileStorage $storage): bool {
+	public static function validateVersions(StorageInterface $storage): bool {
 		$currentVersions = ManticoreClient::getVersionsFromCli();
-		$backupPaths = $storage->getBackupPaths();
-		$storedVersions = ManticoreBackup::readVersions($backupPaths['root']);
+		$storedVersions = static::readVersionsFromStorage($storage);
 		println(LogLevel::Info, 'Stored versions: ' . json_encode($storedVersions));
 		println(LogLevel::Info, 'Current versions: ' . json_encode($currentVersions));
 		$versionsEqual = true;
@@ -102,21 +101,26 @@ class ManticoreBackup {
    *
    * @param ManticoreClient $client
    *  Initialized client to interract with manticore search daemon
-   * @param FileStorage $storage
+   * @param StorageInterface $storage
    *  The instance of the storage with initialize directories to use
    * @param array<string> $tables
    *  List of tables to store. In case if its empty array we store all tables
    * @return void
    * @throws \RuntimeException
    */
-	protected static function store(ManticoreClient $client, FileStorage $storage, array $tables = []): void {
+	protected static function store(ManticoreClient $client, StorageInterface $storage, array $tables = []): void {
 		println(LogLevel::Info, 'Starting the backup...');
 		$t = microtime(true);
+		/** @var array{root: string, config: string, state: string, data: string} $destination */
 		$destination = $storage->getBackupPaths();
 
 	  // First store current versions in file
 		$versions = $client->getVersions();
-		$isOk = static::storeVersions($versions, $destination['root']);
+		$versionsJson = json_encode($versions);
+		if ($versionsJson === false) {
+			throw new \RuntimeException('Failed to encode versions to JSON');
+		}
+		$isOk = $storage->putContents('versions.json', $versionsJson);
 		if (false === $isOk) {
 			metric('backup_store_versions_fails', 1);
 			throw new InvalidPathException('Failed to save the versions in "' . $destination['root'] . '"');
@@ -224,20 +228,89 @@ class ManticoreBackup {
 
 		static::fsync();
 
+		// Store manifest for efficient restore (avoids ListObjects permission requirement)
+		static::storeManifest($storage, $destination);
+
 	  // 3. Done
 		$t = round(microtime(true) - $t, 2);
 		metric('backup_time', $t);
-		println(LogLevel::Info, 'You can find backup here: ' . $destination['root']);
+		$backupPath = $storage->getFullBackupPath() . '/' . basename($destination['root']);
+		println(LogLevel::Info, 'You can find backup here: ' . $backupPath);
 		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
 	}
 
-  /**
-   * This method executes restore flow and moving backed up files to original destination
-   *
-   * @param FileStorage $storage
-   * @return void
-   */
-	protected static function restore(FileStorage $storage): void {
+	/**
+	 * Store manifest file listing all backed up files
+	 *
+	 * @param StorageInterface $storage
+	 * @param array{root: string, config: string, state: string, data: string} $destination
+	 * @return void
+	 */
+	protected static function storeManifest(StorageInterface $storage, array $destination): void {
+		$files = [];
+
+		// For S3 storage, use tracked uploaded files
+		// For local filesystem, iterate directories
+		$uploadedFiles = $storage->getUploadedFiles();
+
+		if (!empty($uploadedFiles)) {
+			// S3 storage - use tracked files
+			// Extract relative paths from S3 keys
+			$prefix = $destination['root'] . '/';
+			foreach ($uploadedFiles as $s3Key) {
+				// Remove prefix and leading slash to get relative path
+				if (!str_starts_with($s3Key, $prefix)) {
+					continue;
+				}
+
+				$files[] = substr($s3Key, strlen($prefix));
+			}
+			// versions.json is already in uploadedFiles, no need to add it again
+		} else {
+			$files = static::collectLocalManifestFiles($storage, $destination);
+		}
+
+		$manifest = json_encode(['files' => $files, 'version' => 1]);
+		if ($manifest === false) {
+			throw new \RuntimeException('Failed to encode manifest to JSON');
+		}
+
+		// Clear tracked files before uploading manifest (we don't want manifest.json in the list)
+		$storage->clearUploadedFiles();
+
+		$storage->putContents('manifest.json', $manifest);
+	}
+
+	/**
+	 * Collect manifest file list from local filesystem directories
+	 *
+	 * @param StorageInterface $storage
+	 * @param array{root: string, config: string, state: string, data: string} $destination
+	 * @return array<string>
+	 */
+	protected static function collectLocalManifestFiles(StorageInterface $storage, array $destination): array {
+		$files = [];
+		foreach (['config', 'state', 'data'] as $dir) {
+			$iterator = $storage::getFileIterator($destination[$dir]);
+			/** @var \SplFileInfo $file */
+			foreach ($iterator as $file) {
+				if (!$file->isFile()) {
+					continue;
+				}
+				$files[] = str_replace($destination['root'] . DIRECTORY_SEPARATOR, '', $file->getPathname());
+			}
+		}
+		// Add versions.json to manifest (not tracked in local filesystem)
+		$files[] = 'versions.json';
+		return $files;
+	}
+
+	/**
+	 *
+	 * @param StorageInterface $storage
+	 * @return void
+	 */
+	protected static function restore(StorageInterface $storage): void {
 		println(LogLevel::Info, 'Starting to restore...');
 		$t = microtime(true);
 		$backup = $storage->getBackupPaths();
@@ -322,11 +395,11 @@ class ManticoreBackup {
 	}
 
 	/**
-	 * @param FileStorage $storage
+	 * @param StorageInterface $storage
 	 * @param string $path
 	 * @return bool
 	 */
-	protected static function restoreState(FileStorage $storage, string $path): bool {
+	protected static function restoreState(StorageInterface $storage, string $path): bool {
 		$stateIterator = $storage->getFileIterator($path);
 		$isOk = true;
 	  /** @var \SplFileInfo $file */
@@ -349,12 +422,12 @@ class ManticoreBackup {
 	}
 
 	/**
-	 * @param FileStorage $storage
+	 * @param StorageInterface $storage
 	 * @param ManticoreConfig $config
 	 * @param string $path
 	 * @return bool
 	 */
-	protected static function restoreData(FileStorage $storage, ManticoreConfig $config, string $path): bool {
+	protected static function restoreData(StorageInterface $storage, ManticoreConfig $config, string $path): bool {
 		$dataIterator = $storage->getFileIterator($path);
 		$isOk = true;
 	  /** @var \SplFileInfo $file */
@@ -376,36 +449,18 @@ class ManticoreBackup {
 		return $isOk;
 	}
 
-  /**
-   * Store versions for current bakcup in file of root directory passed as argument
-   *
-   * @param array<string,string> $versions
-   * @param string $backupDir
-   *  Directory where we will put versions.json file with verions
-   * @return bool
-   *  Result of storing versions
-   */
-	protected static function storeVersions(array $versions, string $backupDir): bool {
-		$filePath = $backupDir . DIRECTORY_SEPARATOR . 'versions.json';
-		return !!file_put_contents($filePath, json_encode($versions));
-	}
-
 	/**
-	 * Read the versions from file
+	 * Read the versions from storage
 	 *
-	 * @param  string $backupDir
+	 * @param  StorageInterface $storage
 	 * @return array<string,string>
 	 */
-	protected static function readVersions(string $backupDir): array {
-		$filePath = $backupDir . DIRECTORY_SEPARATOR . 'versions.json';
-		$data = file_get_contents($filePath);
-		if ($data === false) {
-			throw new \RuntimeException("Failed to read versions file: $filePath");
-		}
+	protected static function readVersionsFromStorage(StorageInterface $storage): array {
+		$data = $storage->getContents('versions.json');
 		/** @var array<string,string> $versions */
 		$versions = json_decode($data, true);
 		if (!$versions) {
-			throw new \RuntimeException("Failed to decode versions from file: $filePath");
+			throw new \RuntimeException('Failed to decode versions from storage');
 		}
 
 		return $versions;
@@ -468,7 +523,7 @@ class ManticoreBackup {
    * This method helps us to reduce copy paste and validate
    *  required path of original backup: config, state - etc
    *
-   * @param FileStorage $storage
+	 * @param StorageInterface $storage
    * @param string $backupPath
    * @param ?\Closure $fn
    *  It receives SplFileInfo as argument
@@ -476,7 +531,11 @@ class ManticoreBackup {
    * @return void
    * @throws \Exception
    */
-	protected static function validateRestore(FileStorage $storage, string $backupPath, ?\Closure $fn = null): void {
+	protected static function validateRestore(
+		StorageInterface $storage,
+		string $backupPath,
+		?\Closure $fn = null
+	): void {
 		$fileIterator = $storage->getSortedFileIterator($backupPath);
 	  /** @var \SplFileInfo $file */
 		foreach ($fileIterator as $file) {

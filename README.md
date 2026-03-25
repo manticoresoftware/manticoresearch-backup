@@ -4,6 +4,10 @@
 
 Read the [official documentation](https://manual.manticoresearch.com/Securing_and_compacting_a_table/Backup_and_restore) for all the information about using the tool.
 
+## S3 Storage Support
+
+See the [official documentation](https://manual.manticoresearch.com/Securing_and_compacting_a_table/Backup_and_restore#S3-storage-support) for full details on using S3-compatible storage.
+
 ## Developer documentation
 
 ## Structure
