@@ -257,4 +257,60 @@ class S3StorageTest extends TestCase {
 		MockS3Storage::createDir('backups/backup-20260312050529/data');
 		$this->assertTrue(true); // no exception = pass
 	}
+
+	// -------------------------------------------------------------------------
+	// buildS3ClientConfig() — credential chain
+	// -------------------------------------------------------------------------
+
+	public function testBuildConfigWithExplicitCredentials(): void {
+		putenv('AWS_ACCESS_KEY_ID=my-key');
+		putenv('AWS_SECRET_ACCESS_KEY=my-secret');
+		putenv('AWS_SESSION_TOKEN');
+		putenv('AWS_S3_ENCRYPTION=0');
+		putenv('AWS_REGION=us-east-1');
+
+		$storage = new MockS3Storage('s3://my-bucket');
+		$config = $storage->exposeBuildS3ClientConfig();
+
+		$this->assertArrayHasKey('credentials', $config);
+		$credentials = (array)$config['credentials'];
+		$this->assertSame('my-key', $credentials['key']);
+		$this->assertSame('my-secret', $credentials['secret']);
+		$this->assertArrayNotHasKey('token', $credentials);
+	}
+
+	public function testBuildConfigWithSessionToken(): void {
+		putenv('AWS_ACCESS_KEY_ID=my-key');
+		putenv('AWS_SECRET_ACCESS_KEY=my-secret');
+		putenv('AWS_SESSION_TOKEN=my-token');
+		putenv('AWS_S3_ENCRYPTION=0');
+		putenv('AWS_REGION=us-east-1');
+
+		$storage = new MockS3Storage('s3://my-bucket');
+		$config = $storage->exposeBuildS3ClientConfig();
+
+		$credentials = (array)$config['credentials'];
+		$this->assertSame('my-token', $credentials['token']);
+
+		putenv('AWS_SESSION_TOKEN');
+	}
+
+	public function testBuildConfigWithoutCredentialsFallsBackToChain(): void {
+		putenv('AWS_ACCESS_KEY_ID');
+		putenv('AWS_SECRET_ACCESS_KEY');
+		putenv('AWS_S3_ENCRYPTION=0');
+		putenv('AWS_REGION=us-east-1');
+
+		$storage = new MockS3Storage('s3://my-bucket');
+		$config = $storage->exposeBuildS3ClientConfig();
+
+		// No 'credentials' key → SDK uses default credential provider chain
+		$this->assertArrayNotHasKey('credentials', $config);
+		$this->assertSame('us-east-1', $config['region']);
+		$this->assertSame('latest', $config['version']);
+
+		// Restore for other tests
+		putenv('AWS_ACCESS_KEY_ID=test-key');
+		putenv('AWS_SECRET_ACCESS_KEY=test-secret');
+	}
 }

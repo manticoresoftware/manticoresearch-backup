@@ -28,4 +28,12 @@ class MockS3Storage extends S3Storage {
 			]
 		);
 	}
+
+	/**
+	 * Expose protected method for testing.
+	 * @return array<string,mixed>
+	 */
+	public function exposeBuildS3ClientConfig(): array {
+		return $this->buildS3ClientConfig();
+	}
 }
