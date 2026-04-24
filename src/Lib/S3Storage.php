@@ -106,25 +106,31 @@ class S3Storage implements StorageInterface {
 		$region = getenv('AWS_REGION') ?: null;
 		$endpoint = getenv('AWS_ENDPOINT_URL') ?: null;
 
-		if (!$accessKey || !$secretKey) {
-			throw new RuntimeException(
-				'S3 credentials required. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.'
-			);
-		}
-
 		$config = [
 			'region' => $region,
 			'version' => 'latest',
-			'credentials' => [
-				'key' => $accessKey,
-				'secret' => $secretKey,
-			],
 			'http' => [
 				'connect_timeout' => (int)(getenv('AWS_S3_CONNECT_TIMEOUT') ?: 10),
 				// Per-part timeout: 64MB at ~50MB/s = ~1.3s, 600s is very generous
 				'timeout' => (int)(getenv('AWS_S3_TIMEOUT') ?: 600),
 			],
 		];
+
+		if ($accessKey && $secretKey) {
+			$credentials = [
+				'key' => $accessKey,
+				'secret' => $secretKey,
+			];
+			$sessionToken = getenv('AWS_SESSION_TOKEN') ?: null;
+			if ($sessionToken) {
+				$credentials['token'] = $sessionToken;
+			}
+			$config['credentials'] = $credentials;
+		}
+		// When no explicit credentials are provided, the SDK uses its default
+		// credential provider chain: env vars, IRSA (web identity token),
+		// shared config/credentials, ECS task role, EC2 instance profile, etc.
+
 		if ($endpoint) {
 			$config['endpoint'] = $endpoint;
 			// Use path-style for custom endpoints (MinIO, Wasabi, etc.)
