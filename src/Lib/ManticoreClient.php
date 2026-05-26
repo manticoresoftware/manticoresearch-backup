@@ -61,24 +61,24 @@ class ManticoreClient {
 			. '  secondary: ' . $versions['secondary'] . PHP_EOL
 			. '  knn: ' . $versions['knn'] . PHP_EOL
 			. '  buddy: ' . $versions['buddy'] . PHP_EOL
-		;
+			;
 
-	  // Validate config path or fail
+		// Validate config path or fail
 		$configPath = $this->getConfigPath();
 		if (!OS::isSamePath($configPath, $this->getConfig()->path)) {
 			throw new \RuntimeException(
 				"Configs mismatched: '{$this->getConfig()->path} <> {$configPath}"
-				. ', make sure the instance you are backing up is using the provided config'
+					. ', make sure the instance you are backing up is using the provided config'
 			);
 		}
 	}
 
-  /**
-   * Little helper to get current config that is used in Client
-   *
-   * @return ManticoreConfig
-   *  Structure with initialized config
-   */
+	/**
+	 * Little helper to get current config that is used in Client
+	 *
+	 * @return ManticoreConfig
+	 *  Structure with initialized config
+	 */
 	public function getConfig(): ManticoreConfig {
 		// This should never happen
 		if (!isset($this->configs[0])) {
@@ -95,12 +95,12 @@ class ManticoreClient {
 		return $this->configs;
 	}
 
-  /**
-   * Helper function that we will use for first init of client and config
-   *
-   * @param array<string> $configPaths
-   * @return self
-   */
+	/**
+	 * Helper function that we will use for first init of client and config
+	 *
+	 * @param array<string> $configPaths
+	 * @return self
+	 */
 	public static function init(array $configPaths): self {
 		$configs = [];
 		foreach ($configPaths as $configPath) {
@@ -109,15 +109,15 @@ class ManticoreClient {
 		return new ManticoreClient($configs);
 	}
 
-  /**
-   * This method freezes the index to perform safe copy of the data
-   *
-   * @param array<string>|string $tables
-   *  Name of manticore index or list of tables
-   * @return array<string>
-   *  Return list of files for frozen index required to backup
-   * @throws SearchdException
-   */
+	/**
+	 * This method freezes the index to perform safe copy of the data
+	 *
+	 * @param array<string>|string $tables
+	 *  Name of manticore index or list of tables
+	 * @return array<string>
+	 *  Return list of files for frozen index required to backup
+	 * @throws SearchdException
+	 */
 	public function freeze(array|string $tables): array {
 		if (is_string($tables)) {
 			$tables = [$tables];
@@ -130,14 +130,14 @@ class ManticoreClient {
 		return array_map(backup_realpath(...), array_column($result[0]['data'], 'file'));
 	}
 
-  /**
-   * This method unfreezes the index we fronzen before
-   *
-   * @param array<string>|string $tables
-   *  Name of index to unfreeze or list of tables
-   * @return bool
-   *  Return the result of operation
-   */
+	/**
+	 * This method unfreezes the index we fronzen before
+	 *
+	 * @param array<string>|string $tables
+	 *  Name of index to unfreeze or list of tables
+	 * @return bool
+	 *  Return the result of operation
+	 */
 	public function unfreeze(array|string $tables): bool {
 		if (is_string($tables)) {
 			$tables = [$tables];
@@ -146,31 +146,31 @@ class ManticoreClient {
 		return !$result[0]['error'];
 	}
 
-  /**
-   * This is helper function run unfreeze all available tables
-   *
-   * @return bool
-   *  The result of unfreezing
-   */
+	/**
+	 * This is helper function run unfreeze all available tables
+	 *
+	 * @return bool
+	 *  The result of unfreezing
+	 */
 	public function unfreezeAll(): bool {
 		println(LogLevel::Info, PHP_EOL . 'Unfreezing all tables...');
 		return array_reduce(
 			array_keys($this->getTables()), function (bool $carry, string $index): bool {
-				println(LogLevel::Info, '  ' . $index . '...');
-				$isOk = $this->unfreeze($index);
-				println(LogLevel::Info, '   ' . get_op_result($isOk));
-				$carry = $carry && $isOk;
-				return $carry;
+					println(LogLevel::Info, '  ' . $index . '...');
+					$isOk = $this->unfreeze($index);
+					println(LogLevel::Info, '   ' . get_op_result($isOk));
+					$carry = $carry && $isOk;
+					return $carry;
 			}, true
 		);
 	}
 
-  /**
-   * Query all tables that we have on instance
-   *
-   * @return array<string,string>
-   *  array with index as a key and type as a value [ index => type ]
-   */
+	/**
+	 * Query all tables that we have on instance
+	 *
+	 * @return array<string,string>
+	 *  array with index as a key and type as a value [ index => type ]
+	 */
 	public function getTables(): array {
 		/** @var array{0:array{data:array<array<string,string>>}} */
 		$result = $this->execute('SHOW TABLES');
@@ -185,12 +185,38 @@ class ManticoreClient {
 		return $tables;
 	}
 
-  /**
-   * Get manticore, protocol and columnar versions
-   *
-   * @return array{manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
-   *  Parsed list of versions available with keys of [manticore, columnar, secondary, knn, buddy]
-   */
+	/**
+	 * Return the local children of a distributed table.
+	 *
+	 * Remote agents are excluded — they live on other instances and cannot be
+	 * backed up locally. Returns [] for non-distributed or empty tables.
+	 *
+	 * @param string $table
+	 * @return array<string>
+	 */
+	public function getDistributedLocals(string $table): array {
+		$result = $this->execute('DESC ' . $table);
+		$rows = $result[0]['data'];
+		$locals = [];
+		foreach ($rows as $row) {
+			if (($row['Type'] ?? '') !== 'local') {
+				continue;
+			}
+			$name = $row['Agent'] ?? null;
+			if (!is_string($name) || $name === '') {
+				continue;
+			}
+			$locals[] = $name;
+		}
+		return $locals;
+	}
+
+	/**
+	 * Get manticore, protocol and columnar versions
+	 *
+	 * @return array{manticore:string,columnar:string,secondary:string,knn:string,buddy:string}
+	 *  Parsed list of versions available with keys of [manticore, columnar, secondary, knn, buddy]
+	 */
 	public function getVersions(): array {
 		$result = $this->execute('SHOW STATUS LIKE \'version\'');
 		$version = $result[0]['data'][0]['Value'] ?? '';
@@ -274,17 +300,17 @@ class ManticoreClient {
 		$this->execute('FLUSH ATTRIBUTES');
 	}
 
-  /**
-   * This function is used to validate the config path of running daemon
-   *
-   * @return string
-   *  Path to config from SHOW SETTINGS query
-   */
+	/**
+	 * This function is used to validate the config path of running daemon
+	 *
+	 * @return string
+	 *  Path to config from SHOW SETTINGS query
+	 */
 	public function getConfigPath(): string {
 		$result = $this->execute('SHOW SETTINGS');
 		$configPath = backup_realpath($result[0]['data'][0]['Value']);
 
-	  // Fix issue with //manticore.conf path
+		// Fix issue with //manticore.conf path
 		if ($configPath[0] === '/') {
 			$configPath = '/' . ltrim($configPath, '/');
 		}
@@ -304,9 +330,9 @@ class ManticoreClient {
 		$opts = [
 			'http' => [
 				'method'  => 'POST',
-				'header'  => 'Content-type: application/x-www-form-urlencoded',
-				'content' => http_build_query(compact('query')),
-				'ignore_errors' => false,
+			'header'  => 'Content-type: application/x-www-form-urlencoded',
+			'content' => http_build_query(compact('query')),
+			'ignore_errors' => false,
 			],
 		];
 		$context = stream_context_create($opts);
@@ -320,10 +346,10 @@ class ManticoreClient {
 		} catch (\ErrorException) {
 			throw new SearchdException(
 				'Failed to send query to the Manticore Search daemon.'
-				. ' Ensure that it is set up to listen for HTTP or HTTPS connections'
-				. ' and has the appropriate certificates in place.'
-				. ' Additionally, check the \'max_connections\' setting in the configuration'
-				. ' file to ensure that it has not been exceeded. '
+					. ' Ensure that it is set up to listen for HTTP or HTTPS connections'
+					. ' and has the appropriate certificates in place.'
+					. ' Additionally, check the \'max_connections\' setting in the configuration'
+					. ' file to ensure that it has not been exceeded. '
 			);
 		}
 
@@ -339,11 +365,11 @@ class ManticoreClient {
 		/** @var array{0: array{data: array<array<string, string>>, error: string}} $decoded */
 		return $decoded;
 	}
-  /**
-   * Get signal handler for received signals on interruption
-   *
-   * @return \Closure
-   */
+	/**
+	 * Get signal handler for received signals on interruption
+	 *
+	 * @return \Closure
+	 */
 	public function getSignalHandlerFn(StorageInterface $storage): \Closure {
 		return function (int $signal) use ($storage): void {
 			println(LogLevel::Warn, 'Caught signal ' . $signal);

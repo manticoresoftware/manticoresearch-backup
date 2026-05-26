@@ -28,9 +28,9 @@ class ManticoreBackup {
 		return trim(
 			(string)file_get_contents(
 				__DIR__ . DIRECTORY_SEPARATOR
-				. '..' . DIRECTORY_SEPARATOR
-				. '..' . DIRECTORY_SEPARATOR
-				. 'APP_VERSION'
+					. '..' . DIRECTORY_SEPARATOR
+					. '..' . DIRECTORY_SEPARATOR
+					. 'APP_VERSION'
 			)
 		);
 	}
@@ -52,7 +52,7 @@ class ManticoreBackup {
 			metric(
 				'invocation', 1, [
 					'mode' => 'lib',
-				]
+					]
 			);
 		}
 		static::$command(...$args);
@@ -97,24 +97,24 @@ class ManticoreBackup {
 	}
 
 	/**
-   * Store the wanted tables in backup dir as backup
-   *
-   * @param ManticoreClient $client
-   *  Initialized client to interract with manticore search daemon
-   * @param StorageInterface $storage
-   *  The instance of the storage with initialize directories to use
-   * @param array<string> $tables
-   *  List of tables to store. In case if its empty array we store all tables
-   * @return void
-   * @throws \RuntimeException
-   */
+	 * Store the wanted tables in backup dir as backup
+	 *
+	 * @param ManticoreClient $client
+	 *  Initialized client to interract with manticore search daemon
+	 * @param StorageInterface $storage
+	 *  The instance of the storage with initialize directories to use
+	 * @param array<string> $tables
+	 *  List of tables to store. In case if its empty array we store all tables
+	 * @return void
+	 * @throws \RuntimeException
+	 */
 	protected static function store(ManticoreClient $client, StorageInterface $storage, array $tables = []): void {
 		println(LogLevel::Info, 'Starting the backup...');
 		$t = microtime(true);
 		/** @var array{root: string, config: string, state: string, data: string} $destination */
 		$destination = $storage->getBackupPaths();
 
-	  // First store current versions in file
+		// First store current versions in file
 		$versions = $client->getVersions();
 		$versionsJson = json_encode($versions);
 		if ($versionsJson === false) {
@@ -126,37 +126,37 @@ class ManticoreBackup {
 			throw new InvalidPathException('Failed to save the versions in "' . $destination['root'] . '"');
 		}
 
-	  // TODO: add progress bar / backup status reporting
+		// TODO: add progress bar / backup status reporting
 
-	  // If we have no tables passed we should to query the client and get all tables we have
+		// If we have no tables passed we should to query the client and get all tables we have
 		[$isAll, $tables] = static::validateTables($tables, $client);
 
-	  // - backup config files
+		// - backup config files
 		println(LogLevel::Info, 'Backing up config files...');
 		$isOk = $storage->copyPaths(
 			[
 				...array_map(fn ($v) => $v->path, $client->getConfigs()),
 				$client->getConfig()->schemaPath,
-			], $destination['config'], true
+				], $destination['config'], true
 		);
 		println(LogLevel::Info, '  config files - ' . get_op_result($isOk));
 
 		$result = true;
 
-	  // We back up state first because they are usually small enough
+		// We back up state first because they are usually small enough
 		if ($isAll) {
-		  // - Backup global state files
+			// - Backup global state files
 			println(LogLevel::Info, 'Backing up global state files...');
 			$files = $client->getConfig()->getStatePaths();
 			$isOk = $storage->copyPaths($files, $destination['state'], true);
 			println(LogLevel::Info, '  global state files – ' . get_op_result($isOk));
 
-		  // @phpstan-ignore-next-line
+			// @phpstan-ignore-next-line
 			$result = $result && $isOk;
 		}
 
-	  // - Lock all tables to make sure that we will have no new data there
-	  // Make sure that in case any exception or whatever we will unlock all indexes
+		// - Lock all tables to make sure that we will have no new data there
+		// Make sure that in case any exception or whatever we will unlock all indexes
 		$isDone = false;
 		$unfreezeFn = function (ManticoreClient $client) use (&$isDone) {
 			if ($isDone) { // @phpstan-ignore-line
@@ -171,20 +171,20 @@ class ManticoreBackup {
 		};
 		register_shutdown_function($unfreezeFn, $client);
 
-	  // And run FLUSH ATTRIBUTES
-	  // We do lock twice just to keep logic for crawling one by one for each index
+		// And run FLUSH ATTRIBUTES
+		// We do lock twice just to keep logic for crawling one by one for each index
 		$client->freeze(array_keys($tables));
 		$client->flushAttributes();
 
 		$config = $client->getConfig();
 
-	  // - First backup index data
-	  // Lets copy index one by one with freeze
+		// - First backup index data
+		// Lets copy index one by one with freeze
 		$totalTableSize = 0;
 		$totalTableCount = 0;
 		println(LogLevel::Info, 'Backing up tables...');
 		foreach ($tables as $index => $type) {
-		  // We will have no directory for distributed indexes and so should not back it up
+			// We will have no directory for distributed indexes and so should not back it up
 			if ($type === 'distributed') {
 				println(
 					LogLevel::Info,
@@ -220,7 +220,7 @@ class ManticoreBackup {
 			metric('backup_no_permissions', 1);
 			throw new \Exception(
 				'Failed to make backup of tables. '
-				. 'Please check that you have rights to access the source and destinations directories'
+					. 'Please check that you have rights to access the source and destinations directories'
 			);
 		}
 		metric('backup_total_count', $totalTableCount);
@@ -231,7 +231,7 @@ class ManticoreBackup {
 		// Store manifest for efficient restore (avoids ListObjects permission requirement)
 		static::storeManifest($storage, $destination);
 
-	  // 3. Done
+		// 3. Done
 		$t = round(microtime(true) - $t, 2);
 		metric('backup_time', $t);
 		$backupPath = $storage->getFullBackupPath() . '/' . basename($destination['root']);
@@ -315,7 +315,7 @@ class ManticoreBackup {
 		$t = microtime(true);
 		$backup = $storage->getBackupPaths();
 
-	  // First, validate that searchd is not running, otherwise we cannot replace directories
+		// First, validate that searchd is not running, otherwise we cannot replace directories
 		if (Searchd::isRunning()) {
 			metric('restore_searchd_running', 1);
 			throw new \Exception(
@@ -323,19 +323,19 @@ class ManticoreBackup {
 			);
 		}
 
-	  /** @var ?ManticoreConfig $config */
+		/** @var ?ManticoreConfig $config */
 		$config = null;
 
-	  // Second, lets check that destination is available to move files and we have nothing there
+		// Second, lets check that destination is available to move files and we have nothing there
 		static::validateRestore(
 			$storage, $backup['config'], function (\SplFileInfo $file) use (&$config): bool {
-				$fileName = $file->getFilename();
+					$fileName = $file->getFilename();
 				// TODO: remove this hardcode, we can store the path to config when doing backup
 				if (strpos('manticore.conf|manticore.conf.zst', $fileName) !== false) {
 					$config = new ManticoreConfig($file->getRealPath());
 				}
 
-				return false;
+					return false;
 			}
 		);
 
@@ -346,7 +346,7 @@ class ManticoreBackup {
 
 		static::validateRestore($storage, $backup['state']);
 
-	  // Valdiate indexes
+		// Valdiate indexes
 		if (!is_dir($config->dataDir)) {
 			metric('restore_config_dir_missing', 1);
 			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $config->dataDir);
@@ -357,12 +357,12 @@ class ManticoreBackup {
 			throw new \Exception('The data dir to restore is not empty: ' . $config->dataDir);
 		}
 
-	  // All checks are done here, so we can safely start to move all files
-	  // Restore configs first
+		// All checks are done here, so we can safely start to move all files
+		// Restore configs first
 		println(LogLevel::Info, 'Restoring config files...');
 		$configIterator = $storage->getFileIterator($backup['config']);
 		$isOk = true;
-	  /** @var \SplFileInfo $file */
+		/** @var \SplFileInfo $file */
 		foreach ($configIterator as $file) {
 			if (!$file->isFile()) {
 				continue;
@@ -376,17 +376,17 @@ class ManticoreBackup {
 		}
 		println(LogLevel::Info, '  config files - ' . get_op_result($isOk));
 
-	  // Now restore states
+		// Now restore states
 		println(LogLevel::Info, 'Restoring state files...');
 		$isOk = static::restoreState($storage, $backup['state']);
 		println(LogLevel::Info, '  state files - ' . get_op_result($isOk));
 
-	  // And the final piece – indexes (data dir)
+		// And the final piece – indexes (data dir)
 		println(LogLevel::Info, 'Restoring data files...');
 		$isOk = static::restoreData($storage, $config, $backup['data']);
 		println(LogLevel::Info, '  tables\' files - ' . get_op_result($isOk));
 
-	  // Done
+		// Done
 		$t = round(microtime(true) - $t, 2);
 		metric('restore_time', $t);
 
@@ -402,7 +402,7 @@ class ManticoreBackup {
 	protected static function restoreState(StorageInterface $storage, string $path): bool {
 		$stateIterator = $storage->getFileIterator($path);
 		$isOk = true;
-	  /** @var \SplFileInfo $file */
+		/** @var \SplFileInfo $file */
 		foreach ($stateIterator as $file) {
 			if (!$file->isFile()) {
 				continue;
@@ -430,7 +430,7 @@ class ManticoreBackup {
 	protected static function restoreData(StorageInterface $storage, ManticoreConfig $config, string $path): bool {
 		$dataIterator = $storage->getFileIterator($path);
 		$isOk = true;
-	  /** @var \SplFileInfo $file */
+		/** @var \SplFileInfo $file */
 		foreach ($dataIterator as $file) {
 			if (!$file->isFile()) {
 				continue;
@@ -466,16 +466,16 @@ class ManticoreBackup {
 		return $versions;
 	}
 
-  /**
-   * Validate and adapt tables to final format or exit with error
-   *
-   * @param array<string> $tables
-   *  list of tables to validate that they exist
-   * @param ManticoreClient $client
-   *  initialized client to interact with
-   * @return array{0: bool, 1: array<string,string>}
-   *  flag that points if we are in all backup state and list of tables after validation
-   */
+	/**
+	 * Validate and adapt tables to final format or exit with error
+	 *
+	 * @param array<string> $tables
+	 *  list of tables to validate that they exist
+	 * @param ManticoreClient $client
+	 *  initialized client to interact with
+	 * @return array{0: bool, 1: array<string,string>}
+	 *  flag that points if we are in all backup state and list of tables after validation
+	 */
 	public static function validateTables(array $tables, ManticoreClient $client): array {
 		$result = [];
 		$allTables = $client->getTables();
@@ -490,22 +490,67 @@ class ManticoreBackup {
 				$allTables,
 				array_flip($tables)
 			);
+
+			// A distributed table on its own has no data dir, but its local
+			// children do. Pull them in automatically when a distributed table
+			// is selected — otherwise the restored definition would point at
+			// tables that were never backed up.
+			if (static::expandDistributedLocals($client, $allTables, $result)) {
+				$tables = array_keys($result);
+			}
 		} else {
 			$result = $allTables;
 		}
 
 		$isAll = !$tables || !array_diff($allTableNames, $tables);
-	  // If we have no tables in our database – we should stop
+		// If we have no tables in our database – we should stop
 		if (!$result) {
 			throw new \RuntimeException('You have no tables to backup.');
 		}
 		return [$isAll, $result];
 	}
 
-  /**
-   * This functions flushes buffers and attributes to the disk to make sure
-   * that we are safe after backup is done
-   */
+	/**
+	 * Expand any distributed tables in $result by adding their local children
+	 * (in-place). Returns true if anything was added.
+	 *
+	 * @param ManticoreClient $client
+	 * @param array<string,string> $allTables
+	 * @param array<string,string> $result
+	 * @return bool
+	 */
+	protected static function expandDistributedLocals(
+		ManticoreClient $client,
+		array $allTables,
+		array &$result
+	): bool {
+		$autoAdded = [];
+		foreach ($result as $name => $type) {
+			if ($type !== 'distributed') {
+				continue;
+			}
+			foreach ($client->getDistributedLocals($name) as $local) {
+				if (isset($result[$local]) || !isset($allTables[$local])) {
+					continue;
+				}
+				$result[$local] = $allTables[$local];
+				$autoAdded[] = "$local (local of $name)";
+			}
+		}
+		if (!$autoAdded) {
+			return false;
+		}
+		println(
+			LogLevel::Info,
+			'Auto-including locals of distributed tables: ' . implode(', ', $autoAdded)
+		);
+		return true;
+	}
+
+	/**
+	 * This functions flushes buffers and attributes to the disk to make sure
+	 * that we are safe after backup is done
+	 */
 	protected static function fsync(): void {
 		// Do nothing in windows
 		if (OS::isWindows()) {
@@ -519,25 +564,25 @@ class ManticoreBackup {
 		println(LogLevel::Info, ' ' . get_op_result(true));
 	}
 
-  /**
-   * This method helps us to reduce copy paste and validate
-   *  required path of original backup: config, state - etc
-   *
+	/**
+	 * This method helps us to reduce copy paste and validate
+	 *  required path of original backup: config, state - etc
+	 *
 	 * @param StorageInterface $storage
-   * @param string $backupPath
-   * @param ?\Closure $fn
-   *  It receives SplFileInfo as argument
-   *  It returns true for skip next logic in cycle or false otherwise
-   * @return void
-   * @throws \Exception
-   */
+	 * @param string $backupPath
+	 * @param ?\Closure $fn
+	 *  It receives SplFileInfo as argument
+	 *  It returns true for skip next logic in cycle or false otherwise
+	 * @return void
+	 * @throws \Exception
+	 */
 	protected static function validateRestore(
 		StorageInterface $storage,
 		string $backupPath,
 		?\Closure $fn = null
 	): void {
 		$fileIterator = $storage->getSortedFileIterator($backupPath);
-	  /** @var \SplFileInfo $file */
+		/** @var \SplFileInfo $file */
 		foreach ($fileIterator as $file) {
 			if (!$file->isFile()) {
 				continue;
@@ -545,7 +590,7 @@ class ManticoreBackup {
 
 			if (isset($fn)) {
 				$result = $fn($file);
-			  // If we returned true, we continue
+				// If we returned true, we continue
 				if (true === $result) {
 					continue;
 				}
