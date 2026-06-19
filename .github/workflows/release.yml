@@ -82,7 +82,7 @@ jobs:
           # We need to write current version HERE before we pack
           echo "${{ needs.vars.outputs.version_full }}" > APP_VERSION
           # Now build it
-          ./phar_builder/bin/build --name="Manticore Backup" --package="${{ env.APP_NAME }}"
+          ./phar_builder/bin/build --name="Manticore Backup" --package="${{ env.APP_NAME }}" --phar
 
       - name: Create artifact
         run: |
@@ -112,7 +112,7 @@ jobs:
         run: |
           git clone https://github.com/manticoresoftware/phar_builder.git
           echo "${{ needs.vars.outputs.version_full }}" > APP_VERSION
-          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="${{ env.APP_NAME }}"
+          ./phar_builder/bin/build --template=sh --name="Manticore Backup" --package="${{ env.APP_NAME }}" --phar
       - name: Prepare packages structure
         run: |
           mkdir -p .debpkg/usr/bin

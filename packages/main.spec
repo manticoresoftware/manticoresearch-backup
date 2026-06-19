@@ -39,11 +39,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-, root, root)
 %dir /usr/share/manticore/modules/{{ NAME }}
-/usr/share/manticore/modules/{{ NAME }}/src/*
-/usr/share/manticore/modules/{{ NAME }}/vendor/*
-/usr/share/manticore/modules/{{ NAME }}/APP_VERSION
-/usr/share/manticore/modules/{{ NAME }}/composer.json
-/usr/share/manticore/modules/{{ NAME }}/composer.lock
+/usr/share/manticore/modules/{{ NAME }}/{{ NAME }}.phar
 %doc /usr/share/manticore/modules/{{ NAME }}/README.md
 %license /usr/share/manticore/modules/{{ NAME }}/LICENSE
 %attr(1755, root, root) /usr/bin/{{ NAME }}
