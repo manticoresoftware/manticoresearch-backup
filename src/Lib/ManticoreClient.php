@@ -311,24 +311,23 @@ class ManticoreClient {
 		];
 		$context = stream_context_create($opts);
 		$config = $this->getConfig();
+		$connectionError = 'Failed to send query to the Manticore Search daemon.'
+			. ' Ensure that it is set up to listen for HTTP or HTTPS connections'
+			. ' and has the appropriate certificates in place.'
+			. ' Additionally, check the \'max_connections\' setting in the configuration'
+			. ' file to ensure that it has not been exceeded.';
 		try {
-			$result = file_get_contents(
+			$result = @file_get_contents(
 				$config->proto . '://' . $config->host . ':' . $config->port . static::API_PATH,
 				false,
 				$context
 			);
 		} catch (\ErrorException) {
-			throw new SearchdException(
-				'Failed to send query to the Manticore Search daemon.'
-				. ' Ensure that it is set up to listen for HTTP or HTTPS connections'
-				. ' and has the appropriate certificates in place.'
-				. ' Additionally, check the \'max_connections\' setting in the configuration'
-				. ' file to ensure that it has not been exceeded. '
-			);
+			throw new SearchdException($connectionError);
 		}
 
 		if (!$result) { // can be null or false in failed cases so we check non strict here
-			throw new SearchdException(__METHOD__ . ': failed to execute query: "' . $query . '"');
+			throw new SearchdException($connectionError);
 		}
 
 		$decoded = json_decode($result, true);

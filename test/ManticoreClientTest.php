@@ -1,5 +1,7 @@
 <?php declare(strict_types=1);
 
+use Manticoresearch\Backup\Exception\SearchdException;
+use Manticoresearch\Backup\Lib\FileStorage;
 use Manticoresearch\Backup\Lib\ManticoreClient;
 use Manticoresearch\Backup\Lib\ManticoreConfig;
 use Manticoresearch\Backup\Lib\Searchd;
@@ -35,5 +37,40 @@ class ManticoreClientTest extends SearchdTestCase {
 		foreach ($expectedTables as $table) {
 			$this->assertContains($table, $tables, "Expected table '$table' not found");
 		}
+	}
+
+	public function testExecuteThrowsSearchdExceptionWhenEndpointIsUnavailable(): void {
+		$config = $this->createConfigWithUnavailableEndpoint();
+		$client = $this->createClientWithoutVersionCheck($config);
+
+		$this->expectException(SearchdException::class);
+		$this->expectExceptionMessage('Failed to send query to the Manticore Search daemon.');
+		$client->execute('SHOW TABLES');
+	}
+
+	protected function createConfigWithUnavailableEndpoint(): ManticoreConfig {
+		$root = FileStorage::getTmpDir() . DIRECTORY_SEPARATOR . 'unreachable-client-' . uniqid();
+		$dataDir = $root . DIRECTORY_SEPARATOR . 'data';
+		mkdir($dataDir, 0777, true);
+		$configPath = $root . DIRECTORY_SEPARATOR . 'manticore.conf';
+		file_put_contents(
+			$configPath,
+			"searchd {\n"
+			. "    listen = 127.0.0.1:1:http\n"
+			. "    data_dir = $dataDir\n"
+			. "}\n"
+		);
+
+		return new ManticoreConfig($configPath);
+	}
+
+	protected function createClientWithoutVersionCheck(ManticoreConfig $config): ManticoreClient {
+		$reflection = new ReflectionClass(ManticoreClient::class);
+		/** @var ManticoreClient $client */
+		$client = $reflection->newInstanceWithoutConstructor();
+		$property = $reflection->getProperty('configs');
+		$property->setValue($client, [$config]);
+
+		return $client;
 	}
 }

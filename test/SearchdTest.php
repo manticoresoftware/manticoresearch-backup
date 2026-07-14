@@ -1,5 +1,7 @@
 <?php declare(strict_types=1);
 
+use Manticoresearch\Backup\Lib\FileStorage;
+use Manticoresearch\Backup\Lib\ManticoreConfig;
 use Manticoresearch\Backup\Lib\Searchd;
 
 /*
@@ -16,5 +18,46 @@ class SearchdTest extends SearchdTestCase {
 
 		$configPath = Searchd::getConfigPath();
 		$this->assertFileExists($configPath);
+	}
+
+	public function testGetConfigPathsFromEnvironment(): void {
+		$previous = getenv('MANTICORE_CONFIG');
+		putenv('MANTICORE_CONFIG=/tmp/first.conf| /tmp/second.conf ');
+
+		try {
+			$this->assertSame(['/tmp/first.conf', '/tmp/second.conf'], Searchd::getConfigPaths());
+		} finally {
+			$previous === false ? putenv('MANTICORE_CONFIG') : putenv('MANTICORE_CONFIG=' . $previous);
+		}
+	}
+
+	public function testIsEndpointReachable(): void {
+		$config = new ManticoreConfig(Searchd::getConfigPath());
+
+		$this->assertTrue(Searchd::isEndpointReachable($config));
+		$this->assertTrue(Searchd::isRunning($config));
+	}
+
+	public function testIsEndpointReachableReturnsFalseWhenEndpointIsUnavailable(): void {
+		$config = $this->createConfigWithUnavailableEndpoint();
+
+		$this->assertFalse(Searchd::isEndpointReachable($config));
+		$this->assertFalse(Searchd::isRunning($config));
+	}
+
+	protected function createConfigWithUnavailableEndpoint(): ManticoreConfig {
+		$root = FileStorage::getTmpDir() . DIRECTORY_SEPARATOR . 'unreachable-config-' . uniqid();
+		$dataDir = $root . DIRECTORY_SEPARATOR . 'data';
+		mkdir($dataDir, 0777, true);
+		$configPath = $root . DIRECTORY_SEPARATOR . 'manticore.conf';
+		file_put_contents(
+			$configPath,
+			"searchd {\n"
+			. "    listen = 127.0.0.1:1:http\n"
+			. "    data_dir = $dataDir\n"
+			. "}\n"
+		);
+
+		return new ManticoreConfig($configPath);
 	}
 }

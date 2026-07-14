@@ -12,6 +12,7 @@
 namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\InvalidPathException;
+use Manticoresearch\Backup\Exception\SearchdException;
 
 use function println;
 
@@ -157,17 +158,15 @@ class ManticoreBackup {
 
 	  // - Lock all tables to make sure that we will have no new data there
 	  // Make sure that in case any exception or whatever we will unlock all indexes
-		$isDone = false;
-		$unfreezeFn = function (ManticoreClient $client) use (&$isDone) {
-			if ($isDone) { // @phpstan-ignore-line
+		$shutdownState = new class {
+			public bool $shouldUnfreeze = true;
+		};
+		$unfreezeFn = function (ManticoreClient $client) use ($shutdownState) {
+			if (!$shutdownState->shouldUnfreeze) {
 				return;
 			}
 
-			if (!Searchd::isRunning()) {
-				return;
-			}
-
-			$client->unfreezeAll();
+			static::unfreezeAllOnShutdown($client);
 		};
 		register_shutdown_function($unfreezeFn, $client);
 
@@ -216,6 +215,11 @@ class ManticoreBackup {
 			$client->unfreeze($index);
 		}
 
+		if (!$client->unfreezeAll()) {
+			throw new \RuntimeException('Failed to unlock tables');
+		}
+		$shutdownState->shouldUnfreeze = false;
+
 		if (false === $result) {
 			metric('backup_no_permissions', 1);
 			throw new \Exception(
@@ -237,6 +241,18 @@ class ManticoreBackup {
 		$backupPath = $storage->getFullBackupPath() . '/' . basename($destination['root']);
 		println(LogLevel::Info, 'You can find backup here: ' . $backupPath);
 		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
+	}
+
+	protected static function unfreezeAllOnShutdown(ManticoreClient $client): void {
+		try {
+			$client->unfreezeAll();
+		} catch (SearchdException $e) {
+			$message = 'Failed to unlock tables because the Manticore Search instance is not available: '
+				. $e->getMessage();
+			println(LogLevel::Warn, $message);
+		} catch (\Throwable $e) {
+			println(LogLevel::Warn, 'Failed to unlock tables: ' . $e->getMessage());
+		}
 	}
 
 	/**
@@ -315,34 +331,23 @@ class ManticoreBackup {
 		$t = microtime(true);
 		$backup = $storage->getBackupPaths();
 
-	  // First, validate that searchd is not running, otherwise we cannot replace directories
-		if (Searchd::isRunning()) {
+		$config = static::getConfigFromBackup($storage, $backup['config']);
+
+		if (!isset($config)) {
+			metric('restore_no_config_file', 1);
+			throw new \Exception('Failed to find config file in original backup');
+		}
+
+	  // Validate that searchd is not running, otherwise we cannot replace directories
+		if (Searchd::isRunning($config)) {
 			metric('restore_searchd_running', 1);
 			throw new \Exception(
 				'Cannot initiate the restore process due to searchd daemon is running.'
 			);
 		}
 
-	  /** @var ?ManticoreConfig $config */
-		$config = null;
-
-	  // Second, lets check that destination is available to move files and we have nothing there
-		static::validateRestore(
-			$storage, $backup['config'], function (\SplFileInfo $file) use (&$config): bool {
-				$fileName = $file->getFilename();
-				// TODO: remove this hardcode, we can store the path to config when doing backup
-				if (strpos('manticore.conf|manticore.conf.zst', $fileName) !== false) {
-					$config = new ManticoreConfig($file->getRealPath());
-				}
-
-				return false;
-			}
-		);
-
-		if (!isset($config)) {
-			metric('restore_no_config_file', 1);
-			throw new \Exception('Failed to find config file in original backup');
-		}
+	  // First, lets check that destination is available to move files and we have nothing there
+		static::validateRestore($storage, $backup['config']);
 
 		static::validateRestore($storage, $backup['state']);
 
@@ -392,6 +397,24 @@ class ManticoreBackup {
 
 		println(LogLevel::Info, "The backup '{$backup['root']}' was successfully restored.");
 		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
+	}
+
+	protected static function getConfigFromBackup(StorageInterface $storage, string $backupPath): ?ManticoreConfig {
+		$fileIterator = $storage->getSortedFileIterator($backupPath);
+	  /** @var \SplFileInfo $file */
+		foreach ($fileIterator as $file) {
+			if (!$file->isFile()) {
+				continue;
+			}
+
+			$fileName = $file->getFilename();
+			// TODO: remove this hardcode, we can store the path to config when doing backup
+			if (strpos('manticore.conf|manticore.conf.zst', $fileName) !== false) {
+				return new ManticoreConfig($file->getRealPath());
+			}
+		}
+
+		return null;
 	}
 
 	/**

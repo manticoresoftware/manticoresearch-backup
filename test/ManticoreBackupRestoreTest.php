@@ -67,8 +67,33 @@ class ManticoreBackupRestoreTest extends TestCase {
 		SearchdTestCase::setUpBeforeClass();
 		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('Cannot initiate the restore process due to searchd daemon is running.');
-		ManticoreBackup::run('restore', [$fileStorage]);
+		try {
+			ManticoreBackup::run('restore', [$fileStorage]);
+		} finally {
+			SearchdTestCase::tearDownAfterClass();
+		}
+	}
+
+	public function testRestoreFailedWhenBackupConfigIsMissing(): void {
 		SearchdTestCase::tearDownAfterClass();
+
+		$backupDir = FileStorage::getTmpDir() . DIRECTORY_SEPARATOR . 'restore-no-config-' . uniqid();
+		$backupName = 'backup-no-config';
+		mkdir($backupDir);
+		foreach (['data', 'config', 'state'] as $dir) {
+			mkdir($backupDir . DIRECTORY_SEPARATOR . $backupName . DIRECTORY_SEPARATOR . $dir, 0777, true);
+		}
+
+		$fileStorage = new FileStorage($backupDir);
+		$fileStorage->setBackupPathsUsingDir($backupName);
+
+		$this->expectException(Exception::class);
+		$this->expectExceptionMessage('Failed to find config file in original backup');
+		try {
+			ManticoreBackup::run('restore', [$fileStorage]);
+		} finally {
+			FileStorage::deleteDir($backupDir);
+		}
 	}
 
 	public function testRestoreFailedWhenOriginalConfigExists(): void {
