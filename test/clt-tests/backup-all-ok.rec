@@ -106,11 +106,6 @@ Manticore versions:
 %{DATETIME} [Info]    OK
 %{DATETIME} [Info]   test (rt) [#!/[0-9\.]+K/!#]...
 %{DATETIME} [Info]    OK
-%{DATETIME} [Info] Running sync
-%{DATETIME} [Info]  OK
-%{DATETIME} [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
-%{DATETIME} [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
-%{DATETIME} [Info] Done
 %{DATETIME} [Info]
 Unfreezing all tables...
 %{DATETIME} [Info]   distributed_index...
@@ -121,6 +116,11 @@ Unfreezing all tables...
 %{DATETIME} [Info]    OK
 %{DATETIME} [Info]   test...
 %{DATETIME} [Info]    OK
+%{DATETIME} [Info] Running sync
+%{DATETIME} [Info]  OK
+%{DATETIME} [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
+%{DATETIME} [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
+%{DATETIME} [Info] Done
 ––– input –––
 ls -lh /tmp/backup-* | wc -l
 ––– output –––

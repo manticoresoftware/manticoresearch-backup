@@ -60,11 +60,6 @@ Manticore versions:
 %{DATETIME} [Info]    OK
 %{DATETIME} [Info]   test (rt) [%{NUMBER}B]...
 %{DATETIME} [Info]    OK
-%{DATETIME} [Info] Running sync
-%{DATETIME} [Info]  OK
-%{DATETIME} [Info] You can find backup here: /tmp/backup-%{NUMBER}
-%{DATETIME} [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
-%{DATETIME} [Info] Done
 %{DATETIME} [Info]
 Unfreezing all tables...
 %{DATETIME} [Info]   distributed_index...
@@ -75,6 +70,14 @@ Unfreezing all tables...
 %{DATETIME} [Info]    OK
 %{DATETIME} [Info]   test...
 %{DATETIME} [Info]    OK
+%{DATETIME} [Info] Running sync
+%{DATETIME} [Info]  OK
+%{DATETIME} [Info] You can find backup here: /tmp/backup-%{NUMBER}
+%{DATETIME} [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
+%{DATETIME} [Info] Done
+––– input –––
+searchd --stopwait >/dev/null 2>&1 || true
+––– output –––
 ––– input –––
 rm -rf /etc/manticoresearch/manticore.conf /tmp/manticore.conf /var/lib/manticore; mkdir /var/lib/manticore;
 ––– output –––
@@ -102,8 +105,6 @@ Backup dir: /tmp/
 %{DATETIME} [Info] Stored versions: {"backup":"%{VERSION}","manticore":"%{VERSION}","columnar":"%{VERSION}","secondary":"%{VERSION}","embeddings":"%{VERSION}","knn":"%{VERSION}","buddy":"%{VERSION}"}
 %{DATETIME} [Info] Current versions: {"backup":"%{VERSION}","manticore":"%{VERSION}","columnar":"%{VERSION}","secondary":"%{VERSION}","embeddings":"%{VERSION}","knn":"%{VERSION}","buddy":"%{VERSION}"}
 %{DATETIME} [Info] Starting to restore...
-Manticore config
-  endpoint =  http://127.0.0.1:9312
 Manticore config
   endpoint =  http://127.0.0.1:9312
 %{DATETIME} [Info] Restoring config files...

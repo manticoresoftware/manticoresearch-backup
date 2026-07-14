@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use Manticoresearch\Backup\Exception\SearchdException;
 use Manticoresearch\Backup\Lib\FileStorage;
 use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\ManticoreClient;
@@ -79,6 +80,28 @@ class ManticoreBackupTest extends SearchdTestCase {
 	  // Backup only one
 		ManticoreBackup::run('store', [$client, $storage, ['people']]);
 		$this->assertBackupIsOK($client, $backupDir, ['people' => 'rt']);
+	}
+
+	public function testStoreUnfreezesTablesBeforeReturning(): void {
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreClient([$config]);
+
+		ManticoreBackup::run('store', [$client, $storage, ['people']]);
+		$result = $client->execute('SHOW LOCKS');
+		$lockedTables = array_column($result[0]['data'], 'Name');
+
+		$this->assertNotContains('people', $lockedTables);
+	}
+
+	public function testShutdownUnfreezeAttemptsUnfreezeWhenEndpointIsUnavailable(): void {
+		$client = new ManticoreUnfreezeFailedClient();
+		$reflection = new ReflectionClass(ManticoreBackup::class);
+		$method = $reflection->getMethod('unfreezeAllOnShutdown');
+		$method->setAccessible(true);
+
+		$method->invoke(null, $client);
+
+		$this->assertTrue($client->unfreezeAllCalled);
 	}
 
 	public function testStoreUnexistingIndexOnly(): void {
@@ -394,5 +417,19 @@ class ManticoreMockedClient extends ManticoreClient {
 			sleep($this->timeoutSec);
 		}
 		return parent::freeze($tables);
+	}
+}
+
+// @codingStandardsIgnoreStart
+class ManticoreUnfreezeFailedClient extends ManticoreClient {
+  // @codingStandardsIgnoreEnd
+	public bool $unfreezeAllCalled = false;
+
+	public function __construct() {
+	}
+
+	public function unfreezeAll(): bool {
+		$this->unfreezeAllCalled = true;
+		throw new SearchdException('failed to execute query: "SHOW TABLES"');
 	}
 }

@@ -29,16 +29,20 @@ class Searchd {
 			return array_map(trim(...), explode('|', $envConfig));
 		}
 
-		$output = shell_exec(static::getCmd() . ' --status');
-		if (!is_string($output)) {
-			throw new \RuntimeException('Unable to get config path');
-		}
-		preg_match('/using config file \'([^\']+)\'/ium', $output, $m);
-		if (!$m) {
-			throw new InvalidPathException('Failed to find searchd config from command line');
+		$configs = array_filter(
+			[
+				'/etc/manticoresearch/manticore.conf',
+				'/usr/local/etc/manticoresearch/manticore.conf',
+				'/opt/homebrew/etc/manticoresearch/manticore.conf',
+			],
+			fn ($path) => is_file($path) && is_readable($path)
+		);
+
+		if (!$configs) {
+			throw new InvalidPathException('Failed to find Manticore config file. Please pass --config explicitly');
 		}
 
-		return [backup_realpath($m[1])];
+		return array_values($configs);
 	}
 
 	/**
@@ -59,11 +63,38 @@ class Searchd {
    *
    * @return bool
    */
-	public static function isRunning(): bool {
-		$resultCode = 0;
-		exec(static::getCmd() . ' --status', result_code: $resultCode);
+	public static function isRunning(?ManticoreConfig $config = null): bool {
+		try {
+			$config ??= new ManticoreConfig(static::getConfigPath());
+		} catch (\Throwable) {
+			return false;
+		}
 
-		return $resultCode === 0;
+		return static::isEndpointReachable($config);
+	}
+
+	public static function isEndpointReachable(ManticoreConfig $config): bool {
+		$opts = [
+			'http' => [
+				'method' => 'POST',
+				'header' => 'Content-type: application/x-www-form-urlencoded',
+				'content' => http_build_query(['query' => 'SHOW STATUS LIKE \'uptime\'']),
+				'ignore_errors' => false,
+			],
+		];
+		$context = stream_context_create($opts);
+
+		try {
+			$result = @file_get_contents(
+				$config->proto . '://' . $config->host . ':' . $config->port . ManticoreClient::API_PATH,
+				false,
+				$context
+			);
+		} catch (\Throwable) {
+			return false;
+		}
+
+		return is_string($result) && $result !== '';
 	}
 
 	/**
