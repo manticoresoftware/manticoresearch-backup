@@ -114,7 +114,7 @@ Manticore config
 %{DATETIME} [Info] Restoring data files...
 %{DATETIME} [Info]   tables' files - OK
 %{DATETIME} [Info] The backup '/tmp/backup-%{NUMBER}' was successfully restored.
-%{DATETIME} [Info] Elapsed time: #!/[0-9]+/!#.#!/[0-9]+/!#s
+%{DATETIME} [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
 %{DATETIME} [Info] Done
 ––– input –––
 ls /tmp/manticore.conf
