@@ -12,7 +12,6 @@
 namespace Manticoresearch\Backup\Lib;
 
 use Manticoresearch\Backup\Exception\InvalidPathException;
-use Manticoresearch\Backup\Exception\SearchdException;
 
 use function println;
 
@@ -158,11 +157,9 @@ class ManticoreBackup {
 
 	  // - Lock all tables to make sure that we will have no new data there
 	  // Make sure that in case any exception or whatever we will unlock all indexes
-		$shutdownState = new class {
-			public bool $shouldUnfreeze = true;
-		};
-		$unfreezeFn = function (ManticoreClient $client) use ($shutdownState) {
-			if (!$shutdownState->shouldUnfreeze) {
+		$isUnfrozen = false;
+		$unfreezeFn = function (ManticoreClient $client) use (&$isUnfrozen) {
+			if ($isUnfrozen) { // @phpstan-ignore-line
 				return;
 			}
 
@@ -218,7 +215,9 @@ class ManticoreBackup {
 		if (!$client->unfreezeAll()) {
 			throw new \RuntimeException('Failed to unlock tables');
 		}
-		$shutdownState->shouldUnfreeze = false;
+		// The shutdown closure reads this flag by reference
+		// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable
+		$isUnfrozen = true;
 
 		if (false === $result) {
 			metric('backup_no_permissions', 1);
@@ -243,13 +242,15 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
 	}
 
+	/**
+	 * Last resort unfreeze on shutdown that must never throw, only warn
+	 *
+	 * @param ManticoreClient $client
+	 * @return void
+	 */
 	protected static function unfreezeAllOnShutdown(ManticoreClient $client): void {
 		try {
 			$client->unfreezeAll();
-		} catch (SearchdException $e) {
-			$message = 'Failed to unlock tables because the Manticore Search instance is not available: '
-				. $e->getMessage();
-			println(LogLevel::Warn, $message);
 		} catch (\Throwable $e) {
 			println(LogLevel::Warn, 'Failed to unlock tables: ' . $e->getMessage());
 		}
@@ -399,6 +400,14 @@ class ManticoreBackup {
 		println(LogLevel::Info, 'Elapsed time: ' . $t . 's');
 	}
 
+	/**
+	 * Find and parse the Manticore config stored in the backup
+	 *
+	 * @param StorageInterface $storage
+	 * @param string $backupPath
+	 * @return ?ManticoreConfig
+	 *  Parsed config or null when the backup contains none
+	 */
 	protected static function getConfigFromBackup(StorageInterface $storage, string $backupPath): ?ManticoreConfig {
 		$fileIterator = $storage->getSortedFileIterator($backupPath);
 	  /** @var \SplFileInfo $file */
@@ -407,9 +416,8 @@ class ManticoreBackup {
 				continue;
 			}
 
-			$fileName = $file->getFilename();
 			// TODO: remove this hardcode, we can store the path to config when doing backup
-			if (strpos('manticore.conf|manticore.conf.zst', $fileName) !== false) {
+			if (in_array($file->getFilename(), ['manticore.conf', 'manticore.conf.zst'], true)) {
 				return new ManticoreConfig($file->getRealPath());
 			}
 		}
@@ -548,30 +556,15 @@ class ManticoreBackup {
    *
 	 * @param StorageInterface $storage
    * @param string $backupPath
-   * @param ?\Closure $fn
-   *  It receives SplFileInfo as argument
-   *  It returns true for skip next logic in cycle or false otherwise
    * @return void
    * @throws \Exception
    */
-	protected static function validateRestore(
-		StorageInterface $storage,
-		string $backupPath,
-		?\Closure $fn = null
-	): void {
+	protected static function validateRestore(StorageInterface $storage, string $backupPath): void {
 		$fileIterator = $storage->getSortedFileIterator($backupPath);
 	  /** @var \SplFileInfo $file */
 		foreach ($fileIterator as $file) {
 			if (!$file->isFile()) {
 				continue;
-			}
-
-			if (isset($fn)) {
-				$result = $fn($file);
-			  // If we returned true, we continue
-				if (true === $result) {
-					continue;
-				}
 			}
 
 			$preservedPath = $storage->getOriginRealPath($file->getRealPath());

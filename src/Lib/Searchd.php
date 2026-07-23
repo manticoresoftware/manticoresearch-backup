@@ -17,6 +17,9 @@ class Searchd {
 	const MIN_VERSION = '5.0.3';
 	const MIN_DATE = '221012';
 
+	// Timeout in seconds to use when we probe the daemon HTTP endpoint
+	const ENDPOINT_TIMEOUT = 5;
+
 	public static ?string $cmd;
 
 	/**
@@ -29,6 +32,14 @@ class Searchd {
 			return array_map(trim(...), explode('|', $envConfig));
 		}
 
+		// Ask the searchd binary for the config it uses,
+		// it prints it even when the daemon is not running or unreachable
+		$configPath = static::extractConfigPathFromCli();
+		if (isset($configPath)) {
+			return [$configPath];
+		}
+
+		// The searchd binary is not available, so check the well-known locations
 		$configs = array_filter(
 			[
 				'/etc/manticoresearch/manticore.conf',
@@ -43,6 +54,26 @@ class Searchd {
 		}
 
 		return array_values($configs);
+	}
+
+	/**
+	 * Extract the config path that the searchd binary reports in its --status output
+	 *
+	 * @return ?string
+	 *  Absolute path to the config or null when the binary is missing or gave no path
+	 */
+	protected static function extractConfigPathFromCli(): ?string {
+		try {
+			$output = shell_exec(static::getCmd() . ' --status');
+		} catch (\Throwable) {
+			return null;
+		}
+
+		if (!is_string($output) || !preg_match('/using config file \'([^\']+)\'/ium', $output, $m)) {
+			return null;
+		}
+
+		return backup_realpath($m[1]);
 	}
 
 	/**
@@ -80,6 +111,7 @@ class Searchd {
 				'header' => 'Content-type: application/x-www-form-urlencoded',
 				'content' => http_build_query(['query' => 'SHOW STATUS LIKE \'uptime\'']),
 				'ignore_errors' => false,
+				'timeout' => static::ENDPOINT_TIMEOUT,
 			],
 		];
 		$context = stream_context_create($opts);
