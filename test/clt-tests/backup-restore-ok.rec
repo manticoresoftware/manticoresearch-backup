@@ -56,7 +56,7 @@ Unfreezing all tables...
 %{DATETIME} [Info] Running sync
 %{DATETIME} [Info]  OK
 %{DATETIME} [Info] You can find backup here: /tmp/backup-%{NUMBER}
-%{DATETIME} [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
+%{DATETIME} [Info] Elapsed time: #!/[0-9]+(\.[0-9]+)?/!#s
 %{DATETIME} [Info] Done
 ––– input –––
 mv /tmp/backup-* /tmp/backup-111
@@ -132,7 +132,7 @@ Manticore config
 %{DATETIME} [Info] Restoring data files...
 %{DATETIME} [Info]   tables' files - OK
 %{DATETIME} [Info] The backup '/tmp/backup-111' was successfully restored.
-%{DATETIME} [Info] Elapsed time: #!/([0-9]+\.[0-9]+|0)/!#s
+%{DATETIME} [Info] Elapsed time: #!/[0-9]+(\.[0-9]+)?/!#s
 %{DATETIME} [Info] Done
 ––– block: start-searchd –––
 ––– input –––

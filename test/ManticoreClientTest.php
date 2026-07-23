@@ -65,12 +65,17 @@ class ManticoreClientTest extends SearchdTestCase {
 	}
 
 	protected function createClientWithoutVersionCheck(ManticoreConfig $config): ManticoreClient {
-		$reflection = new ReflectionClass(ManticoreClient::class);
-		/** @var ManticoreClient $client */
-		$client = $reflection->newInstanceWithoutConstructor();
-		$property = $reflection->getProperty('configs');
-		$property->setValue($client, [$config]);
+		return new ManticoreNoVersionCheckClient([$config]);
+	}
+}
 
-		return $client;
+// @codingStandardsIgnoreStart
+class ManticoreNoVersionCheckClient extends ManticoreClient {
+  // @codingStandardsIgnoreEnd
+	/**
+	 * @param array<ManticoreConfig> $configs
+	 */
+	public function __construct(array $configs) {
+		$this->configs = $configs;
 	}
 }

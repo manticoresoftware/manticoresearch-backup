@@ -89,7 +89,7 @@ Unfreezing all tables...
 %{DATETIME} [Info] Running sync
 %{DATETIME} [Info]  OK
 %{DATETIME} [Info] You can find backup here: /tmp/backup-#!/[0-9]{14}/!#
-%{DATETIME} [Info] Elapsed time: #!/[0-9]+\.[0-9]+|0/!#s
+%{DATETIME} [Info] Elapsed time: #!/[0-9]+(\.[0-9]+)?/!#s
 %{DATETIME} [Info] Done
 ––– input –––
 ls -lh /tmp/backup-* | wc -l
