@@ -317,7 +317,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Update deps
-        uses: manticoresoftware/manticoresearch/actions/update-deps@master
+        uses: manticoresoftware/manticoresearch/actions/update-deps@main
         with:
           name: backup
           version: "${{ needs.vars.outputs.version_full }}"
