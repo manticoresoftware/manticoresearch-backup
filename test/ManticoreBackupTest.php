@@ -93,6 +93,25 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$this->assertNotContains('people', $lockedTables);
 	}
 
+	public function testStoreUnfreezesTablesWhenFrozenFileIsMissing(): void {
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreMissingFrozenFileClient([$config]);
+
+		$exception = null;
+		try {
+			ManticoreBackup::run('store', [$client, $storage, ['people']]);
+		} catch (Throwable $e) {
+			$exception = $e;
+		}
+
+		$this->assertTrue($client->missingFileInjected);
+		$this->assertInstanceOf(Throwable::class, $exception);
+		$this->assertStringContainsString('filesize(): stat failed', $exception->getMessage());
+		$result = $client->execute('SHOW LOCKS');
+		$lockedTables = array_column($result[0]['data'], 'Name');
+		$this->assertNotContains('people', $lockedTables);
+	}
+
 	public function testShutdownUnfreezeAttemptsUnfreezeWhenEndpointIsUnavailable(): void {
 		$client = new ManticoreUnfreezeFailedClient();
 		$reflection = new ReflectionClass(ManticoreBackup::class);
@@ -431,5 +450,20 @@ class ManticoreUnfreezeFailedClient extends ManticoreClient {
 	public function unfreezeAll(): bool {
 		$this->unfreezeAllCalled = true;
 		throw new SearchdException('failed to execute query: "SHOW TABLES"');
+	}
+}
+
+// @codingStandardsIgnoreStart
+class ManticoreMissingFrozenFileClient extends ManticoreClient {
+  // @codingStandardsIgnoreEnd
+	public bool $missingFileInjected = false;
+
+	public function freeze(array|string $tables): array {
+		$files = parent::freeze($tables);
+		if (is_string($tables)) {
+			$this->missingFileInjected = true;
+			return [$this->getConfig()->dataDir . DIRECTORY_SEPARATOR . $tables . DIRECTORY_SEPARATOR . 'missing'];
+		}
+		return $files;
 	}
 }

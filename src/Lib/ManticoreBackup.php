@@ -191,25 +191,33 @@ class ManticoreBackup {
 			}
 
 			$files = $client->freeze($index);
-			$tableSize = $storage::calculateFilesSize($files);
-			$totalTableSize += $tableSize;
-			++$totalTableCount;
-			metric('backup_table_size', $tableSize);
-			println(
-				LogLevel::Info,
-				'  ' . $index . ' ('  . $type . ') [' . format_bytes($tableSize) . ']...'
-			);
+			try {
+				$tableSize = $storage::calculateFilesSize($files);
+				$totalTableSize += $tableSize;
+				++$totalTableCount;
+				metric('backup_table_size', $tableSize);
+				println(
+					LogLevel::Info,
+					'  ' . $index . ' ('  . $type . ') [' . format_bytes($tableSize) . ']...'
+				);
 
-			$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
-			$storage->createDir(
-				$backupPath,
-				$config->dataDir . DIRECTORY_SEPARATOR . $index
-			);
+				$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
+				$storage->createDir(
+					$backupPath,
+					$config->dataDir . DIRECTORY_SEPARATOR . $index
+				);
 
-			$isOk = $storage->copyPaths($files, $backupPath);
-			println(LogLevel::Info, '   ' . get_op_result($isOk));
-			$result = $result && $isOk;
-			$client->unfreeze($index);
+				$isOk = $storage->copyPaths($files, $backupPath);
+				println(LogLevel::Info, '   ' . get_op_result($isOk));
+				$result = $result && $isOk;
+			} catch (\Throwable $e) {
+				// The shutdown closure reads this flag by reference
+				// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable
+				$isUnfrozen = $client->unfreezeAll();
+				throw $e;
+			} finally {
+				$client->unfreeze($index);
+			}
 		}
 
 		if (!$client->unfreezeAll()) {
