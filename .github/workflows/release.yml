@@ -39,6 +39,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - id: semver-tagger
         uses: manticoresoftware/semver-tagger-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
   vars:
     needs: update-version
     if: needs.update-version.outputs.version != ''
