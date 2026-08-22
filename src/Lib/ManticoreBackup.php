@@ -158,12 +158,13 @@ class ManticoreBackup {
 	  // - Lock all tables to make sure that we will have no new data there
 	  // Make sure that in case any exception or whatever we will unlock all indexes
 		$isUnfrozen = false;
-		$unfreezeFn = function (ManticoreClient $client) use (&$isUnfrozen) {
+		$tableNames = array_keys($tables);
+		$unfreezeFn = function (ManticoreClient $client) use (&$isUnfrozen, $tableNames) {
 			if ($isUnfrozen) { // @phpstan-ignore-line
 				return;
 			}
 
-			static::unfreezeAllOnShutdown($client);
+			static::unfreezeAllOnShutdown($client, $tableNames);
 		};
 		register_shutdown_function($unfreezeFn, $client);
 
@@ -213,14 +214,14 @@ class ManticoreBackup {
 			} catch (\Throwable $e) {
 				// The shutdown closure reads this flag by reference
 				// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable
-				$isUnfrozen = $client->unfreezeAll();
+				$isUnfrozen = $client->unfreezeAll($tableNames);
 				throw $e;
 			} finally {
 				$client->unfreeze($index);
 			}
 		}
 
-		if (!$client->unfreezeAll()) {
+		if (!$client->unfreezeAll($tableNames)) {
 			throw new \RuntimeException('Failed to unlock tables');
 		}
 		// The shutdown closure reads this flag by reference
@@ -254,11 +255,12 @@ class ManticoreBackup {
 	 * Last resort unfreeze on shutdown that must never throw, only warn
 	 *
 	 * @param ManticoreClient $client
+	 * @param array<string> $tables
 	 * @return void
 	 */
-	protected static function unfreezeAllOnShutdown(ManticoreClient $client): void {
+	protected static function unfreezeAllOnShutdown(ManticoreClient $client, array $tables): void {
 		try {
-			$client->unfreezeAll();
+			$client->unfreezeAll($tables);
 		} catch (\Throwable $e) {
 			println(LogLevel::Warn, 'Failed to unlock tables: ' . $e->getMessage());
 		}

@@ -10,6 +10,7 @@
 */
 
 use Manticoresearch\Backup\Lib\LogLevel;
+use Manticoresearch\Backup\Lib\ManticoreAuth;
 use Manticoresearch\Backup\Lib\ManticoreBackup;
 use Manticoresearch\Backup\Lib\Searchd;
 use Manticoresearch\Backup\Lib\TextColor;
@@ -20,7 +21,7 @@ use Manticoresoftware\Telemetry\Metric;
  *
  * @param array<string,string> $args
  *  Parsed args with getopt
- * @return array{configs:array<string>,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool,force:bool}
+ * @return array{configs:array<string>,backup-dir:?string,compress:bool,tables:array<string>,restore:string|false,disable-telemetry:bool,force:bool,auth:ManticoreAuth}
  *  Options that we can use for access with predefined keys: config, backup-dir, all, tables
  */
 function validate_args(array $args): array {
@@ -32,6 +33,11 @@ function validate_args(array $args): array {
 		'restore' => $args['restore'] ?? false,
 		'force' => isset($args['force']),
 		'disable-telemetry' => isset($args['disable-telemetry']),
+		'auth' => new ManticoreAuth(
+			user: validate_get_arg_or_env($args, 'user', 'MANTICORE_BACKUP_USER'),
+			password: validate_get_arg_or_env($args, 'password', 'MANTICORE_BACKUP_PASSWORD'),
+			token: validate_get_arg_or_env($args, 'token', 'MANTICORE_BACKUP_TOKEN'),
+		),
 	];
 
 	if (!isset($args['restore'])) {
@@ -95,6 +101,14 @@ function validate_get_configs(array $args): array {
 }
 
 /**
+ * @param array<string,string> $args
+ */
+function validate_get_arg_or_env(array $args, string $arg, string $env): ?string {
+	$value = $args[$arg] ?? getenv($env);
+	return is_string($value) && $value !== '' ? $value : null;
+}
+
+/**
  * Little helper to conver bytes to human readable size
  *
  * @param int $bytes
@@ -125,6 +139,7 @@ function get_input_args(): array {
 	$args = getopt(
 		'', [
 			'help', 'config::', 'tables:', 'backup-dir:',
+			'user:', 'password:', 'token:',
 			'compress', 'restore::', 'unlock', 'version', 'disable-telemetry',
 			'force',
 		]
@@ -134,8 +149,8 @@ function get_input_args(): array {
 	}
 
   // Do not let user to pass non supported options to script
-	$supportedArgs = '!--help!--config!--tables!--backup-dir!--compress!--restore!'
-		. '--unlock!--version!--disable-telemetry!--force!'
+	$supportedArgs = '!--help!--config!--tables!--backup-dir!--user!--password!--token!'
+		. '--compress!--restore!--unlock!--version!--disable-telemetry!--force!'
 	;
 	$argv = $_SERVER['argv'];
 	array_shift($argv);
@@ -240,6 +255,25 @@ function show_help(): void {
 	. "  If you want to backup all, just skip this argument. All the provided tables$nl"
 	. "  are supposed to exist in the Manticore instance you are backing up from,$nl"
 	. "  otherwise the backup will fail.$nl$nl"
+	. colored('--user', TextColor::LightGreen)
+	  . '='
+	  . colored('name', TextColor::LightBlue)
+	  . $nl
+	. "  Manticore user for authenticated HTTP backup requests. You can also use$nl"
+	. "  environment variable MANTICORE_BACKUP_USER.$nl$nl"
+	. colored('--password', TextColor::LightGreen)
+	  . '='
+	  . colored('password', TextColor::LightBlue)
+	  . $nl
+	. "  Manticore password for authenticated HTTP backup requests. You can also use$nl"
+	. "  environment variable MANTICORE_BACKUP_PASSWORD.$nl$nl"
+	. colored('--token', TextColor::LightGreen)
+	  . '='
+	  . colored('token', TextColor::LightBlue)
+	  . $nl
+	. "  Manticore bearer token for authenticated HTTP backup requests. You can also$nl"
+	. "  use environment variable MANTICORE_BACKUP_TOKEN. If token is set, it takes$nl"
+	. "  precedence over user/password.$nl$nl"
 	. colored('--compress', TextColor::LightGreen) . $nl
 	. "  Whether the backed up files should be compressed. Not by default.$nl$nl"
 	. colored('--restore[=backup]', TextColor::LightGreen) . $nl

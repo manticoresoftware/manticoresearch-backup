@@ -84,9 +84,10 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreUnfreezesTablesBeforeReturning(): void {
 		[$config, $storage] = $this->initTestEnv();
-		$client = new ManticoreClient([$config]);
+		$client = new ManticoreSelectiveUnfreezeClient([$config]);
 
 		ManticoreBackup::run('store', [$client, $storage, ['people']]);
+		$this->assertSame(['people'], $client->lastUnfreezeAllTables);
 		$result = $client->execute('SHOW LOCKS');
 		$lockedTables = array_column($result[0]['data'], 'Name');
 
@@ -118,9 +119,10 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$method = $reflection->getMethod('unfreezeAllOnShutdown');
 		$method->setAccessible(true);
 
-		$method->invoke(null, $client);
+		$method->invoke(null, $client, ['people']);
 
 		$this->assertTrue($client->unfreezeAllCalled);
+		$this->assertSame(['people'], $client->lastUnfreezeAllTables);
 	}
 
 	public function testStoreUnexistingIndexOnly(): void {
@@ -167,8 +169,10 @@ class ManticoreBackupTest extends SearchdTestCase {
 					return false;
 				}
 
-				$fn = $client->getSignalHandlerFn($storage);
+				$tables = ['people', 'movie'];
+				$fn = $client->getSignalHandlerFn($storage, $tables);
 				$fn(15);
+				$this->assertSame($tables, $client->lastUnfreezeAllTables);
 
 				return true;
 			}
@@ -181,9 +185,6 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$this->expectOutputRegex('/Unfreezing all tables/');
 		$this->expectOutputRegex('/movie...' . PHP_EOL . '[^\r\n]+✓ OK/');
 		$this->expectOutputRegex('/people...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people_dist_agent...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people_dist_local...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people_pq...' . PHP_EOL . '[^\r\n]+✓ OK/');
 
 		$backupPaths = $storage->getBackupPaths();
 		$this->assertDirectoryDoesNotExist($backupPaths['root']);
@@ -397,6 +398,8 @@ class ManticoreBackupTest extends SearchdTestCase {
 // @codingStandardsIgnoreStart
 class ManticoreMockedClient extends ManticoreClient {
   // @codingStandardsIgnoreEnd
+	/** @var array<string> */
+	public array $lastUnfreezeAllTables = [];
 	protected int $timeoutSec = 0;
 	protected Closure $timeoutFn;
 
@@ -421,6 +424,11 @@ class ManticoreMockedClient extends ManticoreClient {
 		return $this;
 	}
 
+	public function unfreezeAll(?array $tables = null): bool {
+		$this->lastUnfreezeAllTables = $tables ?? [];
+		return parent::unfreezeAll($tables);
+	}
+
   /**
    * @inheritdoc
    */
@@ -443,13 +451,28 @@ class ManticoreMockedClient extends ManticoreClient {
 class ManticoreUnfreezeFailedClient extends ManticoreClient {
   // @codingStandardsIgnoreEnd
 	public bool $unfreezeAllCalled = false;
+	/** @var array<string> */
+	public array $lastUnfreezeAllTables = [];
 
 	public function __construct() {
 	}
 
-	public function unfreezeAll(): bool {
+	public function unfreezeAll(?array $tables = null): bool {
 		$this->unfreezeAllCalled = true;
+		$this->lastUnfreezeAllTables = $tables ?? [];
 		throw new SearchdException('failed to execute query: "SHOW TABLES"');
+	}
+}
+
+// @codingStandardsIgnoreStart
+class ManticoreSelectiveUnfreezeClient extends ManticoreClient {
+  // @codingStandardsIgnoreEnd
+	/** @var array<string> */
+	public array $lastUnfreezeAllTables = [];
+
+	public function unfreezeAll(?array $tables = null): bool {
+		$this->lastUnfreezeAllTables = $tables ?? [];
+		return parent::unfreezeAll($tables);
 	}
 }
 

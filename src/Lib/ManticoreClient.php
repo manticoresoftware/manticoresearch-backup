@@ -25,12 +25,14 @@ class ManticoreClient {
 	 * @var array<ManticoreConfig>
 	 */
 	protected array $configs;
+	protected ?ManticoreAuth $auth = null;
 
 	/**
 	 * @param array<ManticoreConfig> $configs [description]
 	 */
-	public function __construct(array $configs) {
+	public function __construct(array $configs, ?ManticoreAuth $auth = null) {
 		$this->configs = $configs;
+		$this->auth = $auth;
 
 		$versions = $this->getVersions();
 		$verNum = strtok($versions['manticore'], ' ');
@@ -99,14 +101,15 @@ class ManticoreClient {
    * Helper function that we will use for first init of client and config
    *
    * @param array<string> $configPaths
+   * @param ?ManticoreAuth $auth
    * @return self
    */
-	public static function init(array $configPaths): self {
+	public static function init(array $configPaths, ?ManticoreAuth $auth = null): self {
 		$configs = [];
 		foreach ($configPaths as $configPath) {
 			$configs[] = new ManticoreConfig($configPath);
 		}
-		return new ManticoreClient($configs);
+		return new ManticoreClient($configs, $auth);
 	}
 
   /**
@@ -147,15 +150,18 @@ class ManticoreClient {
 	}
 
   /**
-   * This is helper function run unfreeze all available tables
+   * This is helper function to unfreeze the requested tables, or all available tables when omitted
    *
+   * @param null|array<string> $tables
+   *  Tables to unfreeze, or null to query and unfreeze all available tables
    * @return bool
    *  The result of unfreezing
    */
-	public function unfreezeAll(): bool {
+	public function unfreezeAll(?array $tables = null): bool {
 		println(LogLevel::Info, PHP_EOL . 'Unfreezing all tables...');
+		$tables ??= array_keys($this->getTables());
 		return array_reduce(
-			array_keys($this->getTables()), function (bool $carry, string $index): bool {
+			$tables, function (bool $carry, string $index): bool {
 				println(LogLevel::Info, '  ' . $index . '...');
 				$isOk = $this->unfreeze($index);
 				println(LogLevel::Info, '   ' . get_op_result($isOk));
@@ -301,12 +307,17 @@ class ManticoreClient {
 	 *  The result of the query passed to be executed
 	 */
 	public function execute(string $query): array {
+		$headers = array_merge(
+			['Content-type: application/x-www-form-urlencoded'],
+			$this->auth?->getHeaders() ?? []
+		);
 		$opts = [
 			'http' => [
 				'method'  => 'POST',
-				'header'  => 'Content-type: application/x-www-form-urlencoded',
+				'header'  => $headers,
 				'content' => http_build_query(compact('query')),
-				'ignore_errors' => false,
+				// Read daemon error bodies (for example HTTP 401) so we can report the real cause.
+				'ignore_errors' => true,
 			],
 		];
 		$context = stream_context_create($opts);
@@ -334,6 +345,9 @@ class ManticoreClient {
 		if (!is_array($decoded)) {
 			throw new SearchdException(__METHOD__ . ': failed to decode JSON response for query: "' . $query . '"');
 		}
+		if (isset($decoded['error']) && is_string($decoded['error'])) {
+			throw new SearchdException($decoded['error']);
+		}
 
 		/** @var array{0: array{data: array<array<string, string>>, error: string}} $decoded */
 		return $decoded;
@@ -341,15 +355,17 @@ class ManticoreClient {
   /**
    * Get signal handler for received signals on interruption
    *
+   * @param null|array<string> $tables
+   *  Tables to unfreeze, or null to unfreeze all available tables
    * @return \Closure
    */
-	public function getSignalHandlerFn(StorageInterface $storage): \Closure {
-		return function (int $signal) use ($storage): void {
+	public function getSignalHandlerFn(StorageInterface $storage, ?array $tables = null): \Closure {
+		return function (int $signal) use ($storage, $tables): void {
 			println(LogLevel::Warn, 'Caught signal ' . $signal);
 			metric('terminations', 1);
 			metric("signal_$signal", 1);
 			$storage->cleanUp();
-			$this->unfreezeAll();
+			$this->unfreezeAll($tables);
 		};
 	}
 }
