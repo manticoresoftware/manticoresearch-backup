@@ -41,9 +41,33 @@ class ManticoreAuthTest extends TestCase {
 		);
 	}
 
+	public function testBasicAuthPreservesPasswordWhitespace(): void {
+		$auth = new ManticoreAuth(user: 'admin', password: ' password ');
+
+		$this->assertSame(
+			['Authorization: Basic ' . base64_encode('admin: password ')],
+			$auth->getHeaders()
+		);
+	}
+
 	public function testEmptyValuesDoNotCreateHeaders(): void {
-		$auth = new ManticoreAuth(user: ' ', password: '', token: '', delegatedUser: ' ', userAgent: '');
+		$auth = new ManticoreAuth(user: '', password: '', token: '', delegatedUser: '', userAgent: '');
 
 		$this->assertSame([], $auth->getHeaders());
+	}
+
+	public function testBearerTokenRejectsLineBreaks(): void {
+		$this->expectException(InvalidArgumentException::class);
+		new ManticoreAuth(token: "token\r\nInjected: value");
+	}
+
+	public function testDelegatedUserRejectsLineBreaks(): void {
+		$this->expectException(InvalidArgumentException::class);
+		new ManticoreAuth(delegatedUser: "alice\nInjected: value");
+	}
+
+	public function testUserAgentRejectsLineBreaks(): void {
+		$this->expectException(InvalidArgumentException::class);
+		new ManticoreAuth(userAgent: "backup\rInjected: value");
 	}
 }

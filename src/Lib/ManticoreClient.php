@@ -364,8 +364,17 @@ class ManticoreClient {
 			println(LogLevel::Warn, 'Caught signal ' . $signal);
 			metric('terminations', 1);
 			metric("signal_$signal", 1);
-			$storage->cleanUp();
-			$this->unfreezeAll($tables);
+			try {
+				$storage->cleanUp();
+			} catch (\Throwable $e) {
+				println(LogLevel::Warn, 'Failed to clean up interrupted backup: ' . $e->getMessage());
+			}
+			try {
+				$this->unfreezeAll($tables);
+			} catch (\Throwable $e) {
+				println(LogLevel::Warn, 'Failed to unlock interrupted backup: ' . $e->getMessage());
+			}
+			throw new \RuntimeException("Backup interrupted by signal $signal", 128 + $signal);
 		};
 	}
 }

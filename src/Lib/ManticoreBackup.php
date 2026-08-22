@@ -160,73 +160,74 @@ class ManticoreBackup {
 		$isUnfrozen = false;
 		$tableNames = array_keys($tables);
 		$unfreezeFn = function (ManticoreClient $client) use (&$isUnfrozen, $tableNames) {
-			if ($isUnfrozen) { // @phpstan-ignore-line
+			if ($isUnfrozen) {
 				return;
 			}
 
-			static::unfreezeAllOnShutdown($client, $tableNames);
+			$isUnfrozen = static::unfreezeAllOnShutdown($client, $tableNames);
 		};
 		register_shutdown_function($unfreezeFn, $client);
 
-	  // And run FLUSH ATTRIBUTES
-	  // We do lock twice just to keep logic for crawling one by one for each index
-		$client->freeze(array_keys($tables));
-		$client->flushAttributes();
-
-		$config = $client->getConfig();
-
-	  // - First backup index data
-	  // Lets copy index one by one with freeze
 		$totalTableSize = 0;
 		$totalTableCount = 0;
-		println(LogLevel::Info, 'Backing up tables...');
-		foreach ($tables as $index => $type) {
-		  // We will have no directory for distributed indexes and so should not back it up
-			if ($type === 'distributed') {
-				println(
-					LogLevel::Info,
-					'  ' . $index . ' ('  . $type . ')...'
-				);
-				println(LogLevel::Info, '  ' . colored('SKIP', TextColor::LightYellow));
-				continue;
+		try {
+		  // Run FLUSH ATTRIBUTES while all selected tables are frozen.
+		  // We lock twice to keep the existing one-by-one copy logic.
+			$client->freeze($tableNames);
+			$client->flushAttributes();
+			$config = $client->getConfig();
+
+		  // Back up table data one table at a time.
+			println(LogLevel::Info, 'Backing up tables...');
+			foreach ($tables as $index => $type) {
+			  // Distributed tables have no directory to copy.
+				if ($type === 'distributed') {
+					println(
+						LogLevel::Info,
+						'  ' . $index . ' ('  . $type . ')...'
+					);
+					println(LogLevel::Info, '  ' . colored('SKIP', TextColor::LightYellow));
+					continue;
+				}
+
+				try {
+					$files = $client->freeze($index);
+					$tableSize = $storage::calculateFilesSize($files);
+					$totalTableSize += $tableSize;
+					++$totalTableCount;
+					metric('backup_table_size', $tableSize);
+					println(
+						LogLevel::Info,
+						'  ' . $index . ' ('  . $type . ') [' . format_bytes($tableSize) . ']...'
+					);
+
+					$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
+					$storage->createDir(
+						$backupPath,
+						$config->dataDir . DIRECTORY_SEPARATOR . $index
+					);
+
+					$isOk = $storage->copyPaths($files, $backupPath);
+					println(LogLevel::Info, '   ' . get_op_result($isOk));
+					$result = $result && $isOk;
+				} finally {
+					$client->unfreeze($index);
+				}
 			}
 
-			$files = $client->freeze($index);
-			try {
-				$tableSize = $storage::calculateFilesSize($files);
-				$totalTableSize += $tableSize;
-				++$totalTableCount;
-				metric('backup_table_size', $tableSize);
-				println(
-					LogLevel::Info,
-					'  ' . $index . ' ('  . $type . ') [' . format_bytes($tableSize) . ']...'
-				);
-
-				$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
-				$storage->createDir(
-					$backupPath,
-					$config->dataDir . DIRECTORY_SEPARATOR . $index
-				);
-
-				$isOk = $storage->copyPaths($files, $backupPath);
-				println(LogLevel::Info, '   ' . get_op_result($isOk));
-				$result = $result && $isOk;
-			} catch (\Throwable $e) {
-				// The shutdown closure reads this flag by reference
-				// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable
-				$isUnfrozen = $client->unfreezeAll($tableNames);
-				throw $e;
-			} finally {
-				$client->unfreeze($index);
+			if (!$client->unfreezeAll($tableNames)) {
+				throw new \RuntimeException('Failed to unlock tables');
 			}
+			// The shutdown closure reads this flag by reference.
+			$isUnfrozen = true;
+		} catch (\Throwable $e) {
+			// Buddy runs in a long-lived process, so clean up immediately instead of
+			// relying on the process-level shutdown callback.
+			// The shutdown closure reads this flag by reference.
+			// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable
+			$isUnfrozen = static::unfreezeAllOnShutdown($client, $tableNames);
+			throw $e;
 		}
-
-		if (!$client->unfreezeAll($tableNames)) {
-			throw new \RuntimeException('Failed to unlock tables');
-		}
-		// The shutdown closure reads this flag by reference
-		// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable
-		$isUnfrozen = true;
 
 		if (false === $result) {
 			metric('backup_no_permissions', 1);
@@ -256,13 +257,14 @@ class ManticoreBackup {
 	 *
 	 * @param ManticoreClient $client
 	 * @param array<string> $tables
-	 * @return void
+	 * @return bool
 	 */
-	protected static function unfreezeAllOnShutdown(ManticoreClient $client, array $tables): void {
+	protected static function unfreezeAllOnShutdown(ManticoreClient $client, array $tables): bool {
 		try {
-			$client->unfreezeAll($tables);
+			return $client->unfreezeAll($tables);
 		} catch (\Throwable $e) {
 			println(LogLevel::Warn, 'Failed to unlock tables: ' . $e->getMessage());
+			return false;
 		}
 	}
 

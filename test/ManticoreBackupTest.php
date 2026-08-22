@@ -113,6 +113,25 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$this->assertNotContains('people', $lockedTables);
 	}
 
+	public function testStoreUnfreezesTablesWhenFlushAttributesFails(): void {
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreFlushAttributesFailedClient([$config]);
+
+		$exception = null;
+		try {
+			ManticoreBackup::run('store', [$client, $storage, ['people']]);
+		} catch (Throwable $e) {
+			$exception = $e;
+		}
+
+		$this->assertInstanceOf(RuntimeException::class, $exception);
+		$this->assertSame('Injected FLUSH ATTRIBUTES failure', $exception->getMessage());
+		$this->assertSame(['people'], $client->lastUnfreezeAllTables);
+		$result = $client->execute('SHOW LOCKS');
+		$lockedTables = array_column($result[0]['data'], 'Name');
+		$this->assertNotContains('people', $lockedTables);
+	}
+
 	public function testShutdownUnfreezeAttemptsUnfreezeWhenEndpointIsUnavailable(): void {
 		$client = new ManticoreUnfreezeFailedClient();
 		$reflection = new ReflectionClass(ManticoreBackup::class);
@@ -172,20 +191,24 @@ class ManticoreBackupTest extends SearchdTestCase {
 				$tables = ['people', 'movie'];
 				$fn = $client->getSignalHandlerFn($storage, $tables);
 				$fn(15);
-				$this->assertSame($tables, $client->lastUnfreezeAllTables);
 
 				return true;
 			}
 		);
 
 	  // Run test
-		$this->expectException(Exception::class);
-		ManticoreBackup::run('store', [$client, $storage, ['people', 'movie']]);
-		$this->expectOutputRegex('/Caught signal 15/');
-		$this->expectOutputRegex('/Unfreezing all tables/');
-		$this->expectOutputRegex('/movie...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people...' . PHP_EOL . '[^\r\n]+✓ OK/');
 
+		$exception = null;
+		try {
+			ManticoreBackup::run('store', [$client, $storage, ['people', 'movie']]);
+		} catch (Throwable $e) {
+			$exception = $e;
+		}
+
+		$this->assertInstanceOf(RuntimeException::class, $exception);
+		$this->assertSame('Backup interrupted by signal 15', $exception->getMessage());
+		$this->assertSame(143, $exception->getCode());
+		$this->assertContains(['people', 'movie'], $client->unfreezeAllCalls);
 		$backupPaths = $storage->getBackupPaths();
 		$this->assertDirectoryDoesNotExist($backupPaths['root']);
 	}
@@ -400,6 +423,8 @@ class ManticoreMockedClient extends ManticoreClient {
   // @codingStandardsIgnoreEnd
 	/** @var array<string> */
 	public array $lastUnfreezeAllTables = [];
+	/** @var array<array<string>> */
+	public array $unfreezeAllCalls = [];
 	protected int $timeoutSec = 0;
 	protected Closure $timeoutFn;
 
@@ -426,6 +451,9 @@ class ManticoreMockedClient extends ManticoreClient {
 
 	public function unfreezeAll(?array $tables = null): bool {
 		$this->lastUnfreezeAllTables = $tables ?? [];
+		if ($tables !== null) {
+			$this->unfreezeAllCalls[] = $tables;
+		}
 		return parent::unfreezeAll($tables);
 	}
 
@@ -473,6 +501,14 @@ class ManticoreSelectiveUnfreezeClient extends ManticoreClient {
 	public function unfreezeAll(?array $tables = null): bool {
 		$this->lastUnfreezeAllTables = $tables ?? [];
 		return parent::unfreezeAll($tables);
+	}
+}
+
+// @codingStandardsIgnoreStart
+class ManticoreFlushAttributesFailedClient extends ManticoreSelectiveUnfreezeClient {
+  // @codingStandardsIgnoreEnd
+	public function flushAttributes(): void {
+		throw new RuntimeException('Injected FLUSH ATTRIBUTES failure');
 	}
 }
 

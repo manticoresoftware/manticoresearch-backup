@@ -22,11 +22,11 @@ class ManticoreAuth {
 		public ?string $delegatedUser = null,
 		public ?string $userAgent = null,
 	) {
-		$this->user = static::normalize($this->user);
-		$this->password = static::normalize($this->password);
-		$this->token = static::normalize($this->token);
-		$this->delegatedUser = static::normalize($this->delegatedUser);
-		$this->userAgent = static::normalize($this->userAgent);
+		$this->user = static::normalizeCredential($this->user);
+		$this->password = static::normalizeCredential($this->password);
+		$this->token = static::normalizeHeaderValue($this->token, 'token');
+		$this->delegatedUser = static::normalizeHeaderValue($this->delegatedUser, 'delegated user');
+		$this->userAgent = static::normalizeHeaderValue($this->userAgent, 'user agent');
 	}
 
 	/**
@@ -51,8 +51,15 @@ class ManticoreAuth {
 		return $headers;
 	}
 
-	protected static function normalize(?string $value): ?string {
-		$value = isset($value) ? trim($value) : null;
+	protected static function normalizeCredential(?string $value): ?string {
 		return $value !== '' ? $value : null;
+	}
+
+	protected static function normalizeHeaderValue(?string $value, string $name): ?string {
+		$value = static::normalizeCredential($value);
+		if ($value !== null && strpbrk($value, "\r\n") !== false) {
+			throw new \InvalidArgumentException("Authentication $name must not contain line breaks");
+		}
+		return $value;
 	}
 }
