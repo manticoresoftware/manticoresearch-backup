@@ -83,7 +83,7 @@ echo 'Manticore config file: ' . $config . PHP_EOL
 
 switch (true) {
 	case isset($args['unlock']): // unlock
-		$client = ManticoreClient::init($options['configs']);
+		$client = ManticoreClient::init($options['configs'], $options['auth']);
 		$client->unfreezeAll();
 	break;
 
@@ -156,14 +156,14 @@ switch (true) {
 	break;
 
 	default: // backup
-		$client = ManticoreClient::init($options['configs']);
+		$client = ManticoreClient::init($options['configs'], $options['auth']);
 
 		$storage = StorageFactory::create($options['backup-dir'], $options['compress']);
 
 	  // In case of backing up it's important to install signal handler
 		if (function_exists('pcntl_async_signals')) {
 			pcntl_async_signals(true);
-			$signalHandler = $client->getSignalHandlerFn($storage);
+			$signalHandler = $client->getSignalHandlerFn($storage, $options['tables'] ?: null);
 			pcntl_signal(SIGQUIT, $signalHandler);
 			pcntl_signal(SIGINT, $signalHandler);
 			pcntl_signal(SIGTERM, $signalHandler);

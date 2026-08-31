@@ -29,6 +29,16 @@ OPTIONS:
   If you want to backup all, just skip this argument. All the provided tables
   are supposed to exist in the Manticore instance you are backing up from,
   otherwise the backup will fail.
+--user=name
+  Manticore user for authenticated HTTP backup requests. You can also use
+  environment variable MANTICORE_BACKUP_USER.
+--password=password
+  Manticore password for authenticated HTTP backup requests. You can also use
+  environment variable MANTICORE_BACKUP_PASSWORD.
+--token=token
+  Manticore bearer token for authenticated HTTP backup requests. You can also
+  use environment variable MANTICORE_BACKUP_TOKEN. If token is set, it takes
+  precedence over user/password.
 --compress
   Whether the backed up files should be compressed. Not by default.
 --restore[=backup]

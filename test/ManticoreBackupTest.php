@@ -84,9 +84,10 @@ class ManticoreBackupTest extends SearchdTestCase {
 
 	public function testStoreUnfreezesTablesBeforeReturning(): void {
 		[$config, $storage] = $this->initTestEnv();
-		$client = new ManticoreClient([$config]);
+		$client = new ManticoreSelectiveUnfreezeClient([$config]);
 
 		ManticoreBackup::run('store', [$client, $storage, ['people']]);
+		$this->assertSame(['people'], $client->lastUnfreezeAllTables);
 		$result = $client->execute('SHOW LOCKS');
 		$lockedTables = array_column($result[0]['data'], 'Name');
 
@@ -112,15 +113,35 @@ class ManticoreBackupTest extends SearchdTestCase {
 		$this->assertNotContains('people', $lockedTables);
 	}
 
+	public function testStoreUnfreezesTablesWhenFlushAttributesFails(): void {
+		[$config, $storage] = $this->initTestEnv();
+		$client = new ManticoreFlushAttributesFailedClient([$config]);
+
+		$exception = null;
+		try {
+			ManticoreBackup::run('store', [$client, $storage, ['people']]);
+		} catch (Throwable $e) {
+			$exception = $e;
+		}
+
+		$this->assertInstanceOf(RuntimeException::class, $exception);
+		$this->assertSame('Injected FLUSH ATTRIBUTES failure', $exception->getMessage());
+		$this->assertSame(['people'], $client->lastUnfreezeAllTables);
+		$result = $client->execute('SHOW LOCKS');
+		$lockedTables = array_column($result[0]['data'], 'Name');
+		$this->assertNotContains('people', $lockedTables);
+	}
+
 	public function testShutdownUnfreezeAttemptsUnfreezeWhenEndpointIsUnavailable(): void {
 		$client = new ManticoreUnfreezeFailedClient();
 		$reflection = new ReflectionClass(ManticoreBackup::class);
 		$method = $reflection->getMethod('unfreezeAllOnShutdown');
 		$method->setAccessible(true);
 
-		$method->invoke(null, $client);
+		$method->invoke(null, $client, ['people']);
 
 		$this->assertTrue($client->unfreezeAllCalled);
+		$this->assertSame(['people'], $client->lastUnfreezeAllTables);
 	}
 
 	public function testStoreUnexistingIndexOnly(): void {
@@ -167,7 +188,8 @@ class ManticoreBackupTest extends SearchdTestCase {
 					return false;
 				}
 
-				$fn = $client->getSignalHandlerFn($storage);
+				$tables = ['people', 'movie'];
+				$fn = $client->getSignalHandlerFn($storage, $tables);
 				$fn(15);
 
 				return true;
@@ -175,16 +197,18 @@ class ManticoreBackupTest extends SearchdTestCase {
 		);
 
 	  // Run test
-		$this->expectException(Exception::class);
-		ManticoreBackup::run('store', [$client, $storage, ['people', 'movie']]);
-		$this->expectOutputRegex('/Caught signal 15/');
-		$this->expectOutputRegex('/Unfreezing all tables/');
-		$this->expectOutputRegex('/movie...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people_dist_agent...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people_dist_local...' . PHP_EOL . '[^\r\n]+✓ OK/');
-		$this->expectOutputRegex('/people_pq...' . PHP_EOL . '[^\r\n]+✓ OK/');
 
+		$exception = null;
+		try {
+			ManticoreBackup::run('store', [$client, $storage, ['people', 'movie']]);
+		} catch (Throwable $e) {
+			$exception = $e;
+		}
+
+		$this->assertInstanceOf(RuntimeException::class, $exception);
+		$this->assertSame('Backup interrupted by signal 15', $exception->getMessage());
+		$this->assertSame(143, $exception->getCode());
+		$this->assertContains(['people', 'movie'], $client->unfreezeAllCalls);
 		$backupPaths = $storage->getBackupPaths();
 		$this->assertDirectoryDoesNotExist($backupPaths['root']);
 	}
@@ -397,6 +421,10 @@ class ManticoreBackupTest extends SearchdTestCase {
 // @codingStandardsIgnoreStart
 class ManticoreMockedClient extends ManticoreClient {
   // @codingStandardsIgnoreEnd
+	/** @var array<string> */
+	public array $lastUnfreezeAllTables = [];
+	/** @var array<array<string>> */
+	public array $unfreezeAllCalls = [];
 	protected int $timeoutSec = 0;
 	protected Closure $timeoutFn;
 
@@ -421,6 +449,14 @@ class ManticoreMockedClient extends ManticoreClient {
 		return $this;
 	}
 
+	public function unfreezeAll(?array $tables = null): bool {
+		$this->lastUnfreezeAllTables = $tables ?? [];
+		if ($tables !== null) {
+			$this->unfreezeAllCalls[] = $tables;
+		}
+		return parent::unfreezeAll($tables);
+	}
+
   /**
    * @inheritdoc
    */
@@ -443,13 +479,36 @@ class ManticoreMockedClient extends ManticoreClient {
 class ManticoreUnfreezeFailedClient extends ManticoreClient {
   // @codingStandardsIgnoreEnd
 	public bool $unfreezeAllCalled = false;
+	/** @var array<string> */
+	public array $lastUnfreezeAllTables = [];
 
 	public function __construct() {
 	}
 
-	public function unfreezeAll(): bool {
+	public function unfreezeAll(?array $tables = null): bool {
 		$this->unfreezeAllCalled = true;
+		$this->lastUnfreezeAllTables = $tables ?? [];
 		throw new SearchdException('failed to execute query: "SHOW TABLES"');
+	}
+}
+
+// @codingStandardsIgnoreStart
+class ManticoreSelectiveUnfreezeClient extends ManticoreClient {
+  // @codingStandardsIgnoreEnd
+	/** @var array<string> */
+	public array $lastUnfreezeAllTables = [];
+
+	public function unfreezeAll(?array $tables = null): bool {
+		$this->lastUnfreezeAllTables = $tables ?? [];
+		return parent::unfreezeAll($tables);
+	}
+}
+
+// @codingStandardsIgnoreStart
+class ManticoreFlushAttributesFailedClient extends ManticoreSelectiveUnfreezeClient {
+  // @codingStandardsIgnoreEnd
+	public function flushAttributes(): void {
+		throw new RuntimeException('Injected FLUSH ATTRIBUTES failure');
 	}
 }
 
