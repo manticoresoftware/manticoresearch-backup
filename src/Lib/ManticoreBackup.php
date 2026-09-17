@@ -108,6 +108,7 @@ class ManticoreBackup {
    * @return void
    * @throws \RuntimeException
    */
+	// phpcs:ignore SlevomatCodingStandard.Complexity.Cognitive
 	protected static function store(ManticoreClient $client, StorageInterface $storage, array $tables = []): void {
 		println(LogLevel::Info, 'Starting the backup...');
 		$t = microtime(true);
@@ -130,15 +131,20 @@ class ManticoreBackup {
 
 	  // If we have no tables passed we should to query the client and get all tables we have
 		[$isAll, $tables] = static::validateTables($tables, $client);
+		if (in_array('local', $tables, true)) {
+			println(
+				LogLevel::Warn, 'Plain tables are not protected by FREEZE. Before backup, pause UPDATEs, '
+				. 'indexer jobs and rotations until backup completes; otherwise the backup may be inconsistent.'
+			);
+		}
 
 	  // - backup config files
 		println(LogLevel::Info, 'Backing up config files...');
-		$isOk = $storage->copyPaths(
-			[
-				...array_map(fn ($v) => $v->path, $client->getConfigs()),
-				$client->getConfig()->schemaPath,
-			], $destination['config'], true
-		);
+		$configFiles = array_map(fn ($v) => $v->path, $client->getConfigs());
+		if (isset($client->getConfig()->schemaPath)) {
+			$configFiles[] = $client->getConfig()->schemaPath;
+		}
+		$isOk = $storage->copyPaths($configFiles, $destination['config'], true);
 		println(LogLevel::Info, '  config files - ' . get_op_result($isOk));
 
 		$result = true;
@@ -192,6 +198,9 @@ class ManticoreBackup {
 
 				try {
 					$files = $client->freeze($index);
+					if (!$files && $type === 'local') {
+						$files = $client->getTableFiles($index);
+					}
 					$tableSize = $storage::calculateFilesSize($files);
 					$totalTableSize += $tableSize;
 					++$totalTableCount;
@@ -202,10 +211,7 @@ class ManticoreBackup {
 					);
 
 					$backupPath = $destination['data'] . DIRECTORY_SEPARATOR . $index;
-					$storage->createDir(
-						$backupPath,
-						$config->dataDir . DIRECTORY_SEPARATOR . $index
-					);
+					$storage->createDir($backupPath, $config->getTableDir($index));
 
 					$isOk = $storage->copyPaths($files, $backupPath);
 					println(LogLevel::Info, '   ' . get_op_result($isOk));
@@ -364,15 +370,18 @@ class ManticoreBackup {
 
 		static::validateRestore($storage, $backup['state']);
 
-	  // Valdiate indexes
-		if (!is_dir($config->dataDir)) {
-			metric('restore_config_dir_missing', 1);
-			throw new \Exception('Failed to find data dir, make sure that it exists: ' . $config->dataDir);
-		}
+		if (isset($config->dataDir)) {
+			if (!is_dir($config->dataDir)) {
+				metric('restore_config_dir_missing', 1);
+				throw new \Exception('Failed to find data dir, make sure that it exists: ' . $config->dataDir);
+			}
 
-		$hasFiles = $storage::hasFiles($config->dataDir);
-		if ($hasFiles) {
-			throw new \Exception('The data dir to restore is not empty: ' . $config->dataDir);
+			$hasFiles = $storage::hasFiles($config->dataDir);
+			if ($hasFiles) {
+				throw new \Exception('The data dir to restore is not empty: ' . $config->dataDir);
+			}
+		} else {
+			static::validateRestore($storage, $backup['data'], $config);
 		}
 
 	  // All checks are done here, so we can safely start to move all files
@@ -422,19 +431,23 @@ class ManticoreBackup {
 	 */
 	protected static function getConfigFromBackup(StorageInterface $storage, string $backupPath): ?ManticoreConfig {
 		$fileIterator = $storage->getSortedFileIterator($backupPath);
+		$configPaths = [];
 	  /** @var \SplFileInfo $file */
 		foreach ($fileIterator as $file) {
-			if (!$file->isFile()) {
+			if (!$file->isFile() || !preg_match('/\.conf(?:\.zst)?$/', $file->getFilename())) {
 				continue;
 			}
-
-			// TODO: remove this hardcode, we can store the path to config when doing backup
+			// Preserve config selection for existing multi-config backups.
 			if (in_array($file->getFilename(), ['manticore.conf', 'manticore.conf.zst'], true)) {
 				return new ManticoreConfig($file->getRealPath());
 			}
+			$configPaths[] = $file->getPathname();
 		}
 
-		return null;
+		if (sizeof($configPaths) > 1) {
+			throw new \RuntimeException('Multiple config files in backup; cannot determine the main config safely');
+		}
+		return $configPaths ? new ManticoreConfig($configPaths[0]) : null;
 	}
 
 	/**
@@ -480,7 +493,7 @@ class ManticoreBackup {
 			}
 
 			$from = $file->getRealPath();
-			$to = $config->dataDir . DIRECTORY_SEPARATOR . dirname($storage->getOriginRealPath($file->getRealPath()));
+			$to = $config->getTableDir(dirname($storage->getOriginRealPath($from)));
 			if (!is_dir($to)) {
 				$storage->createDir($to, $file->getPath(), true);
 			}
@@ -571,7 +584,11 @@ class ManticoreBackup {
    * @return void
    * @throws \Exception
    */
-	protected static function validateRestore(StorageInterface $storage, string $backupPath): void {
+	protected static function validateRestore(
+		StorageInterface $storage,
+		string $backupPath,
+		?ManticoreConfig $config = null
+	): void {
 		$fileIterator = $storage->getSortedFileIterator($backupPath);
 	  /** @var \SplFileInfo $file */
 		foreach ($fileIterator as $file) {
@@ -581,7 +598,11 @@ class ManticoreBackup {
 
 			$preservedPath = $storage->getOriginRealPath($file->getRealPath());
 
-			if (is_file($preservedPath)) {
+			if ($config !== null) {
+				$preservedPath = $config->getTableDir(dirname($preservedPath))
+					. DIRECTORY_SEPARATOR . basename($preservedPath);
+			}
+			if (file_exists($preservedPath) || is_link($preservedPath)) {
 				metric('restore_target_exists', 1);
 				throw new \Exception('Destination file already exists: ' . $preservedPath);
 			}

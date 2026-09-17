@@ -29,6 +29,9 @@ class ManticoreConfig {
 
 	public string $schemaPath;
 
+	/** @var array<string,string> */
+	public array $tablePaths = [];
+
   /**
    * Initialization instance and parse the config
    *
@@ -70,8 +73,11 @@ class ManticoreConfig {
    *  The content of the config file
    * @return void
    */
+	// Keep both configuration modes in the existing parser.
+	// phpcs:ignore SlevomatCodingStandard.Complexity.Cognitive
 	protected function parse(string $config): void {
 	  // Set defaults first
+		$config = preg_replace('/(?<!\\\\)#.*$/m', '', $config) ?? $config;
 		$this->host = '127.0.0.1';
 		$this->port = 9308;
 
@@ -99,20 +105,69 @@ class ManticoreConfig {
 		}
 
 		if (!isset($this->dataDir)) {
-			metric('config_data_dir_missing', 1);
-			throw new InvalidPathException('Failed to detect data_dir from config file');
+			$this->parseTablePaths($config);
 		}
 
-		if (!static::isDataDirValid($this->dataDir)) {
+		if (!isset($this->dataDir) && !$this->tablePaths) {
+			metric('config_data_dir_missing', 1);
+			throw new InvalidPathException('Failed to detect data_dir or table paths from config file');
+		}
+
+		if (isset($this->dataDir) && !static::isDataDirValid($this->dataDir)) {
 			$this->dataDir = backup_realpath($this->dataDir);
 			metric('config_data_dir_is_relative', 1);
 		}
 
-		$this->schemaPath = $this->dataDir . '/manticore.json';
+		if (isset($this->dataDir)) {
+			$this->schemaPath = $this->dataDir . '/manticore.json';
+		}
 
 		echo PHP_EOL . 'Manticore config' . PHP_EOL
 			. '  endpoint =  ' . $this->proto . '://' . $this->host . ':' . $this->port . PHP_EOL
 		;
+	}
+
+	/**
+	 * Parse config-managed table paths for configurations without data_dir.
+	 *
+	 * @return void
+	 */
+	protected function parseTablePaths(string $config): void {
+		if (preg_match('/^\s*(?:table|index)\s+[^\s:{]+\s*:/im', $config)) {
+			throw new InvalidPathException('Table inheritance is not supported; use explicit table definitions');
+		}
+		if (!preg_match_all('/^\s*(?:table|index)\s+(\S+)\s*\{(.*?)^\s*\}/ims', $config, $tables, PREG_SET_ORDER)) {
+			return;
+		}
+
+		foreach ($tables as $table) {
+			if (!preg_match('/^\s*path\s*=\s*(.+)$/im', $table[2], $path)) {
+				continue;
+			}
+
+			$value = trim($path[1]);
+			if (!static::isDataDirValid($value)) {
+				throw new InvalidPathException('Config-managed table paths must be absolute: ' . $table[1]);
+			}
+			$this->tablePaths[$table[1]] = $value;
+		}
+	}
+
+	/**
+	 * Get the directory containing a table's files in either configuration mode.
+	 *
+	 * @throws InvalidPathException
+	 */
+	public function getTableDir(string $table): string {
+		if (isset($this->dataDir)) {
+			return $this->dataDir . DIRECTORY_SEPARATOR . $table;
+		}
+
+		if (isset($this->tablePaths[$table])) {
+			return dirname($this->tablePaths[$table]);
+		}
+
+		throw new InvalidPathException('Failed to detect path for table from config file: ' . $table);
 	}
 
 	/**
