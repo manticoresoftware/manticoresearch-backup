@@ -14,6 +14,35 @@ use Manticoresearch\Backup\Lib\ManticoreConfig;
 use PHPUnit\Framework\TestCase;
 
 class ManticoreConfigTest extends TestCase {
+	public function testParsingConfigManagedTablePathsIsValid(): void {
+		$tmpDir = FileStorage::getTmpDir();
+		$configPath = $tmpDir . DIRECTORY_SEPARATOR . 'manticore-plain.conf';
+		file_put_contents(
+			$configPath, <<<"EOF"
+      searchd {
+          listen = 127.0.0.1:9308:http
+      }
+
+      table rt_table {
+          type = rt
+          path = /srv/manticore/rt/rt_table
+          rt_field = title
+      }
+
+      table plain_table {
+          type = plain
+          path = /srv/manticore/plain/plain_table
+      }
+EOF
+		);
+
+		$config = new ManticoreConfig($configPath);
+		$this->assertFalse(isset($config->dataDir));
+		$this->assertFalse(isset($config->schemaPath));
+		$this->assertSame('/srv/manticore/rt', $config->getTableDir('rt_table'));
+		$this->assertSame('/srv/manticore/plain', $config->getTableDir('plain_table'));
+	}
+
 	public function testParsingIsValid(): void {
 		$tmpDir = FileStorage::getTmpDir();
 		$configPath = $tmpDir . DIRECTORY_SEPARATOR . 'manticore.conf';

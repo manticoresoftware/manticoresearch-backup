@@ -191,6 +191,16 @@ class ManticoreClient {
 		return $tables;
 	}
 
+	/**
+	 * Get the active files belonging to a table from the running daemon.
+	 *
+	 * @return array<string>
+	 */
+	public function getTableFiles(string $table): array {
+		$result = $this->execute('SELECT normalized FROM ' . $table . '.@files');
+		return array_map(backup_realpath(...), array_column($result[0]['data'], 'normalized'));
+	}
+
   /**
    * Get manticore, protocol and columnar versions
    *

@@ -4,6 +4,23 @@
 
 Read the [official documentation](https://manual.manticoresearch.com/Securing_and_compacting_a_table/Backup_and_restore) for all the information about using the tool.
 
+## Config-managed tables (without `data_dir`)
+
+RT and plain tables can be backed up using explicit, absolute `path` directives.
+Use a single `.conf` file with standalone `table`/`index` definitions; table
+inheritance is rejected. Restore retains the legacy preference for `manticore.conf`;
+without that filename, it requires exactly one `.conf` file to avoid guessing
+which configuration controls the table paths.
+
+**Plain-table consistency requires operator coordination.** `FREEZE` protects RT
+and percolate tables, but does not lock plain tables. Before starting a backup,
+pause all plain-table UPDATEs, indexer jobs, rotations, and other file writers;
+wait for in-flight operations to finish and keep them paused until backup ends.
+The tool flushes attributes and copies active plain-table files, excluding locks
+and `.new`/`.old` generations. Its warning is not a lock or a consistency check.
+Without this quiescence the backup can be inconsistent. Restore with searchd
+stopped and destination table files absent, including for compressed backups.
+
 ## S3 Storage Support
 
 See the [official documentation](https://manual.manticoresearch.com/Securing_and_compacting_a_table/Backup_and_restore#S3-storage-support) for full details on using S3-compatible storage.
